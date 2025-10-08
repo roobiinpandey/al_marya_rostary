@@ -4,6 +4,8 @@
 
 - [ ] **Code is committed and pushed to GitHub**
 - [ ] **MongoDB Atlas database is set up**
+- [ ] **Firebase project created (for push notifications)**
+- [ ] **Email service configured (SendGrid/Gmail/etc.)**
 - [ ] **Environment variables are documented**
 - [ ] **package.json has correct start script**
 - [ ] **Health check endpoint exists**
@@ -28,22 +30,62 @@ Start Command: npm start
 ```
 
 ### 4. Set Environment Variables
-```
-NODE_ENV=production
-MONGODB_URI=***REMOVED***username:password@cluster.mongodb.net/database
-JWT_SECRET=your-secret-key
+
+**Critical Configuration:**
+```bash
+# Database
+MONGODB_URI=***REMOVED***username:password@cluster.mongodb.net/qahwat_al_emarat
+
+# Security
+JWT_SECRET=your-super-secure-32-plus-character-secret-key
 JWT_EXPIRE=7d
-JWT_REFRESH_SECRET=another-secret-key
-JWT_REFRESH_EXPIRE=30d
+
+# Application
+BASE_URL=https://your-app.onrender.com
 ```
+
+**Firebase Push Notifications (Required for notifications):**
+```bash
+FIREBASE_SERVICE_ACCOUNT_KEY={"type":"service_account","project_id":"..."}
+FIREBASE_PROJECT_ID=your-firebase-project-id
+```
+
+**Email Service (Required for user verification/notifications):**
+```bash
+# For SendGrid (Recommended)
+SMTP_HOST=smtp.sendgrid.net
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=apikey
+SMTP_PASS=SG.your-sendgrid-api-key
+
+# Branding
+EMAIL_FROM_NAME=Qahwat Al Emarat
+EMAIL_FROM_ADDRESS=noreply@yourdomain.com
+```
+
+**⚠️ Configuration Guides:**
+- See `FIREBASE_SETUP_GUIDE.md` for Firebase setup
+- See `EMAIL_SETUP_GUIDE.md` for email service setup
+- See `ENVIRONMENT_VARIABLES.md` for complete reference
 
 ### 5. Deploy & Test
 - [ ] Click "Create Web Service"
 - [ ] Monitor logs for successful deployment
+- [ ] Verify service startup messages:
+  - ✅ MongoDB connected successfully
+  - ✅ Firebase Admin SDK initialized successfully
+  - ✅ Email service configured successfully
 - [ ] Test API endpoints:
   - `GET /health` - Health check
   - `GET /` - API info
   - `POST /api/auth/register` - Test registration
+
+### 6. Verify Service Configuration
+- [ ] **Firebase:** No "simulated" messages in logs
+- [ ] **Email:** No "simulated" messages in logs
+- [ ] **Database:** Connection successful without errors
+- [ ] **Logs:** Check for any warning messages
 
 ## Post-Deployment
 

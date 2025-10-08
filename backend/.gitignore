@@ -108,3 +108,5 @@ uploads/*.png
 uploads/*.gif
 uploads/*.webp
 !uploads/.gitkeep
+# Environment variables - DO NOT COMMIT
+.env

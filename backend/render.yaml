@@ -7,8 +7,40 @@ services:
     buildCommand: npm install
     startCommand: npm start
     envVars:
+      # Basic Configuration
       - key: NODE_ENV
         value: production
       - key: PORT
         generateValue: true
+      
+      # Database Configuration (Set in Dashboard)
+      # MONGODB_URI - MongoDB connection string
+      
+      # Security Configuration (Set in Dashboard)
+      # JWT_SECRET - JWT signing secret (32+ characters)
+      # JWT_EXPIRE - Token expiration (default: 7d)
+      
+      # Application URLs (Set in Dashboard)
+      # BASE_URL - Your app URL (https://your-app.render.com)
+      
+      # Firebase Push Notifications (Set in Dashboard)
+      # FIREBASE_SERVICE_ACCOUNT_KEY - Firebase service account JSON
+      # FIREBASE_PROJECT_ID - Firebase project ID
+      
+      # Email Service Configuration (Set in Dashboard)
+      # SMTP_HOST - Email provider SMTP host
+      # SMTP_PORT - SMTP port (usually 587)
+      # SMTP_SECURE - false for port 587, true for 465
+      # SMTP_USER - SMTP username
+      # SMTP_PASS - SMTP password/API key
+      # EMAIL_FROM_NAME - Sender display name
+      # EMAIL_FROM_ADDRESS - Sender email address
+      
+      # Optional Configuration
+      # BCRYPT_SALT_ROUNDS - Password hashing rounds (default: 12)
+      # MAX_FILE_SIZE - Upload limit in bytes (default: 10MB)
+      # RATE_LIMIT_WINDOW_MS - Rate limiting window (default: 15 minutes)
+      # RATE_LIMIT_MAX_REQUESTS - Max requests per window (default: 100)
+      
     autoDeploy: true
+    healthCheckPath: /health
