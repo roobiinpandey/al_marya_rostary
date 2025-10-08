@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "new-dirham-symbol": "^1.0.3"
+  },
+  "devDependencies": {
+    "firebase-tools": "^14.17.0"
+  }
+}

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qahwat Al Emarat - Business Portal</title>
+    
+    <!-- Google Identity Services script for Google Sign-In 7.x -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #8B4513, #D2691E);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            text-align: center;
+            max-width: 600px;
+            width: 90%;
+        }
+
+        .logo {
+            font-size: 4rem;
+            color: #8B4513;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.2rem;
+        }
+
+        .buttons-container {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+
+        .portal-btn {
+            display: inline-block;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #8B4513, #D2691E);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            transition: transform 0.2s ease;
+            min-width: 200px;
+            text-align: center;
+        }
+
+        .portal-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .portal-btn.secondary {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+        }
+
+        .info {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f8f8;
+            border-radius: 10px;
+            border-left: 4px solid #8B4513;
+        }
+
+        .info h3 {
+            color: #8B4513;
+            margin-bottom: 10px;
+        }
+
+        .info p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .credentials {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 4px solid #856404;
+        }
+
+        .credentials strong {
+            color: #856404;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                margin: 20px;
+                padding: 30px 20px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .buttons-container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .portal-btn {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">☕</div>
+        <h1>Qahwat Al Emarat</h1>
+        <p class="subtitle">Business Management Portal</p>
+
+        <div class="buttons-container">
+            <a href="admin.html" class="portal-btn">Admin Panel</a>
+            <a href="#" class="portal-btn secondary" onclick="alert('Customer app coming soon!')">Customer App</a>
+        </div>
+
+        <div class="info">
+            <h3>Welcome to Your Business Portal</h3>
+            <p>Manage your coffee business operations from this central hub. Access the admin panel to handle inventory, orders, analytics, and customer management.</p>
+
+            <div class="credentials">
+                <p><strong>Admin Panel Credentials:</strong></p>
+                <p>Username: admin<br>
+                Password: qahwat2024</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,149 @@
+<!DOCTYPE html><!DOCTYPE html>
+
+<html lang="en"><html>
+
+<head><head>
+
+    <meta charset="UTF-8">  <!--
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">    If you are serving your web app in a path other than the root, change the
+
+    <title>Qahwat Al Emarat - Admin Access</title>    href value below to reflect the base path you are serving from.
+
+    <style>
+
+        body {    The path provided below has to start and end with a slash "/" in order for
+
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;    it to work correctly.
+
+            background: linear-gradient(135deg, #8B4513, #D2691E);
+
+            margin: 0;    For more details:
+
+            padding: 0;    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
+
+            min-height: 100vh;
+
+            display: flex;    This is a placeholder for base href that will be replaced by the value of
+
+            align-items: center;    the `--base-href` argument provided to `flutter build`.
+
+            justify-content: center;  -->
+
+        }  <base href="$FLUTTER_BASE_HREF">
+
+
+
+        .container {  <meta charset="UTF-8">
+
+            background: white;  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+
+            border-radius: 20px;  <meta name="description" content="A new Flutter project.">
+
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+
+            padding: 40px;  <!-- iOS meta tags & icons -->
+
+            text-align: center;  <meta name="mobile-web-app-capable" content="yes">
+
+            max-width: 500px;  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+            width: 90%;  <meta name="apple-mobile-web-app-title" content="qahwat_al_emarat">
+
+        }  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+
+
+        .logo {  <!-- Favicon -->
+
+            font-size: 4rem;  <link rel="icon" type="image/png" href="favicon.png"/>
+
+            color: #8B4513;
+
+            margin-bottom: 20px;  <title>qahwat_al_emarat</title>
+
+        }  <link rel="manifest" href="manifest.json">
+
+</head>
+
+        h1 {<body>
+
+            color: #333;  <script src="flutter_bootstrap.js" async></script>
+
+            margin-bottom: 10px;</body>
+
+            font-size: 2.5rem;</html>
+
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.2rem;
+        }
+
+        .admin-btn {
+            display: inline-block;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #8B4513, #D2691E);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            transition: transform 0.2s ease;
+            margin-top: 20px;
+        }
+
+        .admin-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .info {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f8f8;
+            border-radius: 10px;
+            border-left: 4px solid #8B4513;
+        }
+
+        .info h3 {
+            color: #8B4513;
+            margin-bottom: 10px;
+        }
+
+        .info p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                margin: 20px;
+                padding: 30px 20px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">☕</div>
+        <h1>Qahwat Al Emarat</h1>
+        <p class="subtitle">Business Management Portal</p>
+
+        <a href="admin.html" class="admin-btn">Access Admin Panel</a>
+
+        <div class="info">
+            <h3>Admin Access</h3>
+            <p>Use this portal to manage your coffee business operations, including orders, inventory, analytics, and customer management.</p>
+            <p><strong>Default Credentials:</strong><br>
+            Username: admin<br>
+            Password: qahwat2024</p>
+        </div>
+    </div>
+</body>
+</html>
