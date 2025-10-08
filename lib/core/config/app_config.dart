@@ -5,7 +5,8 @@ class AppConfig {
   static const String appVersion = '1.0.0';
 
   // API Configuration
-  static const String baseUrl = 'https://api.qahwat.com';
+  static const String baseUrl = 'https://***REMOVED***.onrender.com';
+  static const String apiUrl = '$baseUrl/api';
   static const Duration apiTimeout = Duration(seconds: 30);
 
   // Colors
