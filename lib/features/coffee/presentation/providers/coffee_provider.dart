@@ -29,9 +29,17 @@ class CoffeeProvider with ChangeNotifier {
 
   // Initialize the provider
   Future<void> _init() async {
-    await _coffeeApiService.init();
-    await loadCoffees();
-    await loadCategories();
+    try {
+      // Try to load real data from MongoDB first
+      await _coffeeApiService.init();
+      await loadCoffees();
+      await loadCategories();
+      debugPrint('✅ Successfully loaded real MongoDB data');
+    } catch (e) {
+      debugPrint('⚠️ MongoDB failed, using fallback data: $e');
+      // Only use fallback if MongoDB completely fails
+      _loadMockDataFallback();
+    }
   }
 
   // Load all coffees from API
@@ -46,6 +54,7 @@ class CoffeeProvider with ChangeNotifier {
       _clearError();
 
       debugPrint('🔄 Loading coffees from API...');
+
       final coffees = await _coffeeApiService.fetchCoffeeProducts(
         page: page,
         limit: limit,
@@ -54,11 +63,10 @@ class CoffeeProvider with ChangeNotifier {
       );
 
       _coffees = coffees;
-
       // Set featured coffees (first 4 or those marked as featured)
       _featuredCoffees = coffees.take(4).toList();
+      debugPrint('✅ Loaded ${coffees.length} real coffees from MongoDB API');
 
-      debugPrint('✅ Loaded ${coffees.length} coffees from API');
       notifyListeners();
     } catch (e) {
       _setError('Failed to load coffees: ${e.toString()}');

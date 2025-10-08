@@ -224,10 +224,10 @@ flutter build apk --release --target-platform android-arm
    flutter build apk --release
    ```
 
-## 📊 File Sizes (Approximate)
+## 📊 File Sizes (Current Build)
 
-- **Debug APK**: ~50-80 MB (includes debugging symbols)
-- **Release APK**: ~20-40 MB (optimized, no debug info)
+- **Debug APK**: ~164 MB (includes debugging symbols)
+- **Release APK**: ~53 MB (optimized, production-ready)
 - **Split APKs**: ~15-25 MB each (architecture-specific)
 
 ## 🔄 Continuous Updates

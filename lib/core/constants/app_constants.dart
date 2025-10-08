@@ -1,7 +1,7 @@
 /// App-wide constants for Qahwat Al Emarat
 class AppConstants {
   // API Endpoints
-  static const String baseUrl = 'http://localhost:5001';
+  static const String baseUrl = 'https://***REMOVED***.onrender.com';
   static const String coffeeEndpoint = '/api/coffees';
   static const String categoriesEndpoint = '/api/categories';
   static const String slidersEndpoint = '/api/sliders';

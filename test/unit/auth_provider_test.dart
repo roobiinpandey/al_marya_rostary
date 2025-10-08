@@ -74,24 +74,30 @@ void main() {
 
     test('register success should update state to authenticated', () async {
       final mockResponse = AuthResponse(
-        success: true,
+        accessToken: 'access_token',
+        refreshToken: 'refresh_token',
+        expiresIn: DateTime.now()
+            .add(const Duration(hours: 1))
+            .millisecondsSinceEpoch,
+        tokenType: 'Bearer',
         user: User(
           id: '1',
           name: 'New User',
           email: 'new@example.com',
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
+          isEmailVerified: true,
+          roles: ['customer'],
           isAnonymous: false,
         ),
-        tokenType: 'Bearer',
       );
 
       when(
         mockAuthRepository.register(
-          'New User',
-          'new@example.com',
-          'password',
-          'password',
+          name: 'New User',
+          email: 'new@example.com',
+          password: 'password',
+          confirmPassword: 'password',
           phone: null,
         ),
       ).thenAnswer((_) async => mockResponse);
@@ -111,10 +117,10 @@ void main() {
     test('register failure should update state to error', () async {
       when(
         mockAuthRepository.register(
-          'Test User',
-          'test@example.com',
-          'password',
-          'password',
+          name: 'Test User',
+          email: 'test@example.com',
+          password: 'password',
+          confirmPassword: 'password',
           phone: null,
         ),
       ).thenThrow(Exception('Email already exists'));
@@ -147,6 +153,7 @@ void main() {
           updatedAt: DateTime.now(),
           isEmailVerified: true,
           roles: ['customer'],
+          isAnonymous: false,
         ),
       );
 
@@ -302,10 +309,10 @@ void main() {
 
       when(
         mockAuthRepository.register(
-          'Register User',
-          'register@example.com',
-          'password',
-          'password',
+          name: 'Register User',
+          email: 'register@example.com',
+          password: 'password',
+          confirmPassword: 'password',
           phone: null,
         ),
       ).thenAnswer((_) async {
@@ -348,6 +355,7 @@ void main() {
           updatedAt: DateTime.now(),
           isEmailVerified: true,
           roles: ['customer'],
+          isAnonymous: false,
         ),
       );
 
