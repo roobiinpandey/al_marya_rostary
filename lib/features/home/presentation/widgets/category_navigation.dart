@@ -90,7 +90,7 @@ class _CategoryNavigationState extends State<CategoryNavigation> {
 
           // Divider
           Divider(
-            color: AppTheme.primaryLightBrown.withOpacity(0.3),
+            color: AppTheme.primaryLightBrown.withValues(alpha:0.3),
             height: 1,
           ),
 
@@ -100,7 +100,7 @@ class _CategoryNavigationState extends State<CategoryNavigation> {
 
           // Divider
           Divider(
-            color: AppTheme.primaryLightBrown.withOpacity(0.3),
+            color: AppTheme.primaryLightBrown.withValues(alpha:0.3),
             height: 1,
           ),
 

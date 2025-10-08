@@ -53,7 +53,7 @@ class _CoffeeDetailPageState extends State<CoffeeDetailPage> {
                           borderRadius: BorderRadius.circular(12),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
+                              color: Colors.black.withValues(alpha:0.1),
                               blurRadius: 5,
                               offset: const Offset(0, 2),
                             ),
@@ -80,7 +80,7 @@ class _CoffeeDetailPageState extends State<CoffeeDetailPage> {
                           borderRadius: BorderRadius.circular(12),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
+                              color: Colors.black.withValues(alpha:0.1),
                               blurRadius: 5,
                               offset: const Offset(0, 2),
                             ),
@@ -140,7 +140,7 @@ class _CoffeeDetailPageState extends State<CoffeeDetailPage> {
                               vertical: 6,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.amber.withOpacity(0.2),
+                              color: Colors.amber.withValues(alpha:0.2),
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Row(

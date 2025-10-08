@@ -308,7 +308,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.red.withOpacity(0.1),
+                              color: Colors.red.withValues(alpha:0.1),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: const Text(
@@ -345,7 +345,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF8B4513).withOpacity(0.1),
+                            color: const Color(0xFF8B4513).withValues(alpha:0.1),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(

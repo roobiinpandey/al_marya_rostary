@@ -60,7 +60,7 @@ class AppConfig {
           borderSide: const BorderSide(color: errorColor),
         ),
         labelStyle: const TextStyle(color: textColor),
-        hintStyle: TextStyle(color: textColor.withOpacity(0.6)),
+        hintStyle: TextStyle(color: textColor.withValues(alpha:0.6)),
       ),
       textTheme: const TextTheme(
         headlineLarge: TextStyle(

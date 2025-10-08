@@ -62,8 +62,32 @@ app.get('/', (req, res) => {
     message: 'Qahwat Al Emarat API Server',
     status: 'Running',
     mongodb: mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected',
-    version: '1.0.0'
+    version: '1.0.0',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
   });
+});
+
+// Health check endpoint for monitoring
+app.get('/health', (req, res) => {
+  const healthStatus = {
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV || 'development',
+    database: {
+      status: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+      name: mongoose.connection.db?.databaseName || 'unknown'
+    },
+    memory: {
+      used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + ' MB',
+      total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024) + ' MB'
+    }
+  };
+
+  // Return 200 if healthy, 503 if database is down
+  const statusCode = mongoose.connection.readyState === 1 ? 200 : 503;
+  res.status(statusCode).json(healthStatus);
 });
 
 // API Routes

@@ -471,25 +471,25 @@ class _OrdersPageState extends State<OrdersPage>
 
     switch (status) {
       case OrderStatus.pending:
-        backgroundColor = Colors.orange.withOpacity(0.1);
+        backgroundColor = Colors.orange.withValues(alpha:0.1);
         textColor = Colors.orange;
         label = 'Pending';
         icon = Icons.pending;
         break;
       case OrderStatus.inProgress:
-        backgroundColor = Colors.blue.withOpacity(0.1);
+        backgroundColor = Colors.blue.withValues(alpha:0.1);
         textColor = Colors.blue;
         label = 'In Progress';
         icon = Icons.hourglass_empty;
         break;
       case OrderStatus.delivered:
-        backgroundColor = Colors.green.withOpacity(0.1);
+        backgroundColor = Colors.green.withValues(alpha:0.1);
         textColor = Colors.green;
         label = 'Delivered';
         icon = Icons.check_circle;
         break;
       case OrderStatus.cancelled:
-        backgroundColor = Colors.red.withOpacity(0.1);
+        backgroundColor = Colors.red.withValues(alpha:0.1);
         textColor = Colors.red;
         label = 'Cancelled';
         icon = Icons.cancel;

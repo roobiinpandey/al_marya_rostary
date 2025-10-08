@@ -113,9 +113,7 @@ class _ProductGridWidgetState extends State<ProductGridWidget> {
         } else if (snapshot.hasData) {
           final products = snapshot.data!;
           if (products.isEmpty) {
-            return const Center(
-              child: Text('No products available'),
-            );
+            return const Center(child: Text('No products available'));
           }
 
           return Padding(
@@ -127,7 +125,8 @@ class _ProductGridWidgetState extends State<ProductGridWidget> {
                 crossAxisCount: 2,
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
-                childAspectRatio: 0.65, // Reduced from 0.75 to prevent overflow
+                childAspectRatio:
+                    0.7, // Increased to give more height and prevent overflow
               ),
               itemCount: products.length,
               itemBuilder: (context, index) {
@@ -137,16 +136,16 @@ class _ProductGridWidgetState extends State<ProductGridWidget> {
             ),
           );
         } else {
-          return const Center(
-            child: Text('No data available'),
-          );
+          return const Center(child: Text('No data available'));
         }
       },
     );
   }
 
   Widget _buildGridProductCard(
-      BuildContext context, CoffeeProductModel product) {
+    BuildContext context,
+    CoffeeProductModel product,
+  ) {
     return Container(
       decoration: BoxDecoration(
         color: AppTheme.surfaceWhite,
@@ -202,19 +201,22 @@ class _ProductGridWidgetState extends State<ProductGridWidget> {
                     right: 8,
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: AppTheme.primaryBrown.withValues(alpha: 0.9),
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(12)),
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(12),
+                        ),
                       ),
                       child: Text(
                         product.roastLevel,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w500,
-                              fontSize: 10,
-                            ),
+                          color: Colors.white,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 10,
+                        ),
                       ),
                     ),
                   ),
@@ -227,7 +229,7 @@ class _ProductGridWidgetState extends State<ProductGridWidget> {
           Expanded(
             flex: 2,
             child: Padding(
-              padding: const EdgeInsets.all(8), // Reduced from 12 to 8
+              padding: const EdgeInsets.all(6), // Further reduced from 8 to 6
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -235,16 +237,15 @@ class _ProductGridWidgetState extends State<ProductGridWidget> {
                   Text(
                     product.name,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: AppTheme.textDark,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12, // Reduced from 14 to 12
-                        ),
-                    maxLines: 2,
+                      color: AppTheme.textDark,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 11, // Further reduced from 12 to 11
+                    ),
+                    maxLines: 1, // Reduced to 1 line to save space
                     overflow: TextOverflow.ellipsis,
                   ),
 
-                  const SizedBox(height: 2), // Reduced from 4 to 2
-
+                  const SizedBox(height: 1), // Further reduced from 2 to 1
                   // Origin
                   Row(
                     children: [
@@ -257,9 +258,9 @@ class _ProductGridWidgetState extends State<ProductGridWidget> {
                       Text(
                         product.origin,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: AppTheme.textMedium,
-                              fontSize: 10, // Reduced from 11 to 10
-                            ),
+                          color: AppTheme.textMedium,
+                          fontSize: 10, // Reduced from 11 to 10
+                        ),
                       ),
                     ],
                   ),
@@ -272,12 +273,12 @@ class _ProductGridWidgetState extends State<ProductGridWidget> {
                     children: [
                       Text(
                         '${AppConstants.currencySymbol}${product.price.toStringAsFixed(2)}',
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  color: AppTheme.primaryBrown,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12, // Reduced from 14 to 12
-                                ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
+                              color: AppTheme.primaryBrown,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12, // Reduced from 14 to 12
+                            ),
                       ),
                       Consumer<CartProvider>(
                         builder: (context, cartProvider, child) {
@@ -292,7 +293,8 @@ class _ProductGridWidgetState extends State<ProductGridWidget> {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text(
-                                        '${product.name} removed from cart'),
+                                      '${product.name} removed from cart',
+                                    ),
                                     backgroundColor: AppTheme.primaryBrown,
                                   ),
                                 );
@@ -300,8 +302,9 @@ class _ProductGridWidgetState extends State<ProductGridWidget> {
                                 cartProvider.addItem(product);
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                    content:
-                                        Text('${product.name} added to cart'),
+                                    content: Text(
+                                      '${product.name} added to cart',
+                                    ),
                                     backgroundColor: AppTheme.primaryBrown,
                                   ),
                                 );
@@ -317,10 +320,12 @@ class _ProductGridWidgetState extends State<ProductGridWidget> {
                               backgroundColor: isInCart
                                   ? AppTheme.textLight
                                   : AppTheme.primaryBrown,
-                              foregroundColor:
-                                  isInCart ? AppTheme.textDark : Colors.white,
+                              foregroundColor: isInCart
+                                  ? AppTheme.textDark
+                                  : Colors.white,
                               padding: const EdgeInsets.all(
-                                  6), // Reduced from 8 to 6
+                                6,
+                              ), // Reduced from 8 to 6
                             ),
                           );
                         },

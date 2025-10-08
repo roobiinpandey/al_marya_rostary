@@ -66,7 +66,7 @@ class HomePage extends StatelessWidget {
       backgroundColor: AppTheme.primaryBrown,
       foregroundColor: Colors.white,
       elevation: 2,
-      shadowColor: AppTheme.primaryBrown.withOpacity(0.3),
+      shadowColor: AppTheme.primaryBrown.withValues(alpha:0.3),
       title: Row(
         children: [
           Image.asset(
@@ -164,7 +164,7 @@ class HomePage extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: AppTheme.primaryBrown.withOpacity(0.3),
+              color: AppTheme.primaryBrown.withValues(alpha:0.3),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -178,7 +178,7 @@ class HomePage extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha:0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Icon(

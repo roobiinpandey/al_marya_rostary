@@ -91,7 +91,7 @@ class RecentOrdersWidget extends StatelessWidget {
                                 color: adminProvider
                                     .getOrderStatusColor(
                                         order['status'] as String)
-                                    .withOpacity(0.1),
+                                    .withValues(alpha:0.1),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
@@ -211,7 +211,7 @@ class RecentOrdersWidget extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppTheme.primaryLightBrown.withOpacity(0.1),
+                color: AppTheme.primaryLightBrown.withValues(alpha:0.1),
                 borderRadius: const BorderRadius.all(Radius.circular(8)),
               ),
               child: Row(

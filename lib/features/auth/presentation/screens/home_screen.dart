@@ -57,7 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Text(
                   'Enjoy your premium coffee experience',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: AppConfig.textColor.withOpacity(0.7),
+                    color: AppConfig.textColor.withValues(alpha:0.7),
                   ),
                 ),
                 const SizedBox(height: 32),
@@ -116,7 +116,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         .bodyMedium
                                         ?.copyWith(
                                           color: AppConfig.textColor
-                                              .withOpacity(0.7),
+                                              .withValues(alpha:0.7),
                                         ),
                                   ),
                                   if (user?.phone != null) ...[
@@ -128,7 +128,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           .bodyMedium
                                           ?.copyWith(
                                             color: AppConfig.textColor
-                                                .withOpacity(0.7),
+                                                .withValues(alpha:0.7),
                                           ),
                                     ),
                                   ],
@@ -175,7 +175,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   (role) => Chip(
                                     label: Text(role),
                                     backgroundColor: AppConfig.secondaryColor
-                                        .withOpacity(0.1),
+                                        .withValues(alpha:0.1),
                                     labelStyle: TextStyle(
                                       color: AppConfig.secondaryColor,
                                     ),

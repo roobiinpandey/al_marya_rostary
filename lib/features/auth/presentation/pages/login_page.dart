@@ -123,7 +123,7 @@ class _LoginPageState extends State<LoginPage> {
             color: Colors.white,
             boxShadow: [
               BoxShadow(
-                color: AppTheme.primaryBrown.withOpacity(0.2),
+                color: AppTheme.primaryBrown.withValues(alpha:0.2),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -332,7 +332,7 @@ class _LoginPageState extends State<LoginPage> {
       children: [
         Expanded(
           child: Divider(
-            color: AppTheme.primaryLightBrown.withOpacity(0.3),
+            color: AppTheme.primaryLightBrown.withValues(alpha:0.3),
             thickness: 1,
           ),
         ),
@@ -347,7 +347,7 @@ class _LoginPageState extends State<LoginPage> {
         ),
         Expanded(
           child: Divider(
-            color: AppTheme.primaryLightBrown.withOpacity(0.3),
+            color: AppTheme.primaryLightBrown.withValues(alpha:0.3),
             thickness: 1,
           ),
         ),

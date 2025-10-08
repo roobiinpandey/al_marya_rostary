@@ -9,10 +9,7 @@ import '../../../../data/models/coffee_product_model.dart';
 class ProductDetailPage extends StatefulWidget {
   final CoffeeProductModel product;
 
-  const ProductDetailPage({
-    super.key,
-    required this.product,
-  });
+  const ProductDetailPage({super.key, required this.product});
 
   @override
   State<ProductDetailPage> createState() => _ProductDetailPageState();
@@ -38,9 +35,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         title: Text(
           widget.product.name,
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         backgroundColor: AppTheme.primaryBrown,
         elevation: 0,
@@ -89,7 +86,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                     child: CircularProgressIndicator(
                       value: loadingProgress.expectedTotalBytes != null
                           ? loadingProgress.cumulativeBytesLoaded /
-                              loadingProgress.expectedTotalBytes!
+                                loadingProgress.expectedTotalBytes!
                           : null,
                       valueColor: const AlwaysStoppedAnimation<Color>(
                         AppTheme.primaryBrown,
@@ -116,9 +113,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                           children: [
                             Text(
                               widget.product.name,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .headlineMedium
+                              style: Theme.of(context).textTheme.headlineMedium
                                   ?.copyWith(
                                     color: AppTheme.textDark,
                                     fontWeight: FontWeight.bold,
@@ -135,12 +130,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                 const SizedBox(width: 4),
                                 Text(
                                   widget.product.origin,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleMedium
-                                      ?.copyWith(
-                                        color: AppTheme.textMedium,
-                                      ),
+                                  style: Theme.of(context).textTheme.titleMedium
+                                      ?.copyWith(color: AppTheme.textMedium),
                                 ),
                               ],
                             ),
@@ -150,19 +141,22 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                       // Roast Level Badge
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 6),
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
-                          color:
-                              AppTheme.primaryLightBrown.withValues(alpha: 0.2),
+                          color: AppTheme.primaryLightBrown.withValues(
+                            alpha: 0.2,
+                          ),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
                           widget.product.roastLevel,
-                          style:
-                              Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                    color: AppTheme.primaryBrown,
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                          style: Theme.of(context).textTheme.bodyLarge
+                              ?.copyWith(
+                                color: AppTheme.primaryBrown,
+                                fontWeight: FontWeight.w600,
+                              ),
                         ),
                       ),
                     ],
@@ -181,17 +175,17 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                       const SizedBox(width: 4),
                       Text(
                         '4.5',
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  color: AppTheme.textDark,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
+                              color: AppTheme.textDark,
+                              fontWeight: FontWeight.w600,
+                            ),
                       ),
                       Text(
                         ' (120 reviews)',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: AppTheme.textLight,
-                            ),
+                          color: AppTheme.textLight,
+                        ),
                       ),
                     ],
                   ),
@@ -202,9 +196,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   Text(
                     'Select Size',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: AppTheme.textDark,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      color: AppTheme.textDark,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   _buildSizeSelector(),
@@ -223,16 +217,12 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                       children: [
                         Text(
                           'Price',
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    color: AppTheme.textDark,
-                                  ),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(color: AppTheme.textDark),
                         ),
                         Text(
                           '${AppConstants.currencySymbol}${_selectedPrice.toStringAsFixed(2)}',
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineMedium
+                          style: Theme.of(context).textTheme.headlineMedium
                               ?.copyWith(
                                 color: AppTheme.primaryBrown,
                                 fontWeight: FontWeight.bold,
@@ -248,17 +238,17 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   Text(
                     'Description',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: AppTheme.textDark,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      color: AppTheme.textDark,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 12),
                   Text(
                     widget.product.description,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: AppTheme.textMedium,
-                          height: 1.6,
-                        ),
+                      color: AppTheme.textMedium,
+                      height: 1.6,
+                    ),
                   ),
 
                   const SizedBox(height: 32),
@@ -283,7 +273,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                      '${widget.product.name} removed from cart'),
+                                    '${widget.product.name} removed from cart',
+                                  ),
                                   backgroundColor: AppTheme.primaryBrown,
                                 ),
                               );
@@ -299,14 +290,16 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                      '${widget.product.name} $_selectedSize added to cart'),
+                                    '${widget.product.name} $_selectedSize added to cart',
+                                  ),
                                   backgroundColor: AppTheme.primaryBrown,
                                   action: SnackBarAction(
                                     label: 'View Cart',
                                     textColor: Colors.white,
                                     onPressed: () {
-                                      Navigator.of(context)
-                                          .pop(); // Close detail page
+                                      Navigator.of(
+                                        context,
+                                      ).pop(); // Close detail page
                                       // TODO: Navigate to cart page
                                     },
                                   ),
@@ -322,9 +315,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                           ),
                           label: Text(
                             isInCart ? 'Remove from Cart' : 'Add to Cart',
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleLarge
+                            style: Theme.of(context).textTheme.titleLarge
                                 ?.copyWith(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
@@ -334,8 +325,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                             backgroundColor: isInCart
                                 ? AppTheme.textLight
                                 : AppTheme.primaryBrown,
-                            foregroundColor:
-                                isInCart ? AppTheme.textDark : Colors.white,
+                            foregroundColor: isInCart
+                                ? AppTheme.textDark
+                                : Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -386,17 +378,16 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   Text(
                     size,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: isSelected ? Colors.white : AppTheme.textDark,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      color: isSelected ? Colors.white : AppTheme.textDark,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     '${AppConstants.currencySymbol}${(widget.product.price * _sizeOptions[size]!).toStringAsFixed(2)}',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color:
-                              isSelected ? Colors.white : AppTheme.textMedium,
-                        ),
+                      color: isSelected ? Colors.white : AppTheme.textMedium,
+                    ),
                   ),
                 ],
               ),

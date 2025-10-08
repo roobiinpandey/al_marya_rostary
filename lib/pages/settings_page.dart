@@ -68,7 +68,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 secondary: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF8B4513).withOpacity(0.1),
+                    color: const Color(0xFF8B4513).withValues(alpha:0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(
@@ -93,7 +93,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 secondary: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF8B4513).withOpacity(0.1),
+                    color: const Color(0xFF8B4513).withValues(alpha:0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(Icons.email, color: Color(0xFF8B4513)),
@@ -113,7 +113,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 secondary: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF8B4513).withOpacity(0.1),
+                    color: const Color(0xFF8B4513).withValues(alpha:0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(Icons.push_pin, color: Color(0xFF8B4513)),
@@ -139,7 +139,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 secondary: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF8B4513).withOpacity(0.1),
+                    color: const Color(0xFF8B4513).withValues(alpha:0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
@@ -170,7 +170,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF8B4513).withOpacity(0.1),
+                        color: const Color(0xFF8B4513).withValues(alpha:0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: const Icon(
@@ -278,7 +278,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 secondary: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF8B4513).withOpacity(0.1),
+                    color: const Color(0xFF8B4513).withValues(alpha:0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(Icons.volume_up, color: Color(0xFF8B4513)),
@@ -403,7 +403,7 @@ class _SettingsPageState extends State<SettingsPage> {
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: const Color(0xFF8B4513).withOpacity(0.1),
+          color: const Color(0xFF8B4513).withValues(alpha:0.1),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(icon, color: const Color(0xFF8B4513)),
@@ -441,7 +441,7 @@ class _SettingsPageState extends State<SettingsPage> {
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: const Color(0xFF8B4513).withOpacity(0.1),
+          color: const Color(0xFF8B4513).withValues(alpha:0.1),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(icon, color: const Color(0xFF8B4513)),

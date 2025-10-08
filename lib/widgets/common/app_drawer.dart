@@ -69,7 +69,7 @@ class AppDrawer extends StatelessWidget {
                 children: [
                   CircleAvatar(
                     radius: 50,
-                    backgroundColor: Colors.white.withOpacity(0.2),
+                    backgroundColor: Colors.white.withValues(alpha:0.2),
                     backgroundImage: user?.avatar?.isNotEmpty == true
                         ? CachedNetworkImageProvider(user!.avatar!)
                         : null,
@@ -120,7 +120,7 @@ class AppDrawer extends StatelessWidget {
                 Text(
                   user!.email!,
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.8),
+                    color: Colors.white.withValues(alpha:0.8),
                     fontSize: 14,
                   ),
                   textAlign: TextAlign.center,
@@ -135,7 +135,7 @@ class AppDrawer extends StatelessWidget {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha:0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
@@ -335,7 +335,7 @@ class AppDrawer extends StatelessWidget {
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: const Color(0xFF8B4513).withOpacity(0.1),
+          color: const Color(0xFF8B4513).withValues(alpha:0.1),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(icon, color: const Color(0xFF8B4513), size: 24),
@@ -427,7 +427,7 @@ class AppDrawer extends StatelessWidget {
                 'Qahwat Al Emarat v1.0.0',
                 style: TextStyle(
                   fontSize: 12,
-                  color: const Color(0xFF8C8C8C).withOpacity(0.6),
+                  color: const Color(0xFF8C8C8C).withValues(alpha:0.6),
                 ),
               ),
             ],

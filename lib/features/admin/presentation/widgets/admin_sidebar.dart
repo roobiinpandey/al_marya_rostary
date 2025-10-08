@@ -19,7 +19,7 @@ class AdminSidebar extends StatelessWidget {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha:0.1),
             blurRadius: 10,
             offset: const Offset(2, 0),
           ),
@@ -63,7 +63,7 @@ class AdminSidebar extends StatelessWidget {
                         Text(
                           'Qahwat Al Emarat',
                           style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: Colors.white.withOpacity(0.8)),
+                              ?.copyWith(color: Colors.white.withValues(alpha:0.8)),
                         ),
                       ],
                     ),
@@ -255,7 +255,7 @@ class AdminSidebar extends StatelessWidget {
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        color: isSelected ? AppTheme.primaryLightBrown.withOpacity(0.1) : null,
+        color: isSelected ? AppTheme.primaryLightBrown.withValues(alpha:0.1) : null,
         child: Row(
           children: [
             Icon(
