@@ -83,10 +83,10 @@ class QuickCategories extends StatelessWidget {
               width: 60,
               height: 60,
               decoration: BoxDecoration(
-                color: category.color.withOpacity(0.1),
+                color: category.color.withValues(alpha:0.1),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: category.color.withOpacity(0.3),
+                  color: category.color.withValues(alpha:0.3),
                   width: 1,
                 ),
               ),

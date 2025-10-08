@@ -8,11 +8,7 @@ class CoffeeProductCard extends StatelessWidget {
   final CoffeeProductModel coffeeProduct;
   final VoidCallback? onTap;
 
-  const CoffeeProductCard({
-    super.key,
-    required this.coffeeProduct,
-    this.onTap,
-  });
+  const CoffeeProductCard({super.key, required this.coffeeProduct, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -44,8 +40,9 @@ class CoffeeProductCard extends StatelessWidget {
                       height: 80,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(12),
-                        color:
-                            AppTheme.primaryLightBrown.withValues(alpha: 0.1),
+                        color: AppTheme.primaryLightBrown.withValues(
+                          alpha: 0.1,
+                        ),
                       ),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(12),
@@ -54,8 +51,9 @@ class CoffeeProductCard extends StatelessWidget {
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
                             return Container(
-                              color: AppTheme.primaryLightBrown
-                                  .withValues(alpha: 0.2),
+                              color: AppTheme.primaryLightBrown.withValues(
+                                alpha: 0.2,
+                              ),
                               child: const Icon(
                                 Icons.coffee,
                                 size: 40,
@@ -67,10 +65,10 @@ class CoffeeProductCard extends StatelessWidget {
                             if (loadingProgress == null) return child;
                             return Center(
                               child: CircularProgressIndicator(
-                                value: loadingProgress.expectedTotalBytes !=
-                                        null
+                                value:
+                                    loadingProgress.expectedTotalBytes != null
                                     ? loadingProgress.cumulativeBytesLoaded /
-                                        loadingProgress.expectedTotalBytes!
+                                          loadingProgress.expectedTotalBytes!
                                     : null,
                                 valueColor: const AlwaysStoppedAnimation<Color>(
                                   AppTheme.primaryBrown,
@@ -92,9 +90,7 @@ class CoffeeProductCard extends StatelessWidget {
                           // Product Name
                           Text(
                             coffeeProduct.name,
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleLarge
+                            style: Theme.of(context).textTheme.titleLarge
                                 ?.copyWith(
                                   color: AppTheme.textDark,
                                   fontWeight: FontWeight.bold,
@@ -116,12 +112,8 @@ class CoffeeProductCard extends StatelessWidget {
                               const SizedBox(width: 4),
                               Text(
                                 coffeeProduct.origin,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
-                                    ?.copyWith(
-                                      color: AppTheme.textMedium,
-                                    ),
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(color: AppTheme.textMedium),
                               ),
                             ],
                           ),
@@ -131,17 +123,18 @@ class CoffeeProductCard extends StatelessWidget {
                           // Roast Level
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 2),
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
-                              color: AppTheme.primaryLightBrown
-                                  .withValues(alpha: 0.2),
+                              color: AppTheme.primaryLightBrown.withValues(
+                                alpha: 0.2,
+                              ),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
                               coffeeProduct.roastLevel,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
+                              style: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(
                                     color: AppTheme.primaryBrown,
                                     fontWeight: FontWeight.w500,
@@ -162,9 +155,7 @@ class CoffeeProductCard extends StatelessWidget {
                               const SizedBox(width: 4),
                               Text(
                                 '4.5', // TODO: Add rating to model
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
+                                style: Theme.of(context).textTheme.bodyMedium
                                     ?.copyWith(
                                       color: AppTheme.textMedium,
                                       fontWeight: FontWeight.w500,
@@ -172,12 +163,8 @@ class CoffeeProductCard extends StatelessWidget {
                               ),
                               Text(
                                 ' (120)', // TODO: Add review count to model
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodySmall
-                                    ?.copyWith(
-                                      color: AppTheme.textLight,
-                                    ),
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(color: AppTheme.textLight),
                               ),
                             ],
                           ),
@@ -191,18 +178,16 @@ class CoffeeProductCard extends StatelessWidget {
                       children: [
                         Text(
                           '${AppConstants.currencySymbol}${coffeeProduct.price.toStringAsFixed(2)}',
-                          style:
-                              Theme.of(context).textTheme.titleLarge?.copyWith(
-                                    color: AppTheme.primaryBrown,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(
+                                color: AppTheme.primaryBrown,
+                                fontWeight: FontWeight.bold,
+                              ),
                         ),
                         Text(
                           'per kg',
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: AppTheme.textLight,
-                                  ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: AppTheme.textLight),
                         ),
                       ],
                     ),
@@ -218,10 +203,7 @@ class CoffeeProductCard extends StatelessWidget {
                     Expanded(
                       child: ElevatedButton.icon(
                         onPressed: onTap,
-                        icon: const Icon(
-                          Icons.visibility,
-                          size: 18,
-                        ),
+                        icon: const Icon(Icons.visibility, size: 18),
                         label: const Text(
                           'View Details',
                           style: TextStyle(fontWeight: FontWeight.w600),
@@ -246,13 +228,15 @@ class CoffeeProductCard extends StatelessWidget {
                         // TODO: Implement favorite functionality
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                              content: Text('Favorite feature coming soon!')),
+                            content: Text('Favorite feature coming soon!'),
+                          ),
                         );
                       },
                       icon: const Icon(Icons.favorite_border),
                       style: IconButton.styleFrom(
-                        backgroundColor:
-                            AppTheme.primaryLightBrown.withValues(alpha: 0.1),
+                        backgroundColor: AppTheme.primaryLightBrown.withValues(
+                          alpha: 0.1,
+                        ),
                         foregroundColor: AppTheme.primaryBrown,
                       ),
                     ),

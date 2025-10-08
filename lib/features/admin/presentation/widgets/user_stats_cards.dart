@@ -114,7 +114,7 @@ class UserStatsCards extends StatelessWidget {
                     subtitle,
                     style: TextStyle(
                       fontSize: 12,
-                      color: color.withOpacity(0.7),
+                      color: color.withValues(alpha:0.7),
                       fontWeight: FontWeight.w500,
                     ),
                   ),

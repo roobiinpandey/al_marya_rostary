@@ -106,7 +106,7 @@ class CartPage extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 4,
-      shadowColor: AppTheme.primaryBrown.withOpacity(0.1),
+      shadowColor: AppTheme.primaryBrown.withValues(alpha:0.1),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -126,7 +126,7 @@ class CartPage extends StatelessWidget {
                     width: 80,
                     height: 80,
                     decoration: BoxDecoration(
-                      color: AppTheme.primaryLightBrown.withOpacity(0.1),
+                      color: AppTheme.primaryLightBrown.withValues(alpha:0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Center(
@@ -143,7 +143,7 @@ class CartPage extends StatelessWidget {
                     width: 80,
                     height: 80,
                     decoration: BoxDecoration(
-                      color: AppTheme.primaryLightBrown.withOpacity(0.1),
+                      color: AppTheme.primaryLightBrown.withValues(alpha:0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Icon(
@@ -187,7 +187,7 @@ class CartPage extends StatelessWidget {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: AppTheme.primaryLightBrown.withOpacity(0.2),
+                        color: AppTheme.primaryLightBrown.withValues(alpha:0.2),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
@@ -229,7 +229,7 @@ class CartPage extends StatelessWidget {
                 // Quantity controls
                 Container(
                   decoration: BoxDecoration(
-                    color: AppTheme.primaryLightBrown.withOpacity(0.1),
+                    color: AppTheme.primaryLightBrown.withValues(alpha:0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
@@ -293,7 +293,7 @@ class CartPage extends StatelessWidget {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha:0.1),
             blurRadius: 10,
             offset: const Offset(0, -5),
           ),
@@ -596,7 +596,7 @@ class CartPage extends StatelessWidget {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.1),
+                    color: statusColor.withValues(alpha:0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(

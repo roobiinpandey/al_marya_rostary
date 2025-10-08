@@ -19,9 +19,9 @@ class CartPage extends StatelessWidget {
             title: Text(
               'Your Cart',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             backgroundColor: AppTheme.primaryBrown,
             elevation: 0,
@@ -75,16 +75,16 @@ class CartPage extends StatelessWidget {
             Text(
               'Your cart is empty',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: AppTheme.textDark,
-                    fontWeight: FontWeight.bold,
-                  ),
+                color: AppTheme.textDark,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
               'Add some premium coffee to get started!',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: AppTheme.textMedium,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyLarge?.copyWith(color: AppTheme.textMedium),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
@@ -95,8 +95,10 @@ class CartPage extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.primaryBrown,
                 foregroundColor: Colors.white,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
                 shape: const RoundedRectangleBorder(
                   borderRadius: BorderRadius.all(Radius.circular(12)),
                 ),
@@ -110,7 +112,10 @@ class CartPage extends StatelessWidget {
   }
 
   Widget _buildCartContent(
-      BuildContext context, CartProvider cartProvider, cartItems) {
+    BuildContext context,
+    CartProvider cartProvider,
+    cartItems,
+  ) {
     return Column(
       children: [
         // Cart Items List
@@ -143,8 +148,9 @@ class CartPage extends StatelessWidget {
                         height: 80,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(12),
-                          color:
-                              AppTheme.primaryLightBrown.withValues(alpha: 0.1),
+                          color: AppTheme.primaryLightBrown.withValues(
+                            alpha: 0.1,
+                          ),
                         ),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(12),
@@ -171,9 +177,7 @@ class CartPage extends StatelessWidget {
                           children: [
                             Text(
                               item.product.name,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleMedium
+                              style: Theme.of(context).textTheme.titleMedium
                                   ?.copyWith(
                                     color: AppTheme.textDark,
                                     fontWeight: FontWeight.bold,
@@ -184,28 +188,25 @@ class CartPage extends StatelessWidget {
                             const SizedBox(height: 4),
                             Text(
                               item.product.origin,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
-                                  ?.copyWith(
-                                    color: AppTheme.textMedium,
-                                  ),
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(color: AppTheme.textMedium),
                             ),
                             if (item.selectedSize != null) ...[
                               const SizedBox(height: 4),
                               Container(
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 2),
+                                  horizontal: 8,
+                                  vertical: 2,
+                                ),
                                 decoration: BoxDecoration(
-                                  color: AppTheme.primaryLightBrown
-                                      .withValues(alpha: 0.2),
+                                  color: AppTheme.primaryLightBrown.withValues(
+                                    alpha: 0.2,
+                                  ),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
                                   item.selectedSize!,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall
+                                  style: Theme.of(context).textTheme.bodySmall
                                       ?.copyWith(
                                         color: AppTheme.primaryBrown,
                                         fontWeight: FontWeight.w500,
@@ -216,9 +217,7 @@ class CartPage extends StatelessWidget {
                             const SizedBox(height: 4),
                             Text(
                               '${AppConstants.currencySymbol}${(item.price ?? item.product.price).toStringAsFixed(2)} per ${item.selectedSize ?? 'kg'}',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
+                              style: Theme.of(context).textTheme.bodyMedium
                                   ?.copyWith(
                                     color: AppTheme.primaryBrown,
                                     fontWeight: FontWeight.w500,
@@ -234,8 +233,9 @@ class CartPage extends StatelessWidget {
                           Row(
                             children: [
                               IconButton(
-                                onPressed: () => cartProvider
-                                    .decrementQuantity(item.product.id),
+                                onPressed: () => cartProvider.decrementQuantity(
+                                  item.product.id,
+                                ),
                                 icon: const Icon(
                                   Icons.remove_circle_outline,
                                   color: AppTheme.primaryBrown,
@@ -244,17 +244,18 @@ class CartPage extends StatelessWidget {
                               ),
                               Container(
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 4),
+                                  horizontal: 12,
+                                  vertical: 4,
+                                ),
                                 decoration: BoxDecoration(
-                                  color: AppTheme.primaryLightBrown
-                                      .withValues(alpha: 0.2),
+                                  color: AppTheme.primaryLightBrown.withValues(
+                                    alpha: 0.2,
+                                  ),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
                                   '${item.quantity}',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleMedium
+                                  style: Theme.of(context).textTheme.titleMedium
                                       ?.copyWith(
                                         color: AppTheme.textDark,
                                         fontWeight: FontWeight.bold,
@@ -262,8 +263,9 @@ class CartPage extends StatelessWidget {
                                 ),
                               ),
                               IconButton(
-                                onPressed: () => cartProvider
-                                    .incrementQuantity(item.product.id),
+                                onPressed: () => cartProvider.incrementQuantity(
+                                  item.product.id,
+                                ),
                                 icon: const Icon(
                                   Icons.add_circle_outline,
                                   color: AppTheme.primaryBrown,
@@ -275,9 +277,7 @@ class CartPage extends StatelessWidget {
                           const SizedBox(height: 8),
                           Text(
                             '${AppConstants.currencySymbol}${item.totalPrice.toStringAsFixed(2)}',
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleMedium
+                            style: Theme.of(context).textTheme.titleMedium
                                 ?.copyWith(
                                   color: AppTheme.primaryBrown,
                                   fontWeight: FontWeight.bold,
@@ -319,15 +319,15 @@ class CartPage extends StatelessWidget {
                   Text(
                     'Subtotal',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: AppTheme.textMedium,
-                        ),
+                      color: AppTheme.textMedium,
+                    ),
                   ),
                   Text(
                     '${AppConstants.currencySymbol}${cartProvider.totalPrice.toStringAsFixed(2)}',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: AppTheme.textDark,
-                          fontWeight: FontWeight.w500,
-                        ),
+                      color: AppTheme.textDark,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ],
               ),
@@ -338,15 +338,15 @@ class CartPage extends StatelessWidget {
                   Text(
                     'Delivery',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: AppTheme.textMedium,
-                        ),
+                      color: AppTheme.textMedium,
+                    ),
                   ),
                   Text(
                     'Free',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: AppTheme.accentAmber,
-                          fontWeight: FontWeight.w500,
-                        ),
+                      color: AppTheme.accentAmber,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ],
               ),
@@ -359,16 +359,16 @@ class CartPage extends StatelessWidget {
                   Text(
                     'Total',
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          color: AppTheme.textDark,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      color: AppTheme.textDark,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   Text(
                     '${AppConstants.currencySymbol}${cartProvider.totalPrice.toStringAsFixed(2)}',
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          color: AppTheme.primaryBrown,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      color: AppTheme.primaryBrown,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ],
               ),
@@ -405,9 +405,9 @@ class CartPage extends StatelessWidget {
                   child: Text(
                     'Proceed to Checkout',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
@@ -417,9 +417,9 @@ class CartPage extends StatelessWidget {
               // Additional Info
               Text(
                 'Secure checkout powered by Qahwat Al Emarat',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppTheme.textLight,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: AppTheme.textLight),
                 textAlign: TextAlign.center,
               ),
             ],

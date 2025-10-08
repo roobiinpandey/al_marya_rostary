@@ -151,7 +151,7 @@ class FeaturedProducts extends StatelessWidget {
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                     childAspectRatio:
-                        0.75, // Reduced from 0.85 to give more height
+                        0.72, // Further reduced to prevent overflow
                     crossAxisSpacing: 16,
                     mainAxisSpacing: 16,
                   ),
@@ -173,7 +173,7 @@ class FeaturedProducts extends StatelessWidget {
   Widget _buildProductCard(BuildContext context, CoffeeProductModel product) {
     return Card(
       elevation: 4,
-      shadowColor: AppTheme.primaryBrown.withOpacity(0.2),
+      shadowColor: AppTheme.primaryBrown.withValues(alpha: 0.2),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
         onTap: () {
@@ -280,8 +280,8 @@ class FeaturedProducts extends StatelessWidget {
             ),
             // Product details - Fixed height container to prevent overflow
             Container(
-              height: 75, // Reduced height to prevent overflow
-              padding: const EdgeInsets.all(6),
+              height: 66, // Reduced from 70 to 66 to prevent overflow
+              padding: const EdgeInsets.all(3), // Reduced from 4 to 3
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
@@ -292,35 +292,34 @@ class FeaturedProducts extends StatelessWidget {
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: AppTheme.textDark,
-                      fontSize: 12,
+                      fontSize: 11, // Reduced from 12 to 11
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  // Origin (no spacing above)
+                  Text(
+                    product.origin,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppTheme.textLight,
+                      fontSize: 9, // Reduced from 10 to 9
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 1),
-                  // Origin
-                  Text(
-                    product.origin,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppTheme.textLight,
-                      fontSize: 10,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 2),
                   // Price
                   Text(
                     product.priceRangeText,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: AppTheme.primaryBrown,
-                      fontSize: 11,
+                      fontSize: 10, // Reduced from 11 to 10
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 1), // Reduced from 2 to 1
                   // Bottom row with stock and roast level
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -335,7 +334,7 @@ class FeaturedProducts extends StatelessWidget {
                                     ? Colors.green.shade600
                                     : Colors.red.shade600,
                                 fontWeight: FontWeight.w500,
-                                fontSize: 10,
+                                fontSize: 8, // Reduced from 10 to 8
                               ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -344,12 +343,16 @@ class FeaturedProducts extends StatelessWidget {
                       // Roast level badge
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 4,
-                          vertical: 1,
+                          horizontal: 3, // Reduced from 4 to 3
+                          vertical: 0, // Reduced from 1 to 0
                         ),
                         decoration: BoxDecoration(
-                          color: AppTheme.primaryLightBrown.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(4),
+                          color: AppTheme.primaryLightBrown.withValues(
+                            alpha: 0.2,
+                          ),
+                          borderRadius: BorderRadius.circular(
+                            3,
+                          ), // Reduced from 4 to 3
                         ),
                         child: Text(
                           product.roastLevel,
@@ -357,7 +360,7 @@ class FeaturedProducts extends StatelessWidget {
                               ?.copyWith(
                                 color: AppTheme.primaryBrown,
                                 fontWeight: FontWeight.w600,
-                                fontSize: 9,
+                                fontSize: 8, // Reduced from 9 to 8
                               ),
                           overflow: TextOverflow.ellipsis,
                         ),

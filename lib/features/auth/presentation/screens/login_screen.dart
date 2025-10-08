@@ -58,7 +58,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     Text(
                       'Premium Coffee Experience',
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: AppConfig.textColor.withOpacity(0.7),
+                        color: AppConfig.textColor.withValues(alpha:0.7),
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -123,10 +123,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: AppConfig.errorColor.withOpacity(0.1),
+                          color: AppConfig.errorColor.withValues(alpha:0.1),
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
-                            color: AppConfig.errorColor.withOpacity(0.3),
+                            color: AppConfig.errorColor.withValues(alpha:0.3),
                           ),
                         ),
                         child: Text(
@@ -185,7 +185,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         Text(
                           "Don't have an account? ",
                           style: TextStyle(
-                            color: AppConfig.textColor.withOpacity(0.7),
+                            color: AppConfig.textColor.withValues(alpha:0.7),
                           ),
                         ),
                         TextButton(
