@@ -22,10 +22,14 @@ class CoffeeApiService {
               receiveTimeout: const Duration(
                 seconds: AppConstants.defaultTimeout,
               ),
+              sendTimeout: const Duration(seconds: AppConstants.defaultTimeout),
               headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
+                'User-Agent': 'QahwatAlEmarat/1.0.0 Flutter Mobile App',
+                'Cache-Control': 'no-cache',
               },
+              validateStatus: (status) => status! < 500,
             ),
           ),
       _secureStorage = secureStorage ?? const FlutterSecureStorage() {
@@ -203,6 +207,40 @@ class CoffeeApiService {
       }
     } catch (e) {
       debugPrint('❌ CoffeeApiService: Exception occurred: $e');
+
+      if (e is DioException) {
+        debugPrint('❌ DioException Type: ${e.type}');
+        debugPrint('❌ DioException Message: ${e.message}');
+        debugPrint('❌ DioException Response: ${e.response}');
+        debugPrint('❌ DioException Request URL: ${e.requestOptions.uri}');
+
+        switch (e.type) {
+          case DioExceptionType.connectionTimeout:
+            throw ApiException(
+              'Connection timeout. Please check your internet connection.',
+            );
+          case DioExceptionType.sendTimeout:
+            throw ApiException('Request timeout. Please try again.');
+          case DioExceptionType.receiveTimeout:
+            throw ApiException('Server response timeout. Please try again.');
+          case DioExceptionType.connectionError:
+            throw ApiException(
+              'Connection error. Please check your internet connection.',
+            );
+          case DioExceptionType.badResponse:
+            _handleBadResponse(e);
+            break;
+          case DioExceptionType.cancel:
+            throw ApiException('Request was cancelled.');
+          case DioExceptionType.unknown:
+            throw ApiException(
+              'Network error: ${e.message ?? 'Unknown error'}',
+            );
+          default:
+            throw ApiException('Network error occurred.');
+        }
+      }
+
       if (e is ApiException) rethrow;
       throw ApiException('Failed to fetch coffee products: $e');
     }

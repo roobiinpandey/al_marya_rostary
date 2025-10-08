@@ -73,7 +73,7 @@ class CoffeeProductModel extends CoffeeProduct {
     if (imageUrl.isNotEmpty && !imageUrl.startsWith('http')) {
       // If it's a relative path, we'll need to prepend the base URL
       if (imageUrl.startsWith('/uploads/')) {
-        imageUrl = 'http://localhost:5001$imageUrl';
+        imageUrl = 'https://***REMOVED***.onrender.com$imageUrl';
       }
     }
 

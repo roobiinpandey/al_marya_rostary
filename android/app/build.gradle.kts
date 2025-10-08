@@ -50,7 +50,6 @@ android {
         }
         debug {
             // Debug configuration
-            applicationIdSuffix = ".debug"
             isDebuggable = true
         }
     }
