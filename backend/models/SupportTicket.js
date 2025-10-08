@@ -140,8 +140,7 @@ const supportTicketSchema = new mongoose.Schema({
   toObject: { virtuals: true }
 });
 
-// Indexes for better query performance
-supportTicketSchema.index({ ticketNumber: 1 });
+// Indexes for better query performance (ticketNumber already has unique index)
 supportTicketSchema.index({ customer: 1 });
 supportTicketSchema.index({ 'guestInfo.email': 1 });
 supportTicketSchema.index({ status: 1 });

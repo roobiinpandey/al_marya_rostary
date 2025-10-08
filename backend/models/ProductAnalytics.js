@@ -9,8 +9,7 @@ const productAnalyticsSchema = new mongoose.Schema({
   },
   date: {
     type: Date,
-    required: [true, 'Date is required'],
-    index: true
+    required: [true, 'Date is required']
   },
   // Daily aggregated metrics
   metrics: {

@@ -15,28 +15,59 @@ Your app is now configured to connect to: `https://***REMOVED***.onrender.com`
 
 ## 🏗️ Building APK Files
 
-### Method 1: Debug APK (For Testing)
+### 🚀 **EASIEST METHOD: Use Our Automated Script**
 ```bash
 # Navigate to your Flutter project
 cd "/Volumes/PERSONAL/Qahwat Al Emarat APP/qahwat_al_emarat"
+
+# Build debug APK (for testing)
+./build_apk.sh debug
+
+# Build release APK (for distribution)
+./build_apk.sh release
+```
+
+This script handles everything automatically:
+- ✅ Cleans previous builds
+- ✅ Gets dependencies  
+- ✅ Builds APK
+- ✅ Fixes Flutter's APK location issue
+- ✅ Opens APK folder when done
+
+### Method 1: Debug APK (Manual Build)
+```bash
+# Navigate to your Flutter project
+cd "/Volumes/PERSONAL/Qahwat Al Emarat APP/qahwat_al_emarat"
+
+# Clean and get dependencies
+flutter clean && flutter pub get
 
 # Build debug APK
 flutter build apk --debug
 
-# Output location:
-# build/app/outputs/flutter-apk/app-debug.apk
+# Fix APK location (required step!)
+mkdir -p build/app/outputs/flutter-apk/
+cp android/app/build/outputs/flutter-apk/app-debug.apk build/app/outputs/flutter-apk/
+
+# APK location: build/app/outputs/flutter-apk/app-debug.apk
 ```
 
-### Method 2: Release APK (For Distribution)
+### Method 2: Release APK (Manual Build)
 ```bash
 # Navigate to your Flutter project
 cd "/Volumes/PERSONAL/Qahwat Al Emarat APP/qahwat_al_emarat"
 
+# Clean and get dependencies
+flutter clean && flutter pub get
+
 # Build release APK
 flutter build apk --release
 
-# Output location:
-# build/app/outputs/flutter-apk/app-release.apk
+# Fix APK location (required step!)
+mkdir -p build/app/outputs/flutter-apk/
+cp android/app/build/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/
+
+# APK location: build/app/outputs/flutter-apk/app-release.apk
 ```
 
 ### Method 3: Split APKs by Architecture (Smaller Files)
@@ -44,7 +75,7 @@ flutter build apk --release
 # Build separate APKs for different architectures
 flutter build apk --split-per-abi --release
 
-# Output files:
+# Output files (after copying from android/app/build/outputs/flutter-apk/):
 # build/app/outputs/flutter-apk/app-arm64-v8a-release.apk (64-bit ARM)
 # build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk (32-bit ARM)
 # build/app/outputs/flutter-apk/app-x86_64-release.apk (64-bit Intel)

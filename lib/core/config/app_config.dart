@@ -28,22 +28,14 @@ class AppConfig {
         foregroundColor: Colors.white,
         elevation: 2,
         centerTitle: true,
-        titleTextStyle: TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-        ),
+        titleTextStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: primaryColor,
           foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(
-            horizontal: 32,
-            vertical: 12,
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           elevation: 2,
         ),
       ),
@@ -61,7 +53,7 @@ class AppConfig {
           borderSide: const BorderSide(color: errorColor),
         ),
         labelStyle: const TextStyle(color: textColor),
-        hintStyle: TextStyle(color: textColor.withValues(alpha:0.6)),
+        hintStyle: TextStyle(color: textColor.withValues(alpha: 0.6)),
       ),
       textTheme: const TextTheme(
         headlineLarge: TextStyle(
@@ -74,14 +66,8 @@ class AppConfig {
           fontSize: 24,
           fontWeight: FontWeight.w600,
         ),
-        bodyLarge: TextStyle(
-          color: textColor,
-          fontSize: 16,
-        ),
-        bodyMedium: TextStyle(
-          color: textColor,
-          fontSize: 14,
-        ),
+        bodyLarge: TextStyle(color: textColor, fontSize: 16),
+        bodyMedium: TextStyle(color: textColor, fontSize: 14),
       ),
     );
   }
