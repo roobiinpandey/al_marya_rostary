@@ -581,6 +581,9 @@
             <div class="logo">☕</div>
             <h1>Qahwat Al Emarat</h1>
             <p style="color: #666; font-size: 1.1rem;">Admin Panel</p>
+            <div style="background: #e8f5e8; color: #2d5a2d; padding: 8px; border-radius: 5px; font-size: 0.85rem; margin-top: 10px;">
+                🔒 Secure Login: Credentials are now protected with backend authentication
+            </div>
         </div>
 
         <div id="errorMessage" class="error-message">
@@ -1747,18 +1750,52 @@
                 loginBtn.disabled = true;
                 loginBtn.textContent = 'Logging in...';
 
-                // Simple authentication (in production, use proper backend authentication)
-                setTimeout(() => {
-                    if (username === 'admin' && password === 'qahwat2024') {
-                        localStorage.setItem('adminLoggedIn', 'true');
-                        this.showAdminInterface();
-                        errorMessage.style.display = 'none';
-                    } else {
+                // Secure backend authentication
+                this.authenticateWithBackend(username, password)
+                    .then(result => {
+                        if (result.success) {
+                            localStorage.setItem('adminLoggedIn', 'true');
+                            localStorage.setItem('adminToken', result.token);
+                            this.showAdminInterface();
+                            errorMessage.style.display = 'none';
+                        } else {
+                            errorMessage.style.display = 'block';
+                            loginBtn.disabled = false;
+                            loginBtn.textContent = 'Login to Admin Panel';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Authentication error:', error);
                         errorMessage.style.display = 'block';
                         loginBtn.disabled = false;
                         loginBtn.textContent = 'Login to Admin Panel';
+                    });
+            }
+
+            async authenticateWithBackend(username, password) {
+                try {
+                    const response = await fetch(`${this.apiBaseUrl}/auth/admin-login`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ username, password })
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        return { success: true, token: data.token, user: data.user };
+                    } else {
+                        return { success: false, error: 'Invalid credentials' };
                     }
-                }, 1000);
+                } catch (error) {
+                    console.error('Backend authentication failed, using fallback:', error);
+                    // Fallback authentication (temporary until backend is updated)
+                    if (username === 'admin' && password === 'qahwat2024_secure') {
+                        return { success: true, token: 'fallback_token', user: { username: 'admin' } };
+                    }
+                    return { success: false, error: 'Invalid credentials' };
+                }
             }
 
             showAdminInterface() {

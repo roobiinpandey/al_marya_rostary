@@ -3,6 +3,7 @@ const { body } = require('express-validator');
 const {
   register,
   login,
+  adminLogin,
   getMe,
   refreshToken
 } = require('../controllers/authController');
@@ -39,9 +40,19 @@ const loginValidation = [
     .withMessage('Password is required')
 ];
 
+const adminLoginValidation = [
+  body('username')
+    .notEmpty()
+    .withMessage('Username is required'),
+  body('password')
+    .notEmpty()
+    .withMessage('Password is required')
+];
+
 // Public routes
 router.post('/register', registerValidation, register);
 router.post('/login', loginValidation, login);
+router.post('/admin-login', adminLoginValidation, adminLogin);
 router.post('/refresh', refreshToken);
 
 // Protected routes
