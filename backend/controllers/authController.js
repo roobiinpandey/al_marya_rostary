@@ -69,6 +69,54 @@ const register = async (req, res) => {
   }
 };
 
+// @desc    Admin Login
+// @route   POST /api/auth/admin-login
+// @access  Public
+const adminLogin = async (req, res) => {
+  try {
+    const { username, password } = req.body;
+
+    // Admin credentials (in production, store in database with proper hashing)
+    const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
+    const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'qahwat2024';
+
+    // Validate admin credentials
+    if (username !== ADMIN_USERNAME || password !== ADMIN_PASSWORD) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid admin credentials'
+      });
+    }
+
+    // Generate admin token
+    const token = jwt.sign(
+      { userId: 'admin', role: 'admin' }, 
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRE || '7d' }
+    );
+
+    res.json({
+      success: true,
+      message: 'Admin login successful',
+      data: {
+        user: {
+          id: 'admin',
+          username: username,
+          role: 'admin'
+        },
+        token
+      }
+    });
+  } catch (error) {
+    console.error('Admin login error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error during admin login',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
 // @desc    Login user
 // @route   POST /api/auth/login
 // @access  Public
@@ -218,6 +266,7 @@ const refreshToken = async (req, res) => {
 module.exports = {
   register,
   login,
+  adminLogin,
   getMe,
   refreshToken
 };
