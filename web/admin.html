@@ -1951,8 +1951,13 @@
                     const result = await response.json();
 
                     if (response.ok && result.success) {
-                        this.renderUsersTable(result.data.users || result.users || []);
-                        this.updateUserPagination(result.data.pagination || result.pagination || {});
+                        this.renderUsersTable(result.data || result.users || []);
+                        this.updateUserPagination(result.pagination || {});
+                        
+                        // Update basic user count
+                        if (result.pagination && result.pagination.total) {
+                            document.getElementById('total-users').textContent = result.pagination.total;
+                        }
                     } else {
                         tbody.innerHTML = `
                             <tr>
