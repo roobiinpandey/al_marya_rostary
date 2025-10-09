@@ -357,7 +357,7 @@ class AuthApiService {
   ) async {
     try {
       final formData = FormData();
-      
+
       // Add text fields
       if (name != null && name.isNotEmpty) {
         formData.fields.add(MapEntry('name', name));
@@ -365,17 +365,16 @@ class AuthApiService {
       if (phone != null && phone.isNotEmpty) {
         formData.fields.add(MapEntry('phone', phone));
       }
-      
+
       // Add avatar file if provided
       if (avatarFile != null) {
         final fileName = avatarFile.path.split('/').last;
-        formData.files.add(MapEntry(
-          'avatar',
-          await MultipartFile.fromFile(
-            avatarFile.path,
-            filename: fileName,
+        formData.files.add(
+          MapEntry(
+            'avatar',
+            await MultipartFile.fromFile(avatarFile.path, filename: fileName),
           ),
-        ));
+        );
       }
 
       final response = await _dio.put(
