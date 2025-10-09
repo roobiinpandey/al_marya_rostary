@@ -174,7 +174,7 @@ class _ProfilePageState extends State<ProfilePage> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha:0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             spreadRadius: 1,
             blurRadius: 4,
             offset: const Offset(0, 2),
@@ -187,7 +187,7 @@ class _ProfilePageState extends State<ProfilePage> {
             children: [
               CircleAvatar(
                 radius: 50,
-                backgroundColor: const Color(0xFF8B4513).withValues(alpha:0.1),
+                backgroundColor: const Color(0xFF8B4513).withValues(alpha: 0.1),
                 backgroundImage: _selectedImage != null
                     ? FileImage(_selectedImage!)
                     : (user.avatar?.isNotEmpty == true
@@ -242,7 +242,7 @@ class _ProfilePageState extends State<ProfilePage> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: const Color(0xFF8B4513).withValues(alpha:0.1),
+                color: const Color(0xFF8B4513).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
@@ -497,7 +497,7 @@ class _ProfilePageState extends State<ProfilePage> {
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: const Color(0xFF8B4513).withValues(alpha:0.1),
+          color: const Color(0xFF8B4513).withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(icon, color: const Color(0xFF8B4513), size: 20),
@@ -530,7 +530,7 @@ class _ProfilePageState extends State<ProfilePage> {
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: (textColor ?? const Color(0xFF8B4513)).withValues(alpha:0.1),
+          color: (textColor ?? const Color(0xFF8B4513)).withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(
@@ -648,11 +648,13 @@ class _ProfilePageState extends State<ProfilePage> {
 
     try {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      
+
       // Call the actual profile update API
       await authProvider.updateProfile(
         name: _nameController.text.trim(),
-        phone: _phoneController.text.trim().isNotEmpty ? _phoneController.text.trim() : null,
+        phone: _phoneController.text.trim().isNotEmpty
+            ? _phoneController.text.trim()
+            : null,
         avatarFile: _selectedImage, // Pass the selected image file for upload
       );
 

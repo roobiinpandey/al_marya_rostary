@@ -155,7 +155,7 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<AuthResponse> updateProfileWithFile(
     String? name,
-    String? phone, 
+    String? phone,
     dynamic avatarFile,
   ) async {
     final authState = await _getSavedAuthState();

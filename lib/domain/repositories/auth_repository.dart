@@ -53,7 +53,7 @@ abstract class AuthRepository {
   /// Throws [AuthException] if update fails
   Future<AuthResponse> updateProfileWithFile(
     String? name,
-    String? phone, 
+    String? phone,
     dynamic avatarFile, // Using dynamic to avoid dart:io import in interface
   );
 
