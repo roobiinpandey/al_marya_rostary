@@ -47,6 +47,16 @@ abstract class AuthRepository {
   /// Throws [AuthException] if update fails
   Future<AuthResponse> updateProfile(User updatedUser);
 
+  /// Updates the user's profile information with file upload support
+  ///
+  /// Returns [AuthResponse] containing updated user info and possibly new tokens
+  /// Throws [AuthException] if update fails
+  Future<AuthResponse> updateProfileWithFile(
+    String? name,
+    String? phone, 
+    dynamic avatarFile, // Using dynamic to avoid dart:io import in interface
+  );
+
   /// Checks if the current session is valid and user is logged in
   ///
   /// Returns true if the user is logged in and session is valid

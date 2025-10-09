@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:qahwat_al_emarat/domain/repositories/auth_repository.dart';
@@ -244,6 +245,7 @@ class AuthProvider extends ChangeNotifier {
     String? name,
     String? phone,
     String? avatar,
+    File? avatarFile,
   }) async {
     if (_user == null) {
       throw AuthException('No authenticated user');
@@ -253,20 +255,32 @@ class AuthProvider extends ChangeNotifier {
       _setState(AuthState.loading);
       _clearError();
 
-      final updatedUser = User(
-        id: _user!.id,
-        name: name ?? _user!.name,
-        email: _user!.email,
-        phone: phone ?? _user!.phone,
-        avatar: avatar ?? _user!.avatar,
-        isEmailVerified: _user!.isEmailVerified,
-        isAnonymous: _user!.isAnonymous,
-        roles: _user!.roles,
-        createdAt: _user!.createdAt,
-        updatedAt: DateTime.now(),
-      );
+      late AuthResponse response;
 
-      final response = await _authRepository.updateProfile(updatedUser);
+      // Use file upload method if file is provided, otherwise use regular method
+      if (avatarFile != null) {
+        response = await _authRepository.updateProfileWithFile(
+          name,
+          phone,
+          avatarFile,
+        );
+      } else {
+        final updatedUser = User(
+          id: _user!.id,
+          name: name ?? _user!.name,
+          email: _user!.email,
+          phone: phone ?? _user!.phone,
+          avatar: avatar ?? _user!.avatar,
+          isEmailVerified: _user!.isEmailVerified,
+          isAnonymous: _user!.isAnonymous,
+          roles: _user!.roles,
+          createdAt: _user!.createdAt,
+          updatedAt: DateTime.now(),
+        );
+
+        response = await _authRepository.updateProfile(updatedUser);
+      }
+
       _user = response.user;
       if (response.refreshToken.isNotEmpty) {
         _refreshToken = response.refreshToken;
@@ -292,46 +306,6 @@ class AuthProvider extends ChangeNotifier {
   void _updateSessionTimer() {
     _lastAuthTime = DateTime.now();
   }
-
-  // repository interface. It should be added to the interface first.
-  /*
-  Future<void> updateProfile({
-    String? name,
-    String? phone,
-    String? avatar,
-  }) async {
-    if (_user == null) {
-      throw AuthException('No authenticated user');
-    }
-
-    try {
-      _setState(AuthState.loading);
-      _clearError();
-
-      final updatedUser = User(
-        id: _user!.id,
-        name: name ?? _user!.name,
-        email: _user!.email,
-        phone: phone ?? _user!.phone,
-        avatar: avatar ?? _user!.avatar,
-        isEmailVerified: _user!.isEmailVerified,
-        isAnonymous: _user!.isAnonymous,
-        roles: _user!.roles,
-        createdAt: _user!.createdAt,
-        updatedAt: DateTime.now(),
-      );
-
-      final response = await _authRepository.updateProfile(updatedUser);
-      _user = response.user;
-      if (response.refreshToken.isNotEmpty) {
-        _refreshToken = response.refreshToken;
-      }
-      _setState(AuthState.authenticated);
-    } catch (e) {
-      _handleAuthError(e);
-    }
-  }
-  */
 
   // Error handling
   void _handleAuthError(dynamic error) {
