@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-import '../features/auth/providers/auth_provider.dart';
+import '../features/auth/presentation/providers/auth_provider.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -46,8 +46,8 @@ class _ProfilePageState extends State<ProfilePage> {
     final user = authProvider.user;
 
     if (user != null) {
-      _nameController.text = user.name ?? '';
-      _emailController.text = user.email ?? '';
+      _nameController.text = user.name;
+      _emailController.text = user.email;
       _phoneController.text = user.phone ?? '';
       // TODO: Load address and city from user preferences or separate API
       _addressController.text = '';
@@ -647,8 +647,15 @@ class _ProfilePageState extends State<ProfilePage> {
     });
 
     try {
-      // TODO: Implement profile update API call
-      await Future.delayed(const Duration(seconds: 2)); // Simulate API call
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      
+      // Call the actual profile update API
+      await authProvider.updateProfile(
+        name: _nameController.text.trim(),
+        phone: _phoneController.text.trim().isNotEmpty ? _phoneController.text.trim() : null,
+        // TODO: Handle file upload for avatar
+        // avatar: _selectedImage != null ? 'path_to_uploaded_image' : null,
+      );
 
       setState(() {
         _isEditing = false;
