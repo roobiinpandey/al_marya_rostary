@@ -1,7 +1,14 @@
 /// App-wide constants for Qahwat Al Emarat
 class AppConstants {
-  // API Endpoints
-  static const String baseUrl = 'http://localhost:5001';
+  // API Endpoints - Environment Configuration
+  // Set _useProduction to true for production MongoDB Atlas backend
+  // Set _useProduction to false for local development
+  static const bool _useProduction = true; // Change to false for local development
+  
+  static String get baseUrl => _useProduction 
+    ? 'https://***REMOVED***.onrender.com'  // Production backend with MongoDB Atlas
+    : 'http://localhost:5001';          // Local backend
+    
   static const String coffeeEndpoint = '/api/coffees';
   static const String categoriesEndpoint = '/api/categories';
   static const String slidersEndpoint = '/api/sliders';
