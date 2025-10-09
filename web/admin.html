@@ -1780,10 +1780,15 @@
                     });
 
                     if (response.ok) {
-                        const data = await response.json();
-                        return { success: true, token: data.token, user: data.user };
+                        const result = await response.json();
+                        if (result.success && result.data) {
+                            return { success: true, token: result.data.token, user: result.data.user };
+                        } else {
+                            return { success: false, error: result.message || 'Authentication failed' };
+                        }
                     } else {
-                        return { success: false, error: 'Invalid credentials' };
+                        const errorResult = await response.json();
+                        return { success: false, error: errorResult.message || 'Invalid credentials' };
                     }
                 } catch (error) {
                     console.error('Backend authentication failed, using fallback:', error);
