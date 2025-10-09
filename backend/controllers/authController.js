@@ -159,6 +159,7 @@ const login = async (req, res) => {
           name: user.name,
           email: user.email,
           phone: user.phone,
+          avatar: user.avatar,
           roles: user.roles,
           isEmailVerified: user.isEmailVerified,
           lastLogin: user.lastLogin
@@ -199,6 +200,7 @@ const getMe = async (req, res) => {
           name: user.name,
           email: user.email,
           phone: user.phone,
+          avatar: user.avatar,
           roles: user.roles,
           isEmailVerified: user.isEmailVerified,
           preferences: user.preferences,
@@ -263,10 +265,65 @@ const refreshToken = async (req, res) => {
   }
 };
 
+// @desc    Update user profile
+// @route   PUT /api/auth/profile
+// @access  Private
+const updateProfile = async (req, res) => {
+  try {
+    const { name, phone, avatar } = req.body;
+    const userId = req.user.userId;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Update user fields
+    if (name !== undefined) user.name = name;
+    if (phone !== undefined) user.phone = phone;
+    if (avatar !== undefined) user.avatar = avatar;
+
+    // Handle file upload if image was uploaded
+    if (req.file) {
+      user.avatar = `/uploads/${req.file.filename}`;
+    }
+
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'Profile updated successfully',
+      data: {
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          phone: user.phone,
+          avatar: user.avatar,
+          roles: user.roles,
+          isEmailVerified: user.isEmailVerified,
+          lastLogin: user.lastLogin
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Update profile error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error during profile update',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
 module.exports = {
   register,
   login,
   adminLogin,
   getMe,
-  refreshToken
+  refreshToken,
+  updateProfile
 };
