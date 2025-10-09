@@ -653,8 +653,7 @@ class _ProfilePageState extends State<ProfilePage> {
       await authProvider.updateProfile(
         name: _nameController.text.trim(),
         phone: _phoneController.text.trim().isNotEmpty ? _phoneController.text.trim() : null,
-        // TODO: Handle file upload for avatar
-        // avatar: _selectedImage != null ? 'path_to_uploaded_image' : null,
+        avatarFile: _selectedImage, // Pass the selected image file for upload
       );
 
       setState(() {

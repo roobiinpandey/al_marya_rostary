@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:dio_smart_retry/dio_smart_retry.dart';
 import 'package:flutter/foundation.dart';
@@ -342,6 +344,71 @@ class AuthApiService {
         '🔄 Real API update profile failed, falling back to mock authentication: $e',
       );
       // Fallback to mock authentication
+      return _mockService.updateProfile(token, updatedUser);
+    }
+  }
+
+  /// Update user profile with file upload support (avatar)
+  Future<auth_models.AuthResponse> updateProfileWithFile(
+    String token,
+    String? name,
+    String? phone,
+    File? avatarFile,
+  ) async {
+    try {
+      final formData = FormData();
+      
+      // Add text fields
+      if (name != null && name.isNotEmpty) {
+        formData.fields.add(MapEntry('name', name));
+      }
+      if (phone != null && phone.isNotEmpty) {
+        formData.fields.add(MapEntry('phone', phone));
+      }
+      
+      // Add avatar file if provided
+      if (avatarFile != null) {
+        final fileName = avatarFile.path.split('/').last;
+        formData.files.add(MapEntry(
+          'avatar',
+          await MultipartFile.fromFile(
+            avatarFile.path,
+            filename: fileName,
+          ),
+        ));
+      }
+
+      final response = await _dio.put(
+        '${AppConstants.authEndpoint}/profile',
+        data: formData,
+        options: Options(
+          headers: {'Authorization': 'Bearer $token'},
+          contentType: 'multipart/form-data',
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        return auth_models.AuthResponse.fromJson(response.data);
+      } else {
+        throw _createAuthException('Failed to update profile');
+      }
+    } catch (e) {
+      debugPrint(
+        '🔄 Real API update profile with file failed, falling back to mock: $e',
+      );
+      // For fallback, create a User object and use mock service
+      final updatedUser = auth_models.User(
+        id: '',
+        name: name ?? '',
+        email: '',
+        phone: phone,
+        avatar: null, // Mock service doesn't handle file uploads
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+        isEmailVerified: false,
+        isAnonymous: false,
+        roles: [],
+      );
       return _mockService.updateProfile(token, updatedUser);
     }
   }

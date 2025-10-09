@@ -151,4 +151,26 @@ class AuthRepositoryImpl implements AuthRepository {
     await _saveAuthState(response);
     return response;
   }
+
+  @override
+  Future<AuthResponse> updateProfileWithFile(
+    String? name,
+    String? phone, 
+    dynamic avatarFile,
+  ) async {
+    final authState = await _getSavedAuthState();
+    if (authState == null) {
+      throw AuthException('No authentication state found');
+    }
+
+    final response = await _authApiService.updateProfileWithFile(
+      authState.accessToken,
+      name,
+      phone,
+      avatarFile,
+    );
+
+    await _saveAuthState(response);
+    return response;
+  }
 }
