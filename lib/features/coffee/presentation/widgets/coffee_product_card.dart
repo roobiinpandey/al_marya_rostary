@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../../../../core/constants/app_constants.dart';
 import '../../../../data/models/coffee_product_model.dart';
 
 /// Widget to display a single coffee product card with modern design
@@ -147,7 +146,7 @@ class CoffeeProductCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text(
-                          '${AppConstants.currencySymbol}${coffeeProduct.price.toStringAsFixed(2)}',
+                          _getPriceDisplay(),
                           style: Theme.of(context).textTheme.titleLarge
                               ?.copyWith(
                                 color: AppTheme.primaryBrown,
@@ -155,7 +154,7 @@ class CoffeeProductCard extends StatelessWidget {
                               ),
                         ),
                         Text(
-                          'per kg',
+                          _getPriceUnit(),
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(color: AppTheme.textLight),
                         ),
@@ -276,5 +275,51 @@ class CoffeeProductCard extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  /// Get the correct price display based on available variants
+  String _getPriceDisplay() {
+    // Check if there's a 1kg variant
+    final kgVariant = coffeeProduct.variants.firstWhere(
+      (variant) => variant.size == '1kg',
+      orElse: () => CoffeeVariant(size: '', price: 0, stock: 0),
+    );
+
+    if (kgVariant.size.isNotEmpty) {
+      // Show 1kg price
+      return 'AED ${kgVariant.price.toStringAsFixed(0)}';
+    }
+
+    // Check if there's a 500g variant
+    final halfKgVariant = coffeeProduct.variants.firstWhere(
+      (variant) => variant.size == '500g',
+      orElse: () => CoffeeVariant(size: '', price: 0, stock: 0),
+    );
+
+    if (halfKgVariant.size.isNotEmpty) {
+      // Calculate per kg price from 500g price (multiply by 2)
+      final perKgPrice = halfKgVariant.price * 2;
+      return 'AED ${perKgPrice.toStringAsFixed(0)}';
+    }
+
+    // If no variants, assume base price is for 500g and calculate per kg
+    final perKgPrice = coffeeProduct.price * 2;
+    return 'AED ${perKgPrice.toStringAsFixed(0)}';
+  }
+
+  /// Get the correct price unit display
+  String _getPriceUnit() {
+    // Check if there's a 1kg variant
+    final kgVariant = coffeeProduct.variants.firstWhere(
+      (variant) => variant.size == '1kg',
+      orElse: () => CoffeeVariant(size: '', price: 0, stock: 0),
+    );
+
+    if (kgVariant.size.isNotEmpty) {
+      return 'per kg';
+    }
+
+    // Always show per kg since we're calculating it
+    return 'per kg';
   }
 }
