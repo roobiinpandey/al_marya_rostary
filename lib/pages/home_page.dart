@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../core/theme/app_theme.dart';
+import '../core/utils/i18n_utils.dart';
 import '../widgets/common/app_drawer.dart';
 import '../features/home/presentation/widgets/hero_banner_carousel.dart';
 
@@ -8,6 +9,7 @@ import '../features/home/presentation/widgets/featured_products.dart';
 import '../features/coffee/presentation/widgets/coffee_list_widget.dart';
 import '../features/cart/presentation/providers/cart_provider.dart';
 import '../features/coffee/presentation/providers/coffee_provider.dart';
+import '../widgets/language_toggle_widget.dart';
 
 import 'cart_page.dart';
 
@@ -66,7 +68,7 @@ class HomePage extends StatelessWidget {
       backgroundColor: AppTheme.primaryBrown,
       foregroundColor: Colors.white,
       elevation: 2,
-      shadowColor: AppTheme.primaryBrown.withValues(alpha:0.3),
+      shadowColor: AppTheme.primaryBrown.withValues(alpha: 0.3),
       title: Row(
         children: [
           Image.asset(
@@ -76,10 +78,10 @@ class HomePage extends StatelessWidget {
             fit: BoxFit.contain,
           ),
           const SizedBox(width: 8),
-          const Flexible(
+          Flexible(
             child: Text(
-              'Qahwat Al Emarat',
-              style: TextStyle(
+              context.l10n.appName,
+              style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 20,
                 color: Colors.white,
@@ -90,6 +92,12 @@ class HomePage extends StatelessWidget {
         ],
       ),
       actions: [
+        const LanguageToggleWidget(
+          showLabel: false,
+          iconSize: 20,
+          iconColor: Colors.white,
+          padding: EdgeInsets.symmetric(horizontal: 4),
+        ),
         IconButton(
           onPressed: () {
             // TODO: Implement search functionality
@@ -164,7 +172,7 @@ class HomePage extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: AppTheme.primaryBrown.withValues(alpha:0.3),
+              color: AppTheme.primaryBrown.withValues(alpha: 0.3),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -178,7 +186,7 @@ class HomePage extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha:0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Icon(
@@ -188,12 +196,12 @@ class HomePage extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 16),
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Premium Coffee Beans',
+                        context.l10n.coffee,
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 20,
@@ -201,7 +209,9 @@ class HomePage extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        'Freshly roasted, direct from origin',
+                        context.isArabic
+                            ? 'محمصة طازجة، مباشرة من المنشأ'
+                            : 'Freshly roasted, direct from origin',
                         style: TextStyle(color: Colors.white70, fontSize: 14),
                       ),
                     ],
@@ -213,8 +223,12 @@ class HomePage extends StatelessWidget {
             ElevatedButton(
               onPressed: () {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Browsing coffee beans category'),
+                  SnackBar(
+                    content: Text(
+                      context.isArabic
+                          ? 'تصفح فئة حبوب القهوة'
+                          : 'Browsing coffee beans category',
+                    ),
                     backgroundColor: AppTheme.primaryBrown,
                   ),
                 );
@@ -227,15 +241,20 @@ class HomePage extends StatelessWidget {
                 ),
                 padding: const EdgeInsets.symmetric(vertical: 12),
               ),
-              child: const Row(
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'Browse Coffee Beans',
+                    context.isArabic
+                        ? 'تصفح حبوب القهوة'
+                        : 'Browse Coffee Beans',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   SizedBox(width: 8),
-                  Icon(Icons.arrow_forward, size: 18),
+                  Icon(
+                    context.isArabic ? Icons.arrow_back : Icons.arrow_forward,
+                    size: 18,
+                  ),
                 ],
               ),
             ),

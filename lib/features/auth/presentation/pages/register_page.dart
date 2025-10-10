@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../providers/auth_provider.dart';
+import '../providers/auth_provider.dart';
 import '../../../../core/theme/app_theme.dart';
 import 'login_page.dart';
 
@@ -452,9 +452,11 @@ class _RegisterPageState extends State<RegisterPage> {
 
       final authProvider = context.read<AuthProvider>();
       await authProvider.signUp(
-        _emailController.text.trim(),
-        _passwordController.text,
         name: _nameController.text.trim(),
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+        confirmPassword: _passwordController.text,
+        phone: _phoneController.text.trim(),
       );
 
       if (authProvider.isAuthenticated && mounted) {

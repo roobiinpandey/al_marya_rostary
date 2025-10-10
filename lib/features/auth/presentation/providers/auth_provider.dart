@@ -347,6 +347,110 @@ class AuthProvider extends ChangeNotifier {
     );
   }
 
+  // Additional convenience methods
+  Future<void> signUp({
+    required String name,
+    required String email,
+    required String password,
+    required String confirmPassword,
+    String? phone,
+  }) async {
+    await register(
+      name: name,
+      email: email,
+      password: password,
+      confirmPassword: confirmPassword,
+      phone: phone,
+    );
+  }
+
+  Future<void> sendPasswordResetEmail(String email) async {
+    await forgotPassword(email);
+  }
+
+  Future<void> resetPassword(
+    String token,
+    String password,
+    String confirmPassword,
+  ) async {
+    try {
+      if (!_isValidPassword(password)) {
+        throw AuthException('Password must be at least 6 characters');
+      }
+      if (password != confirmPassword) {
+        throw AuthException('Passwords do not match');
+      }
+
+      _setState(AuthState.loading);
+      _clearError();
+
+      await _authRepository.resetPassword(token, password, confirmPassword);
+
+      // After successful password reset, user needs to log in again
+      _setState(AuthState.unauthenticated);
+    } catch (e) {
+      _handleAuthError(e);
+    }
+  }
+
+  Future<void> signInWithGoogle() async {
+    try {
+      _setState(AuthState.loading);
+      _clearError();
+
+      final response = await _authRepository.signInWithGoogle();
+      _user = response.user;
+      _refreshToken = response.refreshToken;
+      _startSessionTimer();
+      _setState(AuthState.authenticated);
+    } catch (e) {
+      _handleAuthError(e);
+    }
+  }
+
+  Future<void> sendEmailVerification() async {
+    try {
+      _setState(AuthState.loading);
+      _clearError();
+
+      await _authRepository.sendEmailVerification();
+
+      // Don't change the auth state after sending verification
+      _setState(AuthState.authenticated);
+    } catch (e) {
+      _handleAuthError(e);
+    }
+  }
+
+  Future<void> verifyEmail(String verificationToken) async {
+    try {
+      _setState(AuthState.loading);
+      _clearError();
+
+      await _authRepository.verifyEmail(verificationToken);
+
+      // Update user verification status
+      if (_user != null) {
+        _user = User(
+          id: _user!.id,
+          name: _user!.name,
+          email: _user!.email,
+          phone: _user!.phone,
+          avatar: _user!.avatar,
+          isEmailVerified: true, // Mark as verified
+          isAnonymous: _user!.isAnonymous,
+          roles: _user!.roles,
+          createdAt: _user!.createdAt,
+          updatedAt: DateTime.now(),
+        );
+      }
+
+      _setState(AuthState.authenticated);
+    } catch (e) {
+      _handleAuthError(e);
+    }
+  }
+
   // Role and state checks
   bool hasRole(String role) => _user?.roles.contains(role) ?? false;
   bool get isAdmin => hasRole('admin');

@@ -178,6 +178,27 @@
             display: flex;
             gap: 1rem;
             flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .language-toggle {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .language-toggle label {
+            font-weight: 500;
+            color: #2c3e50;
+        }
+
+        .language-toggle select {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+            font-size: 0.9rem;
         }
 
         .data-table {
@@ -324,6 +345,86 @@
         .form-group textarea {
             resize: vertical;
             min-height: 80px;
+        }
+
+        /* Language Tab Styles */
+        .lang-tab {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            margin-right: 2px;
+            border-radius: 5px 5px 0 0;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .lang-tab:hover {
+            background: #e9ecef;
+        }
+
+        .lang-tab.active {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+
+        .lang-content {
+            border: 1px solid #ddd;
+            border-radius: 0 5px 5px 5px;
+            padding: 1rem;
+            background: white;
+        }
+
+        .lang-content[dir="rtl"] {
+            text-align: right;
+        }
+
+        .lang-content[dir="rtl"] input,
+        .lang-content[dir="rtl"] textarea {
+            text-align: right;
+            direction: rtl;
+        }
+
+        /* Category Language Tab Styles */
+        .lang-tab-cat {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            margin-right: 2px;
+            border-radius: 5px 5px 0 0;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .lang-tab-cat:hover {
+            background: #e9ecef;
+        }
+
+        .lang-tab-cat.active {
+            background: #28a745;
+            color: white;
+            border-color: #28a745;
+        }
+
+        .lang-content-cat {
+            border: 1px solid #ddd;
+            border-radius: 0 5px 5px 5px;
+            padding: 1rem;
+            background: white;
+        }
+
+        .lang-content-cat[dir="rtl"] {
+            text-align: right;
+        }
+
+        .lang-content-cat[dir="rtl"] input,
+        .lang-content-cat[dir="rtl"] textarea {
+            text-align: right;
+            direction: rtl;
         }
 
         /* Login Form Styles */
@@ -749,17 +850,24 @@
                 <div class="section-actions">
                     <button id="add-category" class="btn-primary">Add Category</button>
                     <button id="refresh-categories" class="btn-secondary">Refresh</button>
+                    <div class="language-toggle">
+                        <label>Display Language: </label>
+                        <select id="categories-language-selector">
+                            <option value="en">🇺🇸 English</option>
+                            <option value="ar">🇦🇪 Arabic</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="data-table">
                     <table id="categories-table">
-                        <thead>
+                        <thead id="categories-table-head">
                             <tr>
-                                <th>Name</th>
-                                <th>Description</th>
-                                <th>Color</th>
-                                <th>Products</th>
-                                <th>Status</th>
-                                <th>Actions</th>
+                                <th id="th-cat-name">Name</th>
+                                <th id="th-cat-desc">Description</th>
+                                <th id="th-cat-color">Color</th>
+                                <th id="th-cat-products">Products</th>
+                                <th id="th-cat-status">Status</th>
+                                <th id="th-cat-actions">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="categories-tbody">
@@ -1118,13 +1226,43 @@
             <span class="close">&times;</span>
             <h2 id="modal-title">Add Coffee</h2>
             <form id="coffee-form" enctype="multipart/form-data">
+                <!-- Bilingual Name & Description Section -->
                 <div class="form-group">
-                    <label for="coffee-name">Name:</label>
-                    <input type="text" id="coffee-name" name="name" required>
-                </div>
-                <div class="form-group">
-                    <label for="coffee-description">Description:</label>
-                    <textarea id="coffee-description" name="description" required></textarea>
+                    <label style="font-weight: bold; margin-bottom: 1rem; display: block;">Product Name & Description:</label>
+                    
+                    <!-- Language Tabs -->
+                    <div style="margin-bottom: 1rem;">
+                        <button type="button" class="lang-tab active" data-lang="en">🇺🇸 English</button>
+                        <button type="button" class="lang-tab" data-lang="ar">🇦🇪 Arabic</button>
+                    </div>
+                    
+                    <!-- English Content -->
+                    <div class="lang-content active" data-lang="en">
+                        <div class="form-group">
+                            <label for="coffee-name-en">Name (English):</label>
+                            <input type="text" id="coffee-name-en" name="nameEn" required 
+                                   placeholder="Enter coffee name in English">
+                        </div>
+                        <div class="form-group">
+                            <label for="coffee-description-en">Description (English):</label>
+                            <textarea id="coffee-description-en" name="descriptionEn" required 
+                                     placeholder="Enter detailed description in English"></textarea>
+                        </div>
+                    </div>
+                    
+                    <!-- Arabic Content -->
+                    <div class="lang-content" data-lang="ar" style="display: none;">
+                        <div class="form-group">
+                            <label for="coffee-name-ar">Name (Arabic): / الاسم بالعربية</label>
+                            <input type="text" id="coffee-name-ar" name="nameAr" required 
+                                   placeholder="أدخل اسم القهوة بالعربية" dir="rtl">
+                        </div>
+                        <div class="form-group">
+                            <label for="coffee-description-ar">Description (Arabic): / الوصف بالعربية</label>
+                            <textarea id="coffee-description-ar" name="descriptionAr" required 
+                                     placeholder="أدخل وصفاً تفصيلياً بالعربية" dir="rtl"></textarea>
+                        </div>
+                    </div>
                 </div>
                 
                 <!-- Size and Pricing Section -->
@@ -1210,13 +1348,43 @@
             <span class="close">&times;</span>
             <h2 id="category-modal-title">Add Category</h2>
             <form id="category-form" enctype="multipart/form-data">
+                <!-- Bilingual Name & Description Section -->
                 <div class="form-group">
-                    <label for="category-name">Name:</label>
-                    <input type="text" id="category-name" name="name" required>
-                </div>
-                <div class="form-group">
-                    <label for="category-description">Description:</label>
-                    <textarea id="category-description" name="description"></textarea>
+                    <label style="font-weight: bold; margin-bottom: 1rem; display: block;">Category Name & Description:</label>
+                    
+                    <!-- Language Tabs -->
+                    <div style="margin-bottom: 1rem;">
+                        <button type="button" class="lang-tab-cat active" data-lang="en">🇺🇸 English</button>
+                        <button type="button" class="lang-tab-cat" data-lang="ar">🇦🇪 Arabic</button>
+                    </div>
+                    
+                    <!-- English Content -->
+                    <div class="lang-content-cat active" data-lang="en">
+                        <div class="form-group">
+                            <label for="category-name-en">Name (English):</label>
+                            <input type="text" id="category-name-en" name="nameEn" required 
+                                   placeholder="Enter category name in English">
+                        </div>
+                        <div class="form-group">
+                            <label for="category-description-en">Description (English):</label>
+                            <textarea id="category-description-en" name="descriptionEn" 
+                                     placeholder="Enter description in English"></textarea>
+                        </div>
+                    </div>
+                    
+                    <!-- Arabic Content -->
+                    <div class="lang-content-cat" data-lang="ar" style="display: none;">
+                        <div class="form-group">
+                            <label for="category-name-ar">Name (Arabic): / الاسم بالعربية</label>
+                            <input type="text" id="category-name-ar" name="nameAr" required 
+                                   placeholder="أدخل اسم الفئة بالعربية" dir="rtl">
+                        </div>
+                        <div class="form-group">
+                            <label for="category-description-ar">Description (Arabic): / الوصف بالعربية</label>
+                            <textarea id="category-description-ar" name="descriptionAr" 
+                                     placeholder="أدخل وصفاً بالعربية" dir="rtl"></textarea>
+                        </div>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label for="category-color">Color:</label>
@@ -1481,13 +1649,14 @@
         // Admin Panel JavaScript
         class WebAdminPanel {
             constructor() {
-                this.apiBaseUrl = 'https://***REMOVED***.onrender.com/api';
-                this.publicAdminUrl = 'https://***REMOVED***.onrender.com/api/public-admin';
+                this.apiBaseUrl = 'http://localhost:5001/api';
+                this.publicAdminUrl = 'http://localhost:5001/api/public-admin';
                 this.isConnected = false;
                 this.currentSection = 'dashboard';
                 this.currentUserPage = 1;
                 this.currentNotificationPage = 1;
                 this.userToDelete = null;
+                this.currentLanguage = 'en'; // Default to English
                 this.init();
             }
 
@@ -1546,6 +1715,22 @@
 
                 document.getElementById('export-users')?.addEventListener('click', () => {
                     this.exportUsers();
+                });
+
+                // Language tab functionality for coffee form
+                document.querySelectorAll('.lang-tab').forEach(tab => {
+                    tab.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        this.switchLanguageTab('coffee', e.target.dataset.lang);
+                    });
+                });
+
+                // Language tab functionality for category form
+                document.querySelectorAll('.lang-tab-cat').forEach(tab => {
+                    tab.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        this.switchLanguageTab('category', e.target.dataset.lang);
+                    });
                 });
 
                 document.getElementById('user-prev-page')?.addEventListener('click', () => {
@@ -1631,6 +1816,13 @@
                 });
 
                 document.getElementById('refresh-categories')?.addEventListener('click', () => {
+                    this.loadCategories();
+                });
+
+                // Categories language selector
+                document.getElementById('categories-language-selector')?.addEventListener('change', (e) => {
+                    this.currentLanguage = e.target.value;
+                    this.updateCategoriesUILanguage();
                     this.loadCategories();
                 });
 
@@ -1736,6 +1928,28 @@
                 if (localStorage.getItem('adminLoggedIn') === 'true') {
                     this.showAdminInterface();
                 }
+            }
+
+            switchLanguageTab(formType, language) {
+                // Get all tabs and content sections for the specific form type
+                const tabSelector = formType === 'coffee' ? '.lang-tab' : '.lang-tab-cat';
+                const contentSelector = formType === 'coffee' ? '.lang-content' : '.lang-content-cat';
+                
+                // Remove active class from all tabs
+                document.querySelectorAll(tabSelector).forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                
+                // Add active class to clicked tab
+                document.querySelector(`${tabSelector}[data-lang="${language}"]`).classList.add('active');
+                
+                // Hide all content sections
+                document.querySelectorAll(contentSelector).forEach(content => {
+                    content.classList.remove('active');
+                });
+                
+                // Show selected language content
+                document.querySelector(`${contentSelector}[data-lang="${language}"]`).classList.add('active');
             }
 
             handleLogin() {
@@ -1875,6 +2089,7 @@
                             this.loadUserStats();
                             break;
                         case 'categories':
+                            this.updateCategoriesUILanguage();
                             this.loadCategories();
                             break;
                         case 'coffees':
@@ -2701,8 +2916,12 @@
                         result.data.forEach(category => {
                             if (category.isActive) {
                                 const option = document.createElement('option');
-                                option.value = category.name;
-                                option.textContent = category.name;
+                                // Use localized name
+                                const name = category.name && typeof category.name === 'object' 
+                                    ? (category.name[this.currentLanguage] || category.name.en || category.name)
+                                    : category.name;
+                                option.value = category.name && typeof category.name === 'object' ? category.name.en : category.name; // Always use English for value
+                                option.textContent = name;
                                 categorySelect.appendChild(option);
                             }
                         });
@@ -2861,22 +3080,34 @@
                                 </tr>
                             `;
                         } else {
-                            tbody.innerHTML = result.data.map(category => `
+                            tbody.innerHTML = result.data.map(category => {
+                                // Extract localized name and description based on current language
+                                const name = category.name && typeof category.name === 'object' 
+                                    ? (category.name[this.currentLanguage] || category.name.en || category.name)
+                                    : category.name;
+                                const description = category.description && typeof category.description === 'object'
+                                    ? (category.description[this.currentLanguage] || category.description.en || category.description)
+                                    : category.description;
+                                
+                                return `
                                 <tr>
-                                    <td>${category.name}</td>
-                                    <td>${category.description || 'N/A'}</td>
+                                    <td dir="${this.currentLanguage === 'ar' ? 'rtl' : 'ltr'}">${name}</td>
+                                    <td dir="${this.currentLanguage === 'ar' ? 'rtl' : 'ltr'}">${description || 'N/A'}</td>
                                     <td><span style="background: ${category.color}; padding: 2px 8px; border-radius: 3px; color: white;">${category.color}</span></td>
                                     <td>0</td>
                                     <td>
                                         <span class="status-badge ${category.isActive ? 'status-active' : 'status-inactive'}">
-                                            ${category.isActive ? 'Active' : 'Inactive'}
+                                            ${category.isActive ? (this.currentLanguage === 'ar' ? 'نشط' : 'Active') : (this.currentLanguage === 'ar' ? 'غير نشط' : 'Inactive')}
                                         </span>
                                     </td>
                                     <td>
-                                        <button class="btn-danger" onclick="window.adminPanel.deleteCategory('${category._id}')">Delete</button>
+                                        <button class="btn-danger" onclick="window.adminPanel.deleteCategory('${category._id}')">
+                                            ${this.currentLanguage === 'ar' ? 'حذف' : 'Delete'}
+                                        </button>
                                     </td>
                                 </tr>
-                            `).join('');
+                                `;
+                            }).join('');
                         }
                     } else {
                         tbody.innerHTML = `
@@ -2895,6 +3126,48 @@
                             </td>
                         </tr>
                     `;
+                }
+            }
+
+            updateCategoriesUILanguage() {
+                const isArabic = this.currentLanguage === 'ar';
+                
+                // Update section title
+                const sectionTitle = document.querySelector('#categories-section h2');
+                if (sectionTitle) {
+                    sectionTitle.textContent = isArabic ? 'إدارة الفئات' : 'Category Management';
+                    sectionTitle.style.direction = isArabic ? 'rtl' : 'ltr';
+                }
+
+                // Update table headers
+                document.getElementById('th-cat-name').textContent = isArabic ? 'الاسم' : 'Name';
+                document.getElementById('th-cat-desc').textContent = isArabic ? 'الوصف' : 'Description';
+                document.getElementById('th-cat-color').textContent = isArabic ? 'اللون' : 'Color';
+                document.getElementById('th-cat-products').textContent = isArabic ? 'المنتجات' : 'Products';
+                document.getElementById('th-cat-status').textContent = isArabic ? 'الحالة' : 'Status';
+                document.getElementById('th-cat-actions').textContent = isArabic ? 'الإجراءات' : 'Actions';
+
+                // Update buttons
+                const addBtn = document.getElementById('add-category');
+                if (addBtn) {
+                    addBtn.textContent = isArabic ? 'إضافة فئة' : 'Add Category';
+                }
+
+                const refreshBtn = document.getElementById('refresh-categories');
+                if (refreshBtn) {
+                    refreshBtn.textContent = isArabic ? 'تحديث' : 'Refresh';
+                }
+
+                // Update language selector label
+                const languageLabel = document.querySelector('.language-toggle label');
+                if (languageLabel) {
+                    languageLabel.textContent = isArabic ? 'لغة العرض: ' : 'Display Language: ';
+                }
+
+                // Update table direction
+                const table = document.getElementById('categories-table');
+                if (table) {
+                    table.style.direction = isArabic ? 'rtl' : 'ltr';
                 }
             }
 

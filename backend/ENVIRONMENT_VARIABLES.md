@@ -142,6 +142,17 @@ EMAIL_FROM_NAME=Qahwat Al Emarat
 EMAIL_FROM_ADDRESS=your-email@gmail.com
 ```
 
+### Mailjet Email Setup (Recommended)
+```bash
+SMTP_HOST=in-v3.mailjet.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=your-mailjet-api-key
+SMTP_PASS=your-mailjet-secret-key
+EMAIL_FROM_NAME=Qahwat Al Emarat
+EMAIL_FROM_ADDRESS=noreply@yourdomain.com
+```
+
 ### AWS SES Setup
 ```bash
 SMTP_HOST=email-smtp.us-east-1.amazonaws.com

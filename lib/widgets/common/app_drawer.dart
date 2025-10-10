@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import '../../features/auth/providers/auth_provider.dart';
+import '../../features/auth/presentation/providers/auth_provider.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -69,7 +69,7 @@ class AppDrawer extends StatelessWidget {
                 children: [
                   CircleAvatar(
                     radius: 50,
-                    backgroundColor: Colors.white.withValues(alpha:0.2),
+                    backgroundColor: Colors.white.withValues(alpha: 0.2),
                     backgroundImage: user?.avatar?.isNotEmpty == true
                         ? CachedNetworkImageProvider(user!.avatar!)
                         : null,
@@ -116,11 +116,11 @@ class AppDrawer extends StatelessWidget {
               ),
 
               // User Email
-              if (user?.email?.isNotEmpty == true)
+              if (user?.email != null && user!.email.isNotEmpty)
                 Text(
-                  user!.email!,
+                  user.email,
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha:0.8),
+                    color: Colors.white.withValues(alpha: 0.8),
                     fontSize: 14,
                   ),
                   textAlign: TextAlign.center,
@@ -135,7 +135,7 @@ class AppDrawer extends StatelessWidget {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha:0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
@@ -335,7 +335,7 @@ class AppDrawer extends StatelessWidget {
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: const Color(0xFF8B4513).withValues(alpha:0.1),
+          color: const Color(0xFF8B4513).withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(icon, color: const Color(0xFF8B4513), size: 24),
@@ -427,7 +427,7 @@ class AppDrawer extends StatelessWidget {
                 'Qahwat Al Emarat v1.0.0',
                 style: TextStyle(
                   fontSize: 12,
-                  color: const Color(0xFF8C8C8C).withValues(alpha:0.6),
+                  color: const Color(0xFF8C8C8C).withValues(alpha: 0.6),
                 ),
               ),
             ],

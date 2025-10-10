@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../core/providers/language_provider.dart';
+import '../core/utils/i18n_utils.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -14,356 +17,403 @@ class _SettingsPageState extends State<SettingsPage> {
   bool _darkModeEnabled = false;
   bool _soundEnabled = true;
   double _fontSize = 16.0;
-  String _language = 'English';
-  String _currency = 'AED';
-
-  final List<String> _languages = ['English', 'Arabic', 'French', 'Spanish'];
-  final List<String> _currencies = ['AED', 'USD', 'EUR', 'GBP'];
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Settings',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-        ),
-        backgroundColor: const Color(0xFF8B4513), // primaryBrown
-        foregroundColor: Colors.white,
-        elevation: 0,
-      ),
-      backgroundColor: const Color(0xFFF5F5F5), // backgroundLight
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Account Section
-            _buildSectionCard('Account', [
-              _buildListTile(
-                icon: Icons.person,
-                title: 'Profile',
-                subtitle: 'Manage your profile information',
-                onTap: () => Navigator.pushNamed(context, '/profile'),
+    return Consumer<LanguageProvider>(
+      builder: (context, languageProvider, child) {
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(
+              context.l10n.settings,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
               ),
-              _buildListTile(
-                icon: Icons.security,
-                title: 'Privacy & Security',
-                subtitle: 'Password and security settings',
-                onTap: () => _showComingSoon(context, 'Privacy & Security'),
-              ),
-              _buildListTile(
-                icon: Icons.payment,
-                title: 'Payment Methods',
-                subtitle: 'Manage payment and billing',
-                onTap: () => _showComingSoon(context, 'Payment Methods'),
-              ),
-            ]),
+            ),
+            backgroundColor: const Color(0xFF8B4513), // primaryBrown
+            foregroundColor: Colors.white,
+            elevation: 0,
+          ),
+          backgroundColor: const Color(0xFFF5F5F5), // backgroundLight
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Account Section
+                _buildSectionCard(context.l10n.myAccount, [
+                  _buildListTile(
+                    icon: Icons.person,
+                    title: 'Profile',
+                    subtitle: 'Manage your profile information',
+                    onTap: () => Navigator.pushNamed(context, '/profile'),
+                  ),
+                  _buildListTile(
+                    icon: Icons.security,
+                    title: 'Privacy & Security',
+                    subtitle: 'Password and security settings',
+                    onTap: () => _showComingSoon(context, 'Privacy & Security'),
+                  ),
+                  _buildListTile(
+                    icon: Icons.payment,
+                    title: 'Payment Methods',
+                    subtitle: 'Manage payment and billing',
+                    onTap: () => _showComingSoon(context, 'Payment Methods'),
+                  ),
+                ]),
 
-            const SizedBox(height: 16),
+                const SizedBox(height: 16),
 
-            // Notifications Section
-            _buildSectionCard('Notifications', [
-              SwitchListTile(
-                secondary: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF8B4513).withValues(alpha:0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(
-                    Icons.notifications,
-                    color: Color(0xFF8B4513),
-                  ),
-                ),
-                title: const Text('Enable Notifications'),
-                subtitle: const Text('Receive all notifications'),
-                value: _notificationsEnabled,
-                onChanged: (bool value) {
-                  setState(() {
-                    _notificationsEnabled = value;
-                    if (!value) {
-                      _emailNotifications = false;
-                      _pushNotifications = false;
-                    }
-                  });
-                },
-              ),
-              SwitchListTile(
-                secondary: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF8B4513).withValues(alpha:0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(Icons.email, color: Color(0xFF8B4513)),
-                ),
-                title: const Text('Email Notifications'),
-                subtitle: const Text('Order updates and promotions'),
-                value: _emailNotifications && _notificationsEnabled,
-                onChanged: _notificationsEnabled
-                    ? (bool value) {
-                        setState(() {
-                          _emailNotifications = value;
-                        });
-                      }
-                    : null,
-              ),
-              SwitchListTile(
-                secondary: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF8B4513).withValues(alpha:0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(Icons.push_pin, color: Color(0xFF8B4513)),
-                ),
-                title: const Text('Push Notifications'),
-                subtitle: const Text('Real-time app notifications'),
-                value: _pushNotifications && _notificationsEnabled,
-                onChanged: _notificationsEnabled
-                    ? (bool value) {
-                        setState(() {
-                          _pushNotifications = value;
-                        });
-                      }
-                    : null,
-              ),
-            ]),
-
-            const SizedBox(height: 16),
-
-            // Appearance Section
-            _buildSectionCard('Appearance', [
-              SwitchListTile(
-                secondary: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF8B4513).withValues(alpha:0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(
-                    _darkModeEnabled ? Icons.dark_mode : Icons.light_mode,
-                    color: const Color(0xFF8B4513),
-                  ),
-                ),
-                title: const Text('Dark Mode'),
-                subtitle: Text(
-                  _darkModeEnabled
-                      ? 'Dark theme enabled'
-                      : 'Light theme enabled',
-                ),
-                value: _darkModeEnabled,
-                onChanged: (bool value) {
-                  setState(() {
-                    _darkModeEnabled = value;
-                  });
-                },
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                child: Row(
-                  children: [
-                    Container(
+                // Notifications Section
+                _buildSectionCard(context.l10n.notifications, [
+                  SwitchListTile(
+                    secondary: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF8B4513).withValues(alpha:0.1),
+                        color: const Color(0xFF8B4513).withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: const Icon(
-                        Icons.text_fields,
+                        Icons.notifications,
                         color: Color(0xFF8B4513),
                       ),
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Font Size',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w500,
-                              color: Color(0xFF2E2E2E), // textDark
-                            ),
+                    title: const Text('Enable Notifications'),
+                    subtitle: const Text('Receive all notifications'),
+                    value: _notificationsEnabled,
+                    onChanged: (bool value) {
+                      setState(() {
+                        _notificationsEnabled = value;
+                        if (!value) {
+                          _emailNotifications = false;
+                          _pushNotifications = false;
+                        }
+                      });
+                    },
+                  ),
+                  SwitchListTile(
+                    secondary: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF8B4513).withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(Icons.email, color: Color(0xFF8B4513)),
+                    ),
+                    title: const Text('Email Notifications'),
+                    subtitle: const Text('Order updates and promotions'),
+                    value: _emailNotifications && _notificationsEnabled,
+                    onChanged: _notificationsEnabled
+                        ? (bool value) {
+                            setState(() {
+                              _emailNotifications = value;
+                            });
+                          }
+                        : null,
+                  ),
+                  SwitchListTile(
+                    secondary: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF8B4513).withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.push_pin,
+                        color: Color(0xFF8B4513),
+                      ),
+                    ),
+                    title: const Text('Push Notifications'),
+                    subtitle: const Text('Real-time app notifications'),
+                    value: _pushNotifications && _notificationsEnabled,
+                    onChanged: _notificationsEnabled
+                        ? (bool value) {
+                            setState(() {
+                              _pushNotifications = value;
+                            });
+                          }
+                        : null,
+                  ),
+                ]),
+
+                const SizedBox(height: 16),
+
+                // Appearance Section
+                _buildSectionCard(context.l10n.appearance, [
+                  SwitchListTile(
+                    secondary: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF8B4513).withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        _darkModeEnabled ? Icons.dark_mode : Icons.light_mode,
+                        color: const Color(0xFF8B4513),
+                      ),
+                    ),
+                    title: const Text('Dark Mode'),
+                    subtitle: Text(
+                      _darkModeEnabled
+                          ? 'Dark theme enabled'
+                          : 'Light theme enabled',
+                    ),
+                    value: _darkModeEnabled,
+                    onChanged: (bool value) {
+                      setState(() {
+                        _darkModeEnabled = value;
+                      });
+                    },
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: const Color(
+                              0xFF8B4513,
+                            ).withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(8),
                           ),
-                          const SizedBox(height: 4),
-                          Row(
+                          child: const Icon(
+                            Icons.text_fields,
+                            color: Color(0xFF8B4513),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const Text(
-                                '12px',
+                                'Font Size',
                                 style: TextStyle(
-                                  fontSize: 10,
-                                  color: Color(0xFF8C8C8C),
+                                  fontWeight: FontWeight.w500,
+                                  color: Color(0xFF2E2E2E), // textDark
                                 ),
                               ),
-                              Expanded(
-                                child: Slider(
-                                  value: _fontSize,
-                                  min: 12.0,
-                                  max: 20.0,
-                                  divisions: 4,
-                                  activeColor: const Color(0xFF8B4513),
-                                  onChanged: (double value) {
-                                    setState(() {
-                                      _fontSize = value;
-                                    });
-                                  },
-                                ),
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  const Text(
+                                    '12px',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      color: Color(0xFF8C8C8C),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: Slider(
+                                      value: _fontSize,
+                                      min: 12.0,
+                                      max: 20.0,
+                                      divisions: 4,
+                                      activeColor: const Color(0xFF8B4513),
+                                      onChanged: (double value) {
+                                        setState(() {
+                                          _fontSize = value;
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                  const Text(
+                                    '20px',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      color: Color(0xFF8C8C8C),
+                                    ),
+                                  ),
+                                ],
                               ),
-                              const Text(
-                                '20px',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: Color(0xFF8C8C8C),
+                              Text(
+                                'Current: ${_fontSize.toInt()}px',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Color(0xFF8C8C8C), // textLight
                                 ),
                               ),
                             ],
                           ),
-                          Text(
-                            'Current: ${_fontSize.toInt()}px',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Color(0xFF8C8C8C), // textLight
-                            ),
-                          ),
-                        ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ]),
+
+                const SizedBox(height: 16),
+
+                // Language & Region Section
+                _buildSectionCard(context.l10n.language, [
+                  ListTile(
+                    leading: Icon(Icons.language, color: Color(0xFF8B4513)),
+                    title: Text(context.l10n.selectLanguage),
+                    trailing: DropdownButton<String>(
+                      value: languageProvider.locale.languageCode,
+                      underline: Container(),
+                      items: [
+                        DropdownMenuItem(
+                          value: 'en',
+                          child: Text(context.l10n.english),
+                        ),
+                        DropdownMenuItem(
+                          value: 'ar',
+                          child: Text(context.l10n.arabic),
+                        ),
+                      ],
+                      onChanged: (String? languageCode) {
+                        if (languageCode != null) {
+                          languageProvider.setLanguage(languageCode);
+                        }
+                      },
+                    ),
+                  ),
+                  ListTile(
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF8B4513).withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        Icons.attach_money,
+                        color: const Color(0xFF8B4513),
                       ),
                     ),
-                  ],
-                ),
-              ),
-            ]),
-
-            const SizedBox(height: 16),
-
-            // Language & Region Section
-            _buildSectionCard('Language & Region', [
-              _buildDropdownTile(
-                icon: Icons.language,
-                title: 'Language',
-                value: _language,
-                items: _languages,
-                onChanged: (String? value) {
-                  if (value != null) {
-                    setState(() {
-                      _language = value;
-                    });
-                  }
-                },
-              ),
-              _buildDropdownTile(
-                icon: Icons.attach_money,
-                title: 'Currency',
-                value: _currency,
-                items: _currencies,
-                onChanged: (String? value) {
-                  if (value != null) {
-                    setState(() {
-                      _currency = value;
-                    });
-                  }
-                },
-              ),
-            ]),
-
-            const SizedBox(height: 16),
-
-            // App Section
-            _buildSectionCard('App', [
-              SwitchListTile(
-                secondary: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF8B4513).withValues(alpha:0.1),
-                    borderRadius: BorderRadius.circular(8),
+                    title: Text(
+                      context.l10n.currency,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF2E2E2E),
+                      ),
+                    ),
+                    trailing: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF8B4513).withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        'AED',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          color: Color(0xFF8B4513),
+                        ),
+                      ),
+                    ),
                   ),
-                  child: const Icon(Icons.volume_up, color: Color(0xFF8B4513)),
-                ),
-                title: const Text('Sound Effects'),
-                subtitle: const Text('Enable app sounds'),
-                value: _soundEnabled,
-                onChanged: (bool value) {
-                  setState(() {
-                    _soundEnabled = value;
-                  });
-                },
-              ),
-              _buildListTile(
-                icon: Icons.storage,
-                title: 'Storage & Cache',
-                subtitle: 'Manage app storage',
-                onTap: () => _showCacheDialog(context),
-              ),
-              _buildListTile(
-                icon: Icons.update,
-                title: 'App Version',
-                subtitle: 'Version 1.0.0',
-                onTap: () => _showComingSoon(context, 'Update Check'),
-              ),
-            ]),
+                ]),
 
-            const SizedBox(height: 16),
+                const SizedBox(height: 16),
 
-            // Support Section
-            _buildSectionCard('Support', [
-              _buildListTile(
-                icon: Icons.help,
-                title: 'Help & FAQ',
-                subtitle: 'Get help with the app',
-                onTap: () => _showComingSoon(context, 'Help & FAQ'),
-              ),
-              _buildListTile(
-                icon: Icons.feedback,
-                title: 'Send Feedback',
-                subtitle: 'Share your thoughts',
-                onTap: () => _showFeedbackDialog(context),
-              ),
-              _buildListTile(
-                icon: Icons.rate_review,
-                title: 'Rate App',
-                subtitle: 'Rate us on the App Store',
-                onTap: () => _showComingSoon(context, 'App Rating'),
-              ),
-              _buildListTile(
-                icon: Icons.info,
-                title: 'About',
-                subtitle: 'App information',
-                onTap: () => _showAboutDialog(context),
-              ),
-            ]),
+                // App Section
+                _buildSectionCard(context.l10n.app, [
+                  SwitchListTile(
+                    secondary: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF8B4513).withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.volume_up,
+                        color: Color(0xFF8B4513),
+                      ),
+                    ),
+                    title: const Text('Sound Effects'),
+                    subtitle: const Text('Enable app sounds'),
+                    value: _soundEnabled,
+                    onChanged: (bool value) {
+                      setState(() {
+                        _soundEnabled = value;
+                      });
+                    },
+                  ),
+                  _buildListTile(
+                    icon: Icons.storage,
+                    title: 'Storage & Cache',
+                    subtitle: 'Manage app storage',
+                    onTap: () => _showCacheDialog(context),
+                  ),
+                  _buildListTile(
+                    icon: Icons.update,
+                    title: 'App Version',
+                    subtitle: 'Version 1.0.0',
+                    onTap: () => _showComingSoon(context, 'Update Check'),
+                  ),
+                ]),
 
-            const SizedBox(height: 32),
+                const SizedBox(height: 16),
 
-            // Save Settings Button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  _saveSettings();
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF8B4513),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                // Support Section
+                _buildSectionCard(context.l10n.helpAndSupport, [
+                  _buildListTile(
+                    icon: Icons.help,
+                    title: 'Help & FAQ',
+                    subtitle: 'Get help with the app',
+                    onTap: () => _showComingSoon(context, 'Help & FAQ'),
+                  ),
+                  _buildListTile(
+                    icon: Icons.feedback,
+                    title: 'Send Feedback',
+                    subtitle: 'Share your thoughts',
+                    onTap: () => _showFeedbackDialog(context),
+                  ),
+                  _buildListTile(
+                    icon: Icons.rate_review,
+                    title: 'Rate App',
+                    subtitle: 'Rate us on the App Store',
+                    onTap: () => _showComingSoon(context, 'App Rating'),
+                  ),
+                  _buildListTile(
+                    icon: Icons.info,
+                    title: 'About',
+                    subtitle: 'App information',
+                    onTap: () => _showAboutDialog(context),
+                  ),
+                ]),
+
+                const SizedBox(height: 32),
+
+                // Save Settings Button
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      _saveSettings();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF8B4513),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'Save Settings',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
                 ),
-                child: const Text(
-                  'Save Settings',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                ),
-              ),
+
+                const SizedBox(height: 16),
+              ],
             ),
-
-            const SizedBox(height: 16),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -403,7 +453,7 @@ class _SettingsPageState extends State<SettingsPage> {
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: const Color(0xFF8B4513).withValues(alpha:0.1),
+          color: const Color(0xFF8B4513).withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(icon, color: const Color(0xFF8B4513)),
@@ -427,47 +477,6 @@ class _SettingsPageState extends State<SettingsPage> {
         color: Color(0xFF8C8C8C), // textLight
       ),
       onTap: onTap,
-    );
-  }
-
-  Widget _buildDropdownTile({
-    required IconData icon,
-    required String title,
-    required String value,
-    required List<String> items,
-    required ValueChanged<String?> onChanged,
-  }) {
-    return ListTile(
-      leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: const Color(0xFF8B4513).withValues(alpha:0.1),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Icon(icon, color: const Color(0xFF8B4513)),
-      ),
-      title: Text(
-        title,
-        style: const TextStyle(
-          fontWeight: FontWeight.w500,
-          color: Color(0xFF2E2E2E), // textDark
-        ),
-      ),
-      trailing: SizedBox(
-        width: 120, // Constrain dropdown width
-        child: DropdownButton<String>(
-          value: value,
-          underline: Container(),
-          isExpanded: true,
-          items: items.map((String item) {
-            return DropdownMenuItem<String>(
-              value: item,
-              child: Text(item, overflow: TextOverflow.ellipsis),
-            );
-          }).toList(),
-          onChanged: onChanged,
-        ),
-      ),
     );
   }
 

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_theme.dart';
-import '../../features/auth/providers/auth_provider.dart';
+import '../core/utils/i18n_utils.dart';
+import '../features/auth/presentation/providers/auth_provider.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -64,12 +65,12 @@ class _LoginPageState extends State<LoginPage> {
                     const SizedBox(height: 24),
 
                     // Divider
-                    const Row(
+                    Row(
                       children: [
                         Expanded(child: Divider()),
                         Padding(
                           padding: EdgeInsets.symmetric(horizontal: 16),
-                          child: Text('OR'),
+                          child: Text(context.l10n.orContinueWith),
                         ),
                         Expanded(child: Divider()),
                       ],
@@ -108,7 +109,7 @@ class _LoginPageState extends State<LoginPage> {
         ),
         const SizedBox(height: 24),
         Text(
-          'Qahwat Al Emarat',
+          context.l10n.appName,
           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
             fontWeight: FontWeight.bold,
             color: AppTheme.primaryBrown,
@@ -116,7 +117,7 @@ class _LoginPageState extends State<LoginPage> {
         ),
         const SizedBox(height: 8),
         Text(
-          _isSignUp ? 'Create your account' : 'Welcome back!',
+          _isSignUp ? context.l10n.register : context.l10n.welcome,
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(color: AppTheme.textMedium),
@@ -284,9 +285,9 @@ class _LoginPageState extends State<LoginPage> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.red.withValues(alpha:0.1),
+        color: Colors.red.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.red.withValues(alpha:0.3)),
+        border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
@@ -315,9 +316,10 @@ class _LoginPageState extends State<LoginPage> {
 
     if (_isSignUp) {
       authProvider.signUp(
-        _emailController.text.trim(),
-        _passwordController.text,
         name: _nameController.text.trim(),
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+        confirmPassword: _passwordController.text,
         phone: _phoneController.text.trim().isNotEmpty
             ? _phoneController.text.trim()
             : null,

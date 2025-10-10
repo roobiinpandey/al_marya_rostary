@@ -1,18 +1,75 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../features/auth/presentation/providers/auth_provider.dart';
 
-class ProfilePage extends StatefulWidget {
+class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
 
   @override
-  State<ProfilePage> createState() => _ProfilePageState();
+  Widget build(BuildContext context) {
+    return const _ProfilePageWrapper();
+  }
 }
 
-class _ProfilePageState extends State<ProfilePage> {
+// Add a wrapper widget to handle provider access safely
+class _ProfilePageWrapper extends StatelessWidget {
+  const _ProfilePageWrapper();
+
+  @override
+  Widget build(BuildContext context) {
+    try {
+      // Try to access the provider to validate it exists
+      Provider.of<AuthProvider>(context, listen: false);
+      return const _ProfilePageContent();
+    } catch (e) {
+      debugPrint('ProfilePage: AuthProvider not found: $e');
+      // Return error page if provider is not available
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text(
+            'Profile',
+            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+          ),
+          backgroundColor: const Color(0xFF8B4513),
+          foregroundColor: Colors.white,
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, size: 64, color: Colors.red),
+              const SizedBox(height: 16),
+              const Text(
+                'Profile Unavailable',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              const Text('Authentication service is not available.'),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Go Back'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+  }
+}
+
+class _ProfilePageContent extends StatefulWidget {
+  const _ProfilePageContent();
+
+  @override
+  State<_ProfilePageContent> createState() => _ProfilePageContentState();
+}
+
+class _ProfilePageContentState extends State<_ProfilePageContent> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -42,14 +99,24 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   void _loadUserData() {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final user = authProvider.user;
+    try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final user = authProvider.user;
 
-    if (user != null) {
-      _nameController.text = user.name;
-      _emailController.text = user.email;
-      _phoneController.text = user.phone ?? '';
-      // TODO: Load address and city from user preferences or separate API
+      if (user != null) {
+        _nameController.text = user.name;
+        _emailController.text = user.email;
+        _phoneController.text = user.phone ?? '';
+        // TODO: Load address and city from user preferences or separate API
+        _addressController.text = '';
+        _cityController.text = 'Dubai';
+      }
+    } catch (e) {
+      debugPrint('Error loading user data: $e');
+      // Handle the case where AuthProvider is not available
+      _nameController.text = '';
+      _emailController.text = '';
+      _phoneController.text = '';
       _addressController.text = '';
       _cityController.text = 'Dubai';
     }
@@ -82,6 +149,13 @@ class _ProfilePageState extends State<ProfilePage> {
       backgroundColor: const Color(0xFFF5F5F5), // backgroundLight
       body: Consumer<AuthProvider>(
         builder: (context, authProvider, child) {
+          // Handle loading state
+          if (!authProvider.isInitialized) {
+            return const Center(
+              child: CircularProgressIndicator(color: Color(0xFF8B4513)),
+            );
+          }
+
           if (!authProvider.isAuthenticated) {
             return _buildGuestView();
           }

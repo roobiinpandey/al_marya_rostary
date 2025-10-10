@@ -5,32 +5,62 @@ require('dotenv').config();
 
 const sampleCategories = [
   {
-    name: 'Hot Coffee',
-    description: 'Traditional hot coffee beverages',
+    name: {
+      en: 'Hot Coffee',
+      ar: 'القهوة الساخنة'
+    },
+    description: {
+      en: 'Traditional hot coffee beverages',
+      ar: 'مشروبات القهوة الساخنة التقليدية'
+    },
     color: '#8B4513',
     displayOrder: 1
   },
   {
-    name: 'Cold Coffee',
-    description: 'Refreshing cold coffee drinks',
+    name: {
+      en: 'Cold Coffee',
+      ar: 'القهوة الباردة'
+    },
+    description: {
+      en: 'Refreshing cold coffee drinks',
+      ar: 'مشروبات القهوة الباردة المنعشة'
+    },
     color: '#4682B4',
     displayOrder: 2
   },
   {
-    name: 'Espresso',
-    description: 'Strong espresso-based drinks',
+    name: {
+      en: 'Espresso',
+      ar: 'الإسبريسو'
+    },
+    description: {
+      en: 'Strong espresso-based drinks',
+      ar: 'مشروبات الإسبريسو القوية'
+    },
     color: '#2F1B14',
     displayOrder: 3
   },
   {
-    name: 'Latte',
-    description: 'Creamy latte variations',
+    name: {
+      en: 'Latte',
+      ar: 'اللاتيه'
+    },
+    description: {
+      en: 'Creamy latte variations',
+      ar: 'أنواع اللاتيه الكريمية'
+    },
     color: '#D2B48C',
     displayOrder: 4
   },
   {
-    name: 'Specialty',
-    description: 'Unique and seasonal coffee blends',
+    name: {
+      en: 'Specialty',
+      ar: 'التخصصية'
+    },
+    description: {
+      en: 'Unique and seasonal coffee blends',
+      ar: 'خلطات القهوة الفريدة والموسمية'
+    },
     color: '#CD853F',
     displayOrder: 5
   }
@@ -38,8 +68,14 @@ const sampleCategories = [
 
 const sampleCoffees = [
   {
-    name: 'Arabian Mocha',
-    description: 'Rich and bold coffee with chocolate undertones, sourced from the finest Arabian beans.',
+    name: {
+      en: 'Arabian Mocha',
+      ar: 'الموكا العربية'
+    },
+    description: {
+      en: 'Rich and bold coffee with chocolate undertones, sourced from the finest Arabian beans.',
+      ar: 'قهوة غنية وجريئة مع نكهات الشوكولاتة، مصدرها أفضل حبوب القهوة العربية.'
+    },
     price: 15.99,
     image: '/uploads/coffee-sample-1.jpg',
     origin: 'Yemen',
@@ -49,8 +85,14 @@ const sampleCoffees = [
     isActive: true
   },
   {
-    name: 'Iced Caramel Latte',
-    description: 'Smooth espresso blended with caramel syrup and chilled milk over ice.',
+    name: {
+      en: 'Iced Caramel Latte',
+      ar: 'لاتيه الكراميل المثلج'
+    },
+    description: {
+      en: 'Smooth espresso blended with caramel syrup and chilled milk over ice.',
+      ar: 'إسبريسو ناعم ممزوج مع شراب الكراميل والحليب المثلج على الثلج.'
+    },
     price: 12.99,
     image: '/uploads/coffee-sample-2.jpg',
     origin: 'Colombia',
@@ -60,8 +102,14 @@ const sampleCoffees = [
     isActive: true
   },
   {
-    name: 'Double Espresso',
-    description: 'Two shots of rich, concentrated espresso for the true coffee enthusiast.',
+    name: {
+      en: 'Double Espresso',
+      ar: 'إسبريسو مضاعف'
+    },
+    description: {
+      en: 'Two shots of rich, concentrated espresso for the true coffee enthusiast.',
+      ar: 'جرعتان من الإسبريسو الغني والمركز لعشاق القهوة الحقيقيين.'
+    },
     price: 8.99,
     image: '/uploads/coffee-sample-3.jpg',
     origin: 'Italy',
@@ -71,8 +119,14 @@ const sampleCoffees = [
     isActive: true
   },
   {
-    name: 'Vanilla Bean Latte',
-    description: 'Creamy latte infused with real vanilla beans and steamed milk.',
+    name: {
+      en: 'Vanilla Bean Latte',
+      ar: 'لاتيه حبوب الفانيليا'
+    },
+    description: {
+      en: 'Creamy latte infused with real vanilla beans and steamed milk.',
+      ar: 'لاتيه كريمي منقوع بحبوب الفانيليا الحقيقية والحليب المبخر.'
+    },
     price: 13.99,
     image: '/uploads/coffee-sample-4.jpg',
     origin: 'Ethiopia',
@@ -82,8 +136,14 @@ const sampleCoffees = [
     isActive: true
   },
   {
-    name: 'Cold Brew Coffee',
-    description: 'Smooth, low-acid coffee brewed cold for 12 hours for maximum flavor.',
+    name: {
+      en: 'Cold Brew Coffee',
+      ar: 'قهوة باردة التحضير'
+    },
+    description: {
+      en: 'Smooth, low-acid coffee brewed cold for 12 hours for maximum flavor.',
+      ar: 'قهوة ناعمة قليلة الحموضة تُحضر باردة لمدة 12 ساعة للحصول على أقصى نكهة.'
+    },
     price: 11.99,
     image: '/uploads/coffee-sample-5.jpg',
     origin: 'Brazil',

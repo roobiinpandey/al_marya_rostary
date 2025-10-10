@@ -1,14 +1,21 @@
 import 'package:flutter/material.dart';
 import '../pages/settings_page.dart';
-import '../pages/favorites_page.dart';
+import '../features/wishlist/presentation/pages/wishlist_page.dart';
 import '../pages/orders_page.dart';
 import '../pages/profile_page.dart';
 import '../pages/home_page.dart';
+import '../pages/login_page.dart';
+import '../features/auth/presentation/pages/register_page.dart';
+import '../features/auth/presentation/pages/forgot_password_page.dart';
+import '../features/auth/presentation/screens/email_verification_screen.dart';
+import '../core/guards/email_verification_guard.dart';
 
 class AppRouter {
   static const String home = '/';
   static const String login = '/login';
   static const String register = '/register';
+  static const String forgotPassword = '/forgot-password';
+  static const String emailVerification = '/email-verification';
   static const String profile = '/profile';
   static const String settings = '/settings';
   static const String favorites = '/favorites';
@@ -21,31 +28,46 @@ class AppRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
       case '/':
-        return _buildRoute(const HomePage(), settings: settings);
-
-      case '/home':
-        return _buildRoute(const HomePage(), settings: settings);
-
-      case '/login':
-        return _buildRoute(_buildPlaceholderPage('Login'), settings: settings);
-
-      case '/register':
         return _buildRoute(
-          _buildPlaceholderPage('Register'),
+          const EmailVerificationGuard(child: HomePage()),
           settings: settings,
         );
 
+      case '/home':
+        return _buildRoute(
+          const EmailVerificationGuard(child: HomePage()),
+          settings: settings,
+        );
+
+      case '/login':
+        return _buildRoute(const LoginPage(), settings: settings);
+
+      case '/register':
+        return _buildRoute(const RegisterPage(), settings: settings);
+
+      case '/forgot-password':
+        return _buildRoute(const ForgotPasswordPage(), settings: settings);
+
+      case '/email-verification':
+        return _buildRoute(const EmailVerificationScreen(), settings: settings);
+
       case '/profile':
-        return _buildRoute(const ProfilePage(), settings: settings);
+        return _buildRoute(
+          const EmailVerificationGuard(child: ProfilePage()),
+          settings: settings,
+        );
 
       case '/settings':
         return _buildRoute(const SettingsPage(), settings: settings);
 
       case '/favorites':
-        return _buildRoute(const FavoritesPage(), settings: settings);
+        return _buildRoute(const WishlistPage(), settings: settings);
 
       case '/orders':
-        return _buildRoute(const OrdersPage(), settings: settings);
+        return _buildRoute(
+          const EmailVerificationGuard(child: OrdersPage()),
+          settings: settings,
+        );
 
       case '/coffee':
         return _buildRoute(
@@ -204,6 +226,14 @@ class AppRouter {
 
   static void navigateToRegister(BuildContext context) {
     Navigator.pushNamed(context, register);
+  }
+
+  static void navigateToForgotPassword(BuildContext context) {
+    Navigator.pushNamed(context, forgotPassword);
+  }
+
+  static void navigateToEmailVerification(BuildContext context) {
+    Navigator.pushNamed(context, emailVerification);
   }
 
   static void navigateToProfile(BuildContext context) {

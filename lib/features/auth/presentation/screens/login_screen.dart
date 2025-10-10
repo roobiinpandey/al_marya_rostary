@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../providers/auth_provider.dart';
+import '../providers/auth_provider.dart';
 import '../../../../core/config/app_config.dart';
 import '../../../../core/routes/routes.dart';
 
@@ -58,7 +58,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     Text(
                       'Premium Coffee Experience',
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: AppConfig.textColor.withValues(alpha:0.7),
+                        color: AppConfig.textColor.withValues(alpha: 0.7),
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -122,25 +122,42 @@ class _LoginScreenState extends State<LoginScreen> {
                     if (authProvider.hasError)
                       Container(
                         padding: const EdgeInsets.all(12),
+                        margin: const EdgeInsets.only(bottom: 16),
                         decoration: BoxDecoration(
-                          color: AppConfig.errorColor.withValues(alpha:0.1),
+                          color: AppConfig.errorColor.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
-                            color: AppConfig.errorColor.withValues(alpha:0.3),
+                            color: AppConfig.errorColor.withValues(alpha: 0.3),
                           ),
                         ),
-                        child: Text(
-                          authProvider.errorMessage ?? 'An error occurred',
-                          style: TextStyle(color: AppConfig.errorColor),
-                          textAlign: TextAlign.center,
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.error_outline,
+                              color: AppConfig.errorColor,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                authProvider.errorMessage ??
+                                    'An error occurred',
+                                style: TextStyle(
+                                  color: AppConfig.errorColor,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-
-                    if (authProvider.hasError) const SizedBox(height: 16),
 
                     // Login Button
                     ElevatedButton(
                       onPressed: authProvider.isLoading ? null : _handleLogin,
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
                       child: authProvider.isLoading
                           ? const SizedBox(
                               height: 20,
@@ -152,7 +169,13 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                               ),
                             )
-                          : const Text('Login'),
+                          : const Text(
+                              'Sign In',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                     ),
                     const SizedBox(height: 16),
 
@@ -185,7 +208,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         Text(
                           "Don't have an account? ",
                           style: TextStyle(
-                            color: AppConfig.textColor.withValues(alpha:0.7),
+                            color: AppConfig.textColor.withValues(alpha: 0.7),
                           ),
                         ),
                         TextButton(
@@ -214,23 +237,50 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  void _handleLogin() {
+  Future<void> _handleLogin() async {
     if (_formKey.currentState?.validate() ?? false) {
       final authProvider = context.read<AuthProvider>();
-      authProvider.login(
+
+      // Clear any previous errors
+      authProvider.clearError();
+
+      await authProvider.login(
         _emailController.text.trim(),
         _passwordController.text,
       );
+
+      if (authProvider.isAuthenticated && mounted) {
+        // Navigate to home on successful login
+        Navigator.pushReplacementNamed(context, AppRoutes.home);
+      }
     }
   }
 
-  void _handleGoogleSignIn() {
+  Future<void> _handleGoogleSignIn() async {
     final authProvider = context.read<AuthProvider>();
-    authProvider.signInWithGoogle();
+
+    // Clear any previous errors
+    authProvider.clearError();
+
+    await authProvider.signInWithGoogle();
+
+    if (authProvider.isAuthenticated && mounted) {
+      // Navigate to home on successful login
+      Navigator.pushReplacementNamed(context, AppRoutes.home);
+    }
   }
 
-  void _handleGuestLogin() {
+  Future<void> _handleGuestLogin() async {
     final authProvider = context.read<AuthProvider>();
-    authProvider.loginAsGuest();
+
+    // Clear any previous errors
+    authProvider.clearError();
+
+    await authProvider.loginAsGuest();
+
+    if (authProvider.isAuthenticated && mounted) {
+      // Navigate to home on successful login
+      Navigator.pushReplacementNamed(context, AppRoutes.home);
+    }
   }
 }

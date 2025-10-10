@@ -9,6 +9,7 @@ const getCategories = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 50;
     const skip = (page - 1) * limit;
+    const language = req.query.lang || req.headers['accept-language']?.split(',')[0]?.split('-')[0] || 'en';
 
     const filter = {};
 
@@ -19,26 +20,33 @@ const getCategories = async (req, res) => {
 
     // Add search functionality
     if (req.query.search) {
-      filter.name = { $regex: req.query.search, $options: 'i' };
+      filter.$or = [
+        { 'name.en': { $regex: req.query.search, $options: 'i' } },
+        { 'name.ar': { $regex: req.query.search, $options: 'i' } }
+      ];
     }
 
     const categories = await Category.find(filter)
-      .sort({ displayOrder: 1, name: 1 })
+      .sort({ displayOrder: 1, 'name.en': 1 })
       .skip(skip)
       .limit(limit)
       .select('-__v');
 
     const total = await Category.countDocuments(filter);
 
+    // Localize category data
+    const localizedCategories = categories.map(category => category.getLocalizedContent(language));
+
     res.json({
       success: true,
-      data: categories,
+      data: localizedCategories,
       pagination: {
         page,
         limit,
         total,
         pages: Math.ceil(total / limit)
-      }
+      },
+      language
     });
   } catch (error) {
     console.error('Get categories error:', error);
@@ -55,6 +63,7 @@ const getCategories = async (req, res) => {
 // @access  Public
 const getCategory = async (req, res) => {
   try {
+    const language = req.query.lang || req.headers['accept-language']?.split(',')[0]?.split('-')[0] || 'en';
     const category = await Category.findById(req.params.id);
 
     if (!category) {
@@ -64,9 +73,12 @@ const getCategory = async (req, res) => {
       });
     }
 
+    const localizedCategory = category.getLocalizedContent(language);
+
     res.json({
       success: true,
-      data: category
+      data: localizedCategory,
+      language
     });
   } catch (error) {
     console.error('Get category error:', error);
@@ -92,7 +104,22 @@ const createCategory = async (req, res) => {
       });
     }
 
-    const categoryData = { ...req.body };
+    const categoryData = {
+      name: {
+        en: req.body.nameEn || req.body.name,
+        ar: req.body.nameAr || req.body.name
+      },
+      description: {
+        en: req.body.descriptionEn || req.body.description || '',
+        ar: req.body.descriptionAr || req.body.description || ''
+      },
+      image: req.body.image,
+      icon: req.body.icon,
+      color: req.body.color || '#8B4513',
+      isActive: req.body.isActive !== undefined ? req.body.isActive : true,
+      displayOrder: req.body.displayOrder || 0,
+      parentCategory: req.body.parentCategory || null
+    };
 
     // Handle parent category
     if (categoryData.parentCategory && categoryData.parentCategory === '') {
@@ -138,7 +165,29 @@ const updateCategory = async (req, res) => {
       });
     }
 
-    let updateData = { ...req.body };
+    let updateData = {};
+
+    // Handle bilingual name and description
+    if (req.body.nameEn || req.body.nameAr) {
+      updateData.name = {
+        en: req.body.nameEn || req.body.name,
+        ar: req.body.nameAr || req.body.name
+      };
+    }
+    
+    if (req.body.descriptionEn !== undefined || req.body.descriptionAr !== undefined) {
+      updateData.description = {
+        en: req.body.descriptionEn || req.body.description || '',
+        ar: req.body.descriptionAr || req.body.description || ''
+      };
+    }
+
+    // Handle other fields
+    ['image', 'icon', 'color', 'isActive', 'displayOrder', 'parentCategory'].forEach(field => {
+      if (req.body[field] !== undefined) {
+        updateData[field] = req.body[field];
+      }
+    });
 
     // Handle parent category
     if (updateData.parentCategory && updateData.parentCategory === '') {

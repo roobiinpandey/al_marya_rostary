@@ -18,11 +18,12 @@ class ProductDetailPage extends StatefulWidget {
 class _ProductDetailPageState extends State<ProductDetailPage> {
   String _selectedSize = '500g'; // Default selected size
 
-  // Size options with their prices (multipliers relative to base price)
+  // Size options with their prices (multipliers relative to base price per kg)
+  // Home page shows per kg price, here we show multiple weight options
   final Map<String, double> _sizeOptions = {
-    '250g': 0.6, // 60% of base price
-    '500g': 1.0, // Base price
-    '1kg': 1.8, // 180% of base price
+    '250g': 0.6, // 60% of base price per kg (for 250g portion)
+    '500g': 1.0, // Base price per kg (for 500g portion)
+    '1kg': 1.8, // 180% of base price per kg (for full 1kg)
   };
 
   double get _selectedPrice =>
@@ -257,7 +258,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   Consumer<CartProvider>(
                     builder: (context, cartProvider, child) {
                       final isInCart = cartProvider.items.any(
-                        (item) => item.product.id == widget.product.id,
+                        (item) =>
+                            item.product.id == widget.product.id &&
+                            item.selectedSize == _selectedSize,
                       );
 
                       return SizedBox(
@@ -265,17 +268,14 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                         child: ElevatedButton.icon(
                           onPressed: () {
                             if (isInCart) {
-                              // Remove from cart
-                              final cartItem = cartProvider.items.firstWhere(
-                                (item) => item.product.id == widget.product.id,
-                              );
-                              cartProvider.removeItem(cartItem.product.id);
+                              // Remove specific size from cart
+                              cartProvider.removeItem(widget.product.id);
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                    '${widget.product.name} removed from cart',
+                                    '${widget.product.name} $_selectedSize removed from cart',
                                   ),
-                                  backgroundColor: AppTheme.primaryBrown,
+                                  backgroundColor: Colors.orange,
                                 ),
                               );
                             } else {
@@ -292,15 +292,12 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                   content: Text(
                                     '${widget.product.name} $_selectedSize added to cart',
                                   ),
-                                  backgroundColor: AppTheme.primaryBrown,
+                                  backgroundColor: Colors.green,
                                   action: SnackBarAction(
                                     label: 'View Cart',
                                     textColor: Colors.white,
                                     onPressed: () {
-                                      Navigator.of(
-                                        context,
-                                      ).pop(); // Close detail page
-                                      // TODO: Navigate to cart page
+                                      Navigator.pushNamed(context, '/cart');
                                     },
                                   ),
                                 ),

@@ -192,17 +192,20 @@ class FeaturedProducts extends StatelessWidget {
             Expanded(
               flex: 3,
               child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(16),
-                  ),
-                  image: DecorationImage(
-                    image: NetworkImage(product.imageUrl),
-                    fit: BoxFit.cover,
-                  ),
+                decoration: const BoxDecoration(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
                 ),
                 child: Stack(
                   children: [
+                    // Background image
+                    Positioned.fill(
+                      child: ClipRRect(
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(16),
+                        ),
+                        child: _buildSafeProductImage(product.imageUrl),
+                      ),
+                    ),
                     // Rating badge
                     Positioned(
                       top: 8,
@@ -308,9 +311,9 @@ class FeaturedProducts extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 1),
-                  // Price
+                  // Price per kg
                   Text(
-                    product.priceRangeText,
+                    product.pricePerKgDisplay,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: AppTheme.primaryBrown,
@@ -372,6 +375,68 @@ class FeaturedProducts extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  /// Builds a safe image widget with proper error handling for product images
+  Widget _buildSafeProductImage(String imageUrl) {
+    // Handle empty or invalid URLs
+    if (imageUrl.isEmpty || !Uri.tryParse(imageUrl)!.isAbsolute) {
+      return _buildImagePlaceholder();
+    }
+
+    return Image.network(
+      imageUrl,
+      fit: BoxFit.cover,
+      width: double.infinity,
+      height: double.infinity,
+      errorBuilder: (context, error, stackTrace) {
+        debugPrint(
+          'Featured product image loading error for $imageUrl: $error',
+        );
+        return _buildImagePlaceholder();
+      },
+      loadingBuilder: (context, child, loadingProgress) {
+        if (loadingProgress == null) return child;
+        return Container(
+          color: AppTheme.primaryLightBrown.withValues(alpha: 0.1),
+          child: Center(
+            child: CircularProgressIndicator(
+              value: loadingProgress.expectedTotalBytes != null
+                  ? loadingProgress.cumulativeBytesLoaded /
+                        loadingProgress.expectedTotalBytes!
+                  : null,
+              valueColor: const AlwaysStoppedAnimation<Color>(
+                AppTheme.primaryBrown,
+              ),
+              strokeWidth: 2,
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  /// Builds a placeholder widget for failed/missing images
+  Widget _buildImagePlaceholder() {
+    return Container(
+      color: AppTheme.primaryLightBrown.withValues(alpha: 0.2),
+      child: const Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.coffee_outlined, size: 48, color: AppTheme.primaryBrown),
+          SizedBox(height: 8),
+          Text(
+            'Image\nUnavailable',
+            style: TextStyle(
+              fontSize: 12,
+              color: AppTheme.primaryBrown,
+              fontWeight: FontWeight.w500,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }
