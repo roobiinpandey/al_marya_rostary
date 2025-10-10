@@ -9,6 +9,7 @@ import '../features/auth/presentation/pages/register_page.dart';
 import '../features/auth/presentation/pages/forgot_password_page.dart';
 import '../features/auth/presentation/screens/email_verification_screen.dart';
 import '../core/guards/email_verification_guard.dart';
+import '../debug/auth_debug_page.dart';
 
 class AppRouter {
   static const String home = '/';
@@ -24,6 +25,7 @@ class AppRouter {
   static const String cart = '/cart';
   static const String admin = '/admin';
   static const String adminUsers = '/admin/users';
+  static const String debugAuth = '/debug/auth';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -92,6 +94,9 @@ class AppRouter {
           _buildPlaceholderPage('User Management'),
           settings: settings,
         );
+
+      case '/debug/auth':
+        return _buildRoute(const AuthDebugPage(), settings: settings);
 
       default:
         return _buildRoute(_buildNotFoundPage(), settings: settings);

@@ -137,21 +137,57 @@
         <h1>Qahwat Al Emarat</h1>
         <p class="subtitle">Business Management Portal</p>
 
-        <div class="buttons-container">
-            <a href="admin.html" class="portal-btn">Admin Panel</a>
-            <a href="#" class="portal-btn secondary" onclick="alert('Customer app coming soon!')">Customer App</a>
+        <div class="info">
+            <h3>Admin Panel</h3>
+            <p>Welcome to Your Business Portal</p>
+            <p>Manage your coffee business operations from this central hub. Access the admin panel to handle inventory, orders, analytics, and customer management.</p>
         </div>
 
-        <div class="info">
-            <h3>Welcome to Your Business Portal</h3>
-            <p>Manage your coffee business operations from this central hub. Access the admin panel to handle inventory, orders, analytics, and customer management.</p>
-
-            <div class="credentials">
-                <p><strong>Admin Panel Credentials:</strong></p>
-                <p>Username: admin<br>
-                Password: qahwat2024</p>
-            </div>
+        <!-- Login Form -->
+        <div class="login-form" style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-top: 20px; border: 2px solid #8B4513;">
+            <h4 style="color: #8B4513; margin-bottom: 15px; text-align: center;">Admin Login</h4>
+            <form id="adminLoginForm">
+                <div style="margin-bottom: 15px;">
+                    <input type="text" id="username" placeholder="Username" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem;">
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <input type="password" id="password" placeholder="Password" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem;">
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <button type="submit" class="portal-btn" style="width: 100%; margin: 0; background: linear-gradient(135deg, #8B4513, #D2691E);">Login to Admin Panel</button>
+                </div>
+                <div id="login-error" style="display: none; color: #dc3545; text-align: center; font-size: 0.9rem; margin-top: 10px;">
+                    Invalid username or password
+                </div>
+            </form>
         </div>
     </div>
+
+    <script>
+        document.getElementById('adminLoginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('login-error');
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            
+            // Reset error state
+            errorDiv.style.display = 'none';
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Logging in...';
+            
+            // Check credentials (you can customize these)
+            if (username === 'admin' && password === 'qahwat2024') {
+                // Successful login - redirect to admin panel
+                window.location.href = 'admin.html';
+            } else {
+                // Show error
+                errorDiv.style.display = 'block';
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Login to Admin Panel';
+            }
+        });
+    </script>
 </body>
 </html>

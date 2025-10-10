@@ -18,6 +18,13 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: const Text('Qahwat'),
         actions: [
+          // Debug button (remove in production)
+          IconButton(
+            icon: const Icon(Icons.bug_report),
+            onPressed: () {
+              Navigator.pushNamed(context, '/debug/auth');
+            },
+          ),
           Consumer<AuthProvider>(
             builder: (context, authProvider, child) {
               return PopupMenuButton<String>(
@@ -52,6 +59,36 @@ class _HomeScreenState extends State<HomeScreen> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
+
+                // Debug info (remove in production)
+                if (user == null)
+                  Container(
+                    margin: const EdgeInsets.only(top: 8),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withAlpha(30),
+                      border: Border.all(color: Colors.orange),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.info, color: Colors.orange, size: 20),
+                        const SizedBox(width: 8),
+                        const Expanded(
+                          child: Text(
+                            'Not signed in. Tap to sign in with Google.',
+                            style: TextStyle(color: Colors.orange),
+                          ),
+                        ),
+                        ElevatedButton(
+                          onPressed: () async {
+                            await authProvider.signInWithGoogle();
+                          },
+                          child: const Text('Sign In'),
+                        ),
+                      ],
+                    ),
+                  ),
                 const SizedBox(height: 8),
 
                 Text(
@@ -83,11 +120,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   : null,
                               child: user?.avatar == null
                                   ? Text(
-                                      (user?.name?.isNotEmpty == true
-                                          ? user!.name!
-                                                .substring(0, 1)
-                                                .toUpperCase()
-                                          : 'G'),
+                                      _getInitials(user?.name),
                                       style: const TextStyle(
                                         color: Colors.white,
                                         fontSize: 24,
@@ -228,6 +261,11 @@ class _HomeScreenState extends State<HomeScreen> {
         },
       ),
     );
+  }
+
+  String _getInitials(String? name) {
+    if (name == null || name.isEmpty) return 'G';
+    return name.substring(0, 1).toUpperCase();
   }
 
   Widget _buildActionCard(
