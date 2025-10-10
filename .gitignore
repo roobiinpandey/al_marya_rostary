@@ -114,6 +114,11 @@ firebase-debug.log*
 firestore-debug.log*
 ui-debug.log*
 
+# Firebase configuration files (contain API keys)
+ios/Runner/GoogleService-Info.plist
+android/app/google-services.json
+lib/firebase_options.dart
+
 # Symbolication related
 app.*.symbols
 
