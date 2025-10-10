@@ -1654,6 +1654,12 @@
                 const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
                 const baseUrl = isDevelopment ? 'http://localhost:5001' : 'https://***REMOVED***.onrender.com';
                 
+                // Debug logging
+                console.log('🌐 Environment Detection:');
+                console.log('  - Hostname:', window.location.hostname);
+                console.log('  - Is Development:', isDevelopment);
+                console.log('  - Base URL:', baseUrl);
+                
                 this.apiBaseUrl = `${baseUrl}/api`;
                 this.publicAdminUrl = `${baseUrl}/api/public-admin`;
                 this.isConnected = false;
