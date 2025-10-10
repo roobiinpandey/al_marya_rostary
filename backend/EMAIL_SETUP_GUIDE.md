@@ -2,17 +2,60 @@
 
 This guide will help you configure email services for your Qahwat Al Emarat application to send notifications, newsletters, and order confirmations.
 
+## 🔥 Firebase Authentication Integration
+
+**IMPORTANT:** This app now uses Firebase Authentication for user authentication, which includes:
+- Email verification
+- Password reset emails
+- OAuth sign-in (Google, Apple)
+
+Firebase handles these authentication emails automatically. The SMTP configuration below is only needed for:
+- Order notifications
+- Marketing emails
+- System notifications
+
 ## Overview
 The warning you're seeing:
 ```
 ⚠️ Email configuration not complete. Email features will be simulated.
 ```
 
-This happens because the email service needs SMTP configuration to send real emails.
+This happens because the email service needs SMTP configuration to send real emails for notifications.
 
 ## Email Service Options
 
-### Option 1: Gmail SMTP (Easiest for Development)
+### Option 1: Gmail SMTP (Recommended for Development)
+
+**Why Gmail:**
+- Quick setup for development and testing
+- Free and reliable
+- Good for low-volume applications
+- Easy to configure with App Passwords
+
+**Setup Steps:**
+1. Enable 2-Factor Authentication in your Gmail account
+2. Generate an App Password:
+   - Google Account → Security → 2-Step Verification → App passwords
+   - Select "Mail" and generate password
+3. Use the credentials in your .env file
+
+**Configuration:**
+```bash
+SMTP_HOST=in-v3.mailjet.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=your-mailjet-api-key
+SMTP_PASS=your-mailjet-secret-key
+EMAIL_FROM_NAME=Qahwat Al Emarat
+EMAIL_FROM_ADDRESS=noreply@yourdomain.com
+```
+
+**Quick Setup:**
+```bash
+cd backend && node setup-mailjet-email.js
+```
+
+### Option 2: Gmail SMTP (Easiest for Development)
 
 **Requirements:**
 - Gmail account

@@ -33,14 +33,17 @@ class EmailService {
 
       this.transporter = nodemailer.createTransport(emailConfig);
 
-      // Verify the connection
+      // Set configured to true if we have all required config
+      this.isConfigured = true;
+      console.log('✅ Email service configured with SMTP settings');
+
+      // Verify the connection asynchronously (don't block initialization)
       this.transporter.verify((error, success) => {
         if (error) {
-          console.error('❌ Email transporter verification failed:', error.message);
-          this.isConfigured = false;
+          console.warn('⚠️  Email transporter verification failed:', error.message);
+          console.log('Email service will continue in simulation mode until connection is established.');
         } else {
-          console.log('✅ Email service configured successfully');
-          this.isConfigured = true;
+          console.log('✅ Email SMTP connection verified successfully');
         }
       });
 

@@ -9,6 +9,7 @@ const getCoffees = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
+    const language = req.query.lang || req.headers['accept-language']?.split(',')[0]?.split('-')[0] || 'en';
 
     const filter = { isActive: true };
 
@@ -37,15 +38,19 @@ const getCoffees = async (req, res) => {
 
     const total = await Coffee.countDocuments(filter);
 
+    // Localize coffee data
+    const localizedCoffees = coffees.map(coffee => coffee.getLocalizedContent(language));
+
     res.json({
       success: true,
-      data: coffees,
+      data: localizedCoffees,
       pagination: {
         page,
         limit,
         total,
         pages: Math.ceil(total / limit)
-      }
+      },
+      language
     });
   } catch (error) {
     console.error('Get coffees error:', error);
@@ -62,6 +67,7 @@ const getCoffees = async (req, res) => {
 // @access  Public
 const getCoffee = async (req, res) => {
   try {
+    const language = req.query.lang || req.headers['accept-language']?.split(',')[0]?.split('-')[0] || 'en';
     const coffee = await Coffee.findById(req.params.id);
 
     if (!coffee) {
@@ -71,9 +77,12 @@ const getCoffee = async (req, res) => {
       });
     }
 
+    const localizedCoffee = coffee.getLocalizedContent(language);
+
     res.json({
       success: true,
-      data: coffee
+      data: localizedCoffee,
+      language
     });
   } catch (error) {
     console.error('Get coffee error:', error);
@@ -108,14 +117,27 @@ const createCoffee = async (req, res) => {
     }
 
     const coffeeData = {
-      ...req.body,
+      name: {
+        en: req.body.nameEn || req.body.name,
+        ar: req.body.nameAr || req.body.name
+      },
+      description: {
+        en: req.body.descriptionEn || req.body.description,
+        ar: req.body.descriptionAr || req.body.description
+      },
+      price: req.body.price,
       image: `/uploads/${req.file.filename}`,
+      origin: req.body.origin,
+      roastLevel: req.body.roastLevel,
+      stock: req.body.stock || 0,
       categories: req.body.categories ? JSON.parse(req.body.categories) : [],
       variants: req.body.variants ? JSON.parse(req.body.variants) : [],
       tastingNotes: req.body.tastingNotes ? JSON.parse(req.body.tastingNotes) : [],
       brewingMethods: req.body.brewingMethods ? JSON.parse(req.body.brewingMethods) : [],
       certifications: req.body.certifications ? JSON.parse(req.body.certifications) : [],
-      tags: req.body.tags ? JSON.parse(req.body.tags) : []
+      tags: req.body.tags ? JSON.parse(req.body.tags) : [],
+      isActive: req.body.isActive !== undefined ? req.body.isActive : true,
+      isFeatured: req.body.isFeatured !== undefined ? req.body.isFeatured : false
     };
 
     const coffee = await Coffee.create(coffeeData);
@@ -157,7 +179,29 @@ const updateCoffee = async (req, res) => {
       });
     }
 
-    let updateData = { ...req.body };
+    let updateData = {};
+
+    // Handle bilingual name and description
+    if (req.body.nameEn || req.body.nameAr) {
+      updateData.name = {
+        en: req.body.nameEn || req.body.name,
+        ar: req.body.nameAr || req.body.name
+      };
+    }
+    
+    if (req.body.descriptionEn || req.body.descriptionAr) {
+      updateData.description = {
+        en: req.body.descriptionEn || req.body.description,
+        ar: req.body.descriptionAr || req.body.description
+      };
+    }
+
+    // Handle other fields
+    ['price', 'origin', 'roastLevel', 'stock', 'isActive', 'isFeatured'].forEach(field => {
+      if (req.body[field] !== undefined) {
+        updateData[field] = req.body[field];
+      }
+    });
 
     // Handle file upload if new image provided
     if (req.file) {
@@ -176,12 +220,12 @@ const updateCoffee = async (req, res) => {
     }
 
     // Parse JSON fields
-    if (updateData.categories) updateData.categories = JSON.parse(updateData.categories);
-    if (updateData.variants) updateData.variants = JSON.parse(updateData.variants);
-    if (updateData.tastingNotes) updateData.tastingNotes = JSON.parse(updateData.tastingNotes);
-    if (updateData.brewingMethods) updateData.brewingMethods = JSON.parse(updateData.brewingMethods);
-    if (updateData.certifications) updateData.certifications = JSON.parse(updateData.certifications);
-    if (updateData.tags) updateData.tags = JSON.parse(updateData.tags);
+    if (req.body.categories) updateData.categories = JSON.parse(req.body.categories);
+    if (req.body.variants) updateData.variants = JSON.parse(req.body.variants);
+    if (req.body.tastingNotes) updateData.tastingNotes = JSON.parse(req.body.tastingNotes);
+    if (req.body.brewingMethods) updateData.brewingMethods = JSON.parse(req.body.brewingMethods);
+    if (req.body.certifications) updateData.certifications = JSON.parse(req.body.certifications);
+    if (req.body.tags) updateData.tags = JSON.parse(req.body.tags);
 
     const coffee = await Coffee.findByIdAndUpdate(
       req.params.id,

@@ -8,7 +8,11 @@ const {
   adminLogin,
   getMe,
   refreshToken,
-  updateProfile
+  updateProfile,
+  forgotPassword,
+  resetPassword,
+  sendEmailVerification,
+  verifyEmail
 } = require('../controllers/authController');
 const { protect } = require('../middleware/auth');
 
@@ -91,14 +95,37 @@ const profileUpdateValidation = [
     .withMessage('Please provide a valid phone number')
 ];
 
+const forgotPasswordValidation = [
+  body('email')
+    .isEmail()
+    .normalizeEmail()
+    .withMessage('Please provide a valid email')
+];
+
+const resetPasswordValidation = [
+  body('token')
+    .notEmpty()
+    .withMessage('Reset token is required'),
+  body('newPassword')
+    .isLength({ min: 6 })
+    .withMessage('Password must be at least 6 characters'),
+  body('confirmPassword')
+    .notEmpty()
+    .withMessage('Confirm password is required')
+];
+
 // Public routes
 router.post('/register', registerValidation, register);
 router.post('/login', loginValidation, login);
 router.post('/admin-login', adminLoginValidation, adminLogin);
 router.post('/refresh', refreshToken);
+router.post('/forgot-password', forgotPasswordValidation, forgotPassword);
+router.post('/reset-password', resetPasswordValidation, resetPassword);
+router.get('/verify-email/:token', verifyEmail);
 
 // Protected routes
 router.get('/me', protect, getMe);
 router.put('/profile', protect, upload.single('avatar'), profileUpdateValidation, updateProfile);
+router.post('/send-verification-email', protect, sendEmailVerification);
 
 module.exports = router;

@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../pages/home_page.dart';
 import '../../../auth/presentation/pages/login_page.dart';
-import '../../../auth/providers/auth_provider.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 
 /// Modern splash screen for Qahwat Al Emarat
 class SplashPage extends StatefulWidget {

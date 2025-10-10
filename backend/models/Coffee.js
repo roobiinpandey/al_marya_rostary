@@ -1,16 +1,32 @@
 const mongoose = require('mongoose');
 
 const coffeeSchema = new mongoose.Schema({
+  // Bilingual name and description support
   name: {
-    type: String,
-    required: [true, 'Coffee name is required'],
-    trim: true,
-    maxlength: [100, 'Name cannot be more than 100 characters']
+    en: {
+      type: String,
+      required: [true, 'English name is required'],
+      trim: true,
+      maxlength: [100, 'English name cannot be more than 100 characters']
+    },
+    ar: {
+      type: String,
+      required: [true, 'Arabic name is required'],
+      trim: true,
+      maxlength: [100, 'Arabic name cannot be more than 100 characters']
+    }
   },
   description: {
-    type: String,
-    required: [true, 'Description is required'],
-    maxlength: [1000, 'Description cannot be more than 1000 characters']
+    en: {
+      type: String,
+      required: [true, 'English description is required'],
+      maxlength: [1000, 'English description cannot be more than 1000 characters']
+    },
+    ar: {
+      type: String,
+      required: [true, 'Arabic description is required'],
+      maxlength: [1000, 'Arabic description cannot be more than 1000 characters']
+    }
   },
   price: {
     type: Number,
@@ -101,7 +117,12 @@ const coffeeSchema = new mongoose.Schema({
 });
 
 // Indexes for better query performance
-coffeeSchema.index({ name: 'text', description: 'text' });
+coffeeSchema.index({ 
+  'name.en': 'text', 
+  'name.ar': 'text', 
+  'description.en': 'text', 
+  'description.ar': 'text' 
+});
 coffeeSchema.index({ categories: 1 });
 coffeeSchema.index({ roastLevel: 1 });
 coffeeSchema.index({ price: 1 });
@@ -121,6 +142,16 @@ coffeeSchema.virtual('availabilityStatus').get(function() {
   return 'In Stock';
 });
 
+// Method to get localized content
+coffeeSchema.methods.getLocalizedContent = function(language = 'en') {
+  const lang = ['en', 'ar'].includes(language) ? language : 'en';
+  return {
+    ...this.toObject(),
+    localizedName: this.name[lang],
+    localizedDescription: this.description[lang]
+  };
+};
+
 // Instance method to check if coffee is available
 coffeeSchema.methods.isAvailable = function() {
   return this.isActive && this.stock > 0;
@@ -132,37 +163,10 @@ coffeeSchema.methods.updateStock = function(quantity) {
   return this.save();
 };
 
-// Instance method to update rating from reviews
-coffeeSchema.methods.updateRatingFromReviews = async function() {
-  const UserFeedback = mongoose.model('UserFeedback');
-  
-  const ratingStats = await UserFeedback.getCoffeeRatingStats(this._id);
-  
-  this.rating = Math.round(ratingStats.averageRating * 10) / 10; // Round to 1 decimal
-  this.reviewCount = ratingStats.totalReviews;
-  
-  return this.save();
-};
-
-// Instance method to get detailed rating breakdown
-coffeeSchema.methods.getRatingBreakdown = async function() {
-  const UserFeedback = mongoose.model('UserFeedback');
-  return UserFeedback.getCoffeeRatingStats(this._id);
-};
-
-// Instance method to get recent reviews
-coffeeSchema.methods.getRecentReviews = async function(limit = 5) {
-  const UserFeedback = mongoose.model('UserFeedback');
-  return UserFeedback.getReviewsForCoffee(this._id, {
-    limit,
-    status: 'approved'
-  });
-};
-
 // Static method to find featured coffees
 coffeeSchema.statics.findFeatured = function(limit = 10) {
   return this.find({ isActive: true, isFeatured: true })
-    .sort({ rating: -1, createdAt: -1 })
+    .sort({ createdAt: -1 })
     .limit(limit);
 };
 
@@ -176,118 +180,11 @@ coffeeSchema.statics.findByCategory = function(category, limit = 20) {
   .limit(limit);
 };
 
-// Static method to find top-rated coffees
-coffeeSchema.statics.findTopRated = function(limit = 10, minReviews = 3) {
-  return this.find({
-    isActive: true,
-    reviewCount: { $gte: minReviews }
-  })
-  .sort({ rating: -1, reviewCount: -1 })
-  .limit(limit);
-};
-
-// Static method to search coffees with filters
-coffeeSchema.statics.searchCoffees = function(options = {}) {
-  const {
-    query,
-    categories,
-    roastLevels,
-    minRating = 0,
-    maxRating = 5,
-    minPrice,
-    maxPrice,
-    sortBy = 'rating',
-    sortOrder = 'desc',
-    page = 1,
-    limit = 20
-  } = options;
-
-  let searchQuery = { isActive: true };
-
-  // Text search
-  if (query) {
-    searchQuery.$text = { $search: query };
-  }
-
-  // Category filter
-  if (categories && categories.length > 0) {
-    searchQuery.categories = { $in: categories };
-  }
-
-  // Roast level filter
-  if (roastLevels && roastLevels.length > 0) {
-    searchQuery.roastLevel = { $in: roastLevels };
-  }
-
-  // Rating filter
-  if (minRating > 0 || maxRating < 5) {
-    searchQuery.rating = { $gte: minRating, $lte: maxRating };
-  }
-
-  // Price filter
-  if (minPrice !== undefined || maxPrice !== undefined) {
-    searchQuery.price = {};
-    if (minPrice !== undefined) searchQuery.price.$gte = minPrice;
-    if (maxPrice !== undefined) searchQuery.price.$lte = maxPrice;
-  }
-
-  const sortOptions = {};
-  sortOptions[sortBy] = sortOrder === 'desc' ? -1 : 1;
-
-  const skip = (page - 1) * limit;
-
-  return this.find(searchQuery)
-    .sort(sortOptions)
-    .skip(skip)
-    .limit(limit);
-};
-
-// Static method to get coffee recommendations based on user preferences
-coffeeSchema.statics.getRecommendations = async function(userId, limit = 10) {
-  const User = mongoose.model('User');
-  const UserFeedback = mongoose.model('UserFeedback');
-  
-  const user = await User.findById(userId);
-  if (!user) return [];
-
-  const preferences = user.preferences;
-  
-  // Build recommendation query based on user preferences
-  let query = { isActive: true };
-  
-  // Preferred categories
-  if (preferences.favoriteCategories && preferences.favoriteCategories.length > 0) {
-    query.categories = { $in: preferences.favoriteCategories };
-  }
-  
-  // Preferred roast levels
-  if (preferences.roastLevels && preferences.roastLevels.length > 0) {
-    query.roastLevel = { $in: preferences.roastLevels };
-  }
-  
-  // Price range
-  if (preferences.priceRange) {
-    query.price = {
-      $gte: preferences.priceRange.min,
-      $lte: preferences.priceRange.max
-    };
-  }
-
-  // Exclude already reviewed coffees
-  const reviewedCoffees = await UserFeedback.find({ user: userId }).distinct('coffee');
-  if (reviewedCoffees.length > 0) {
-    query._id = { $nin: reviewedCoffees };
-  }
-
-  return this.find(query)
-    .sort({ rating: -1, reviewCount: -1 })
-    .limit(limit);
-};
-
 // Pre-save middleware to generate slug
 coffeeSchema.pre('save', function(next) {
-  if (this.isModified('name') && !this.seo.slug) {
-    this.seo.slug = this.name
+  if ((this.isModified('name') || this.isNew) && !this.seo.slug) {
+    const englishName = this.name?.en || 'coffee';
+    this.seo.slug = englishName
       .toLowerCase()
       .replace(/[^a-zA-Z0-9]/g, '-')
       .replace(/-+/g, '-')

@@ -9,8 +9,8 @@ class User {
   final String email;
   final String? phone;
   final String? avatar;
-  final DateTime createdAt;
-  final DateTime updatedAt;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
   final bool isEmailVerified;
   final bool isAnonymous;
   final List<String> roles;
@@ -21,10 +21,10 @@ class User {
     required this.email,
     this.phone,
     this.avatar,
-    required this.createdAt,
-    required this.updatedAt,
+    this.createdAt,
+    this.updatedAt,
     required this.isEmailVerified,
-    required this.isAnonymous,
+    this.isAnonymous = false, // Default value for anonymous status
     required this.roles,
   });
 

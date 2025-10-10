@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../../core/constants/app_constants.dart';
+import '../../../../data/models/coffee_product_model.dart';
+import '../../../coffee/presentation/pages/product_detail_page.dart';
 
-class FavoritesPage extends StatefulWidget {
-  const FavoritesPage({super.key});
+class WishlistPage extends StatefulWidget {
+  const WishlistPage({super.key});
 
   @override
-  State<FavoritesPage> createState() => _FavoritesPageState();
+  State<WishlistPage> createState() => _WishlistPageState();
 }
 
-class _FavoritesPageState extends State<FavoritesPage> {
-  List<FavoriteItem> _favorites = [];
+class _WishlistPageState extends State<WishlistPage> {
+  List<CoffeeProductModel> _favorites = [];
   bool _isLoading = true;
   String _searchQuery = '';
   String _sortBy = 'name'; // name, price, dateAdded
@@ -25,49 +29,52 @@ class _FavoritesPageState extends State<FavoritesPage> {
     // Mock data for now
     setState(() {
       _favorites = [
-        FavoriteItem(
+        CoffeeProductModel(
           id: '1',
           name: 'Emirati Qahwa',
           description: 'Traditional cardamom coffee',
           price: 25.00,
           imageUrl:
               'https://via.placeholder.com/300x300/8B4513/FFFFFF?text=Emirati+Qahwa',
-          category: 'Traditional',
+          categories: ['Traditional'],
           rating: 4.8,
-          dateAdded: DateTime.now().subtract(const Duration(days: 2)),
-          isAvailable: true,
+          origin: 'UAE',
+          roastLevel: 'Dark',
+          stock: 50,
         ),
-        FavoriteItem(
+        CoffeeProductModel(
           id: '2',
           name: 'Cold Brew',
           description: 'Smooth and refreshing cold coffee',
           price: 18.00,
           imageUrl:
               'https://via.placeholder.com/300x300/8B4513/FFFFFF?text=Cold+Brew',
-          category: 'Cold Drinks',
+          categories: ['Cold Drinks'],
           rating: 4.5,
-          dateAdded: DateTime.now().subtract(const Duration(days: 5)),
-          isAvailable: true,
+          origin: 'Colombia',
+          roastLevel: 'Medium',
+          stock: 30,
         ),
-        FavoriteItem(
+        CoffeeProductModel(
           id: '3',
           name: 'Arabic Mocha',
           description: 'Rich chocolate and coffee blend',
           price: 22.00,
           imageUrl:
               'https://via.placeholder.com/300x300/8B4513/FFFFFF?text=Arabic+Mocha',
-          category: 'Specialty',
+          categories: ['Specialty'],
           rating: 4.7,
-          dateAdded: DateTime.now().subtract(const Duration(days: 1)),
-          isAvailable: false,
+          origin: 'Yemen',
+          roastLevel: 'Dark',
+          stock: 0, // Out of stock
         ),
       ];
       _isLoading = false;
     });
   }
 
-  List<FavoriteItem> get _filteredAndSortedFavorites {
-    List<FavoriteItem> filtered = _favorites;
+  List<CoffeeProductModel> get _filteredAndSortedFavorites {
+    List<CoffeeProductModel> filtered = _favorites;
 
     // Filter by search query
     if (_searchQuery.isNotEmpty) {
@@ -78,8 +85,9 @@ class _FavoritesPageState extends State<FavoritesPage> {
                 item.description.toLowerCase().contains(
                   _searchQuery.toLowerCase(),
                 ) ||
-                item.category.toLowerCase().contains(
-                  _searchQuery.toLowerCase(),
+                item.categories.any(
+                  (cat) =>
+                      cat.toLowerCase().contains(_searchQuery.toLowerCase()),
                 ),
           )
           .toList();
@@ -94,7 +102,8 @@ class _FavoritesPageState extends State<FavoritesPage> {
         filtered.sort((a, b) => a.price.compareTo(b.price));
         break;
       case 'dateAdded':
-        filtered.sort((a, b) => b.dateAdded.compareTo(a.dateAdded));
+        // Mock date added sorting - in real app would be stored
+        filtered.sort((a, b) => a.id.compareTo(b.id));
         break;
     }
 
@@ -105,13 +114,16 @@ class _FavoritesPageState extends State<FavoritesPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Favorites',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+        title: Text(
+          'My Wishlist',
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
         ),
-        backgroundColor: const Color(0xFF8B4513), // primaryBrown
-        foregroundColor: Colors.white,
+        backgroundColor: AppTheme.primaryBrown,
         elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
         actions: [
           PopupMenuButton<String>(
             icon: const Icon(Icons.sort, color: Colors.white),
@@ -131,13 +143,12 @@ class _FavoritesPageState extends State<FavoritesPage> {
           ),
         ],
       ),
-      backgroundColor: const Color(0xFFF5F5F5), // backgroundLight
       body: Column(
         children: [
           // Search Bar
           Container(
             padding: const EdgeInsets.all(16),
-            color: Colors.white,
+            color: AppTheme.surfaceWhite,
             child: TextField(
               onChanged: (value) {
                 setState(() {
@@ -145,18 +156,21 @@ class _FavoritesPageState extends State<FavoritesPage> {
                 });
               },
               decoration: InputDecoration(
-                hintText: 'Search favorites...',
-                prefixIcon: const Icon(Icons.search, color: Color(0xFF8B4513)),
+                hintText: 'Search wishlist...',
+                prefixIcon: const Icon(
+                  Icons.search,
+                  color: AppTheme.primaryBrown,
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+                  borderSide: BorderSide.none,
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Color(0xFF8B4513)),
+                  borderSide: const BorderSide(color: AppTheme.primaryBrown),
                 ),
                 filled: true,
-                fillColor: const Color(0xFFF9F9F9),
+                fillColor: AppTheme.backgroundCream,
               ),
             ),
           ),
@@ -165,7 +179,9 @@ class _FavoritesPageState extends State<FavoritesPage> {
           Expanded(
             child: _isLoading
                 ? const Center(
-                    child: CircularProgressIndicator(color: Color(0xFF8B4513)),
+                    child: CircularProgressIndicator(
+                      color: AppTheme.primaryBrown,
+                    ),
                   )
                 : _buildContent(),
           ),
@@ -197,27 +213,24 @@ class _FavoritesPageState extends State<FavoritesPage> {
         children: [
           Icon(
             _searchQuery.isNotEmpty ? Icons.search_off : Icons.favorite_border,
-            size: 64,
-            color: const Color(0xFF8C8C8C), // textLight
+            size: 80,
+            color: AppTheme.textLight,
           ),
           const SizedBox(height: 16),
           Text(
             _searchQuery.isNotEmpty ? 'No favorites found' : 'No favorites yet',
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w500,
-              color: Color(0xFF5D5D5D), // textMedium
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(color: AppTheme.textDark),
           ),
           const SizedBox(height: 8),
           Text(
             _searchQuery.isNotEmpty
                 ? 'Try adjusting your search terms'
-                : 'Start adding items to your favorites',
-            style: const TextStyle(
-              fontSize: 14,
-              color: Color(0xFF8C8C8C), // textLight
-            ),
+                : 'Start adding items to your wishlist',
+            style: Theme.of(
+              context,
+            ).textTheme.bodyLarge?.copyWith(color: AppTheme.textMedium),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
@@ -232,7 +245,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF8B4513),
+              backgroundColor: AppTheme.primaryBrown,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -247,21 +260,23 @@ class _FavoritesPageState extends State<FavoritesPage> {
     );
   }
 
-  Widget _buildFavoriteCard(FavoriteItem item) {
+  Widget _buildFavoriteCard(CoffeeProductModel item) {
+    final isAvailable = item.stock > 0;
+
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
         onTap: () => _navigateToProductDetail(item),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         child: Padding(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(16),
           child: Row(
             children: [
               // Product Image
               ClipRRect(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(12),
                 child: CachedNetworkImage(
                   imageUrl: item.imageUrl,
                   width: 80,
@@ -270,19 +285,25 @@ class _FavoritesPageState extends State<FavoritesPage> {
                   placeholder: (context, url) => Container(
                     width: 80,
                     height: 80,
-                    color: const Color(0xFFF0F0F0),
-                    child: const Icon(Icons.coffee, color: Color(0xFF8B4513)),
+                    color: AppTheme.backgroundCream,
+                    child: const Icon(
+                      Icons.coffee,
+                      color: AppTheme.primaryBrown,
+                    ),
                   ),
                   errorWidget: (context, url, error) => Container(
                     width: 80,
                     height: 80,
-                    color: const Color(0xFFF0F0F0),
-                    child: const Icon(Icons.coffee, color: Color(0xFF8B4513)),
+                    color: AppTheme.backgroundCream,
+                    child: const Icon(
+                      Icons.coffee,
+                      color: AppTheme.primaryBrown,
+                    ),
                   ),
                 ),
               ),
 
-              const SizedBox(width: 12),
+              const SizedBox(width: 16),
 
               // Product Details
               Expanded(
@@ -294,21 +315,21 @@ class _FavoritesPageState extends State<FavoritesPage> {
                         Expanded(
                           child: Text(
                             item.name,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF2E2E2E), // textDark
-                            ),
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.textDark,
+                                ),
                           ),
                         ),
-                        if (!item.isAvailable)
+                        if (!isAvailable)
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 8,
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.red.withValues(alpha:0.1),
+                              color: Colors.red.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: const Text(
@@ -327,9 +348,8 @@ class _FavoritesPageState extends State<FavoritesPage> {
 
                     Text(
                       item.description,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Color(0xFF8C8C8C), // textLight
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppTheme.textMedium,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -341,36 +361,40 @@ class _FavoritesPageState extends State<FavoritesPage> {
                       children: [
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
+                            horizontal: 8,
+                            vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF8B4513).withValues(alpha:0.1),
-                            borderRadius: BorderRadius.circular(4),
+                            color: AppTheme.primaryBrown.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
-                            item.category,
+                            item.categories.isNotEmpty
+                                ? item.categories.first
+                                : 'Coffee',
                             style: const TextStyle(
                               fontSize: 10,
-                              color: Color(0xFF8B4513),
+                              color: AppTheme.primaryBrown,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Icon(
-                          Icons.star,
-                          size: 14,
-                          color: const Color(0xFFFFA000), // accentAmber
-                        ),
+                        Icon(Icons.star, size: 14, color: AppTheme.accentAmber),
                         const SizedBox(width: 2),
                         Text(
                           item.rating.toString(),
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: Color(0xFF5D5D5D), // textMedium
-                          ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                fontWeight: FontWeight.w500,
+                                color: AppTheme.textMedium,
+                              ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          '• ${item.origin}',
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: AppTheme.textLight),
                         ),
                       ],
                     ),
@@ -380,20 +404,18 @@ class _FavoritesPageState extends State<FavoritesPage> {
                     Row(
                       children: [
                         Text(
-                          '${item.price.toStringAsFixed(2)} AED',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF8B4513), // primaryBrown
-                          ),
+                          '${AppConstants.currencySymbol}${item.price.toStringAsFixed(2)}',
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.primaryBrown,
+                              ),
                         ),
                         const Spacer(),
                         Text(
-                          'Added ${_formatDate(item.dateAdded)}',
-                          style: const TextStyle(
-                            fontSize: 10,
-                            color: Color(0xFF8C8C8C), // textLight
-                          ),
+                          '${item.roastLevel} Roast',
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: AppTheme.textLight),
                         ),
                       ],
                     ),
@@ -401,24 +423,37 @@ class _FavoritesPageState extends State<FavoritesPage> {
                 ),
               ),
 
-              const SizedBox(width: 8),
+              const SizedBox(width: 12),
 
               // Action Buttons
               Column(
                 children: [
-                  IconButton(
-                    onPressed: () => _removeFromFavorites(item),
-                    icon: const Icon(Icons.favorite, color: Colors.red),
-                    tooltip: 'Remove from favorites',
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.red.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: IconButton(
+                      onPressed: () => _removeFromFavorites(item),
+                      icon: const Icon(Icons.favorite, color: Colors.red),
+                      tooltip: 'Remove from wishlist',
+                    ),
                   ),
-                  if (item.isAvailable)
-                    IconButton(
-                      onPressed: () => _addToCart(item),
-                      icon: const Icon(
-                        Icons.add_shopping_cart,
-                        color: Color(0xFF8B4513),
+                  const SizedBox(height: 8),
+                  if (isAvailable)
+                    Container(
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryBrown.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      tooltip: 'Add to cart',
+                      child: IconButton(
+                        onPressed: () => _addToCart(item),
+                        icon: const Icon(
+                          Icons.add_shopping_cart,
+                          color: AppTheme.primaryBrown,
+                        ),
+                        tooltip: 'Add to cart',
+                      ),
                     ),
                 ],
               ),
@@ -429,42 +464,19 @@ class _FavoritesPageState extends State<FavoritesPage> {
     );
   }
 
-  String _formatDate(DateTime date) {
-    final now = DateTime.now();
-    final difference = now.difference(date);
-
-    if (difference.inDays == 0) {
-      return 'today';
-    } else if (difference.inDays == 1) {
-      return 'yesterday';
-    } else if (difference.inDays < 7) {
-      return '${difference.inDays} days ago';
-    } else if (difference.inDays < 30) {
-      final weeks = (difference.inDays / 7).floor();
-      return weeks == 1 ? '1 week ago' : '$weeks weeks ago';
-    } else {
-      final months = (difference.inDays / 30).floor();
-      return months == 1 ? '1 month ago' : '$months months ago';
-    }
-  }
-
-  void _navigateToProductDetail(FavoriteItem item) {
-    // TODO: Navigate to product detail page
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Opening ${item.name}...'),
-        backgroundColor: const Color(0xFF8B4513),
-      ),
+  void _navigateToProductDetail(CoffeeProductModel item) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => ProductDetailPage(product: item)),
     );
   }
 
-  void _removeFromFavorites(FavoriteItem item) {
+  void _removeFromFavorites(CoffeeProductModel item) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Remove from Favorites'),
+        title: const Text('Remove from Wishlist'),
         content: Text(
-          'Are you sure you want to remove "${item.name}" from your favorites?',
+          'Are you sure you want to remove "${item.name}" from your wishlist?',
         ),
         actions: [
           TextButton(
@@ -479,10 +491,11 @@ class _FavoritesPageState extends State<FavoritesPage> {
               });
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('${item.name} removed from favorites'),
+                  content: Text('${item.name} removed from wishlist'),
                   backgroundColor: Colors.orange,
                   action: SnackBarAction(
                     label: 'Undo',
+                    textColor: Colors.white,
                     onPressed: () {
                       setState(() {
                         _favorites.add(item);
@@ -503,14 +516,15 @@ class _FavoritesPageState extends State<FavoritesPage> {
     );
   }
 
-  void _addToCart(FavoriteItem item) {
-    // TODO: Implement add to cart functionality
+  void _addToCart(CoffeeProductModel item) {
+    // TODO: Implement add to cart functionality with CartProvider
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('${item.name} added to cart!'),
-        backgroundColor: const Color(0xFF4CAF50), // success green
+        backgroundColor: Colors.green,
         action: SnackBarAction(
           label: 'View Cart',
+          textColor: Colors.white,
           onPressed: () {
             Navigator.pushNamed(context, '/cart');
           },
@@ -518,28 +532,4 @@ class _FavoritesPageState extends State<FavoritesPage> {
       ),
     );
   }
-}
-
-class FavoriteItem {
-  final String id;
-  final String name;
-  final String description;
-  final double price;
-  final String imageUrl;
-  final String category;
-  final double rating;
-  final DateTime dateAdded;
-  final bool isAvailable;
-
-  FavoriteItem({
-    required this.id,
-    required this.name,
-    required this.description,
-    required this.price,
-    required this.imageUrl,
-    required this.category,
-    required this.rating,
-    required this.dateAdded,
-    required this.isAvailable,
-  });
 }

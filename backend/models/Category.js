@@ -1,16 +1,30 @@
 const mongoose = require('mongoose');
 
 const categorySchema = new mongoose.Schema({
+  // Bilingual name and description support
   name: {
-    type: String,
-    required: [true, 'Category name is required'],
-    trim: true,
-    maxlength: [50, 'Name cannot be more than 50 characters'],
-    unique: true
+    en: {
+      type: String,
+      required: [true, 'English name is required'],
+      trim: true,
+      maxlength: [50, 'English name cannot be more than 50 characters']
+    },
+    ar: {
+      type: String,
+      required: [true, 'Arabic name is required'],
+      trim: true,
+      maxlength: [50, 'Arabic name cannot be more than 50 characters']
+    }
   },
   description: {
-    type: String,
-    maxlength: [200, 'Description cannot be more than 200 characters']
+    en: {
+      type: String,
+      maxlength: [200, 'English description cannot be more than 200 characters']
+    },
+    ar: {
+      type: String,
+      maxlength: [200, 'Arabic description cannot be more than 200 characters']
+    }
   },
   image: {
     type: String,
@@ -59,7 +73,8 @@ categorySchema.index({ parentCategory: 1 });
 
 // Virtual for full slug path (for nested categories)
 categorySchema.virtual('fullSlug').get(function() {
-  return this.seo.slug || this.name.toLowerCase().replace(/[^a-zA-Z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+  const englishName = this.name?.en || 'category';
+  return this.seo.slug || englishName.toLowerCase().replace(/[^a-zA-Z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
 });
 
 // Virtual for subcategories
@@ -73,9 +88,19 @@ categorySchema.virtual('subcategories', {
 categorySchema.methods.getProductCount = async function() {
   const Coffee = mongoose.model('Coffee');
   return await Coffee.countDocuments({
-    categories: { $in: [this.name] },
+    categories: { $in: [this.name.en, this.name.ar] },
     isActive: true
   });
+};
+
+// Method to get localized content
+categorySchema.methods.getLocalizedContent = function(language = 'en') {
+  const lang = ['en', 'ar'].includes(language) ? language : 'en';
+  return {
+    ...this.toObject(),
+    localizedName: this.name[lang],
+    localizedDescription: this.description[lang] || ''
+  };
 };
 
 // Static method to find active categories
@@ -90,8 +115,9 @@ categorySchema.statics.findRootCategories = function() {
 
 // Pre-save middleware to generate slug
 categorySchema.pre('save', function(next) {
-  if (this.isModified('name') && !this.seo.slug) {
-    this.seo.slug = this.name
+  if ((this.isModified('name') || this.isNew) && !this.seo.slug) {
+    const englishName = this.name?.en || 'category';
+    this.seo.slug = englishName
       .toLowerCase()
       .replace(/[^a-zA-Z0-9]/g, '-')
       .replace(/-+/g, '-')

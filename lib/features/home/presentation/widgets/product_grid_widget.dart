@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../cart/presentation/providers/cart_provider.dart';
 import '../../../../../core/theme/app_theme.dart';
-import '../../../../../core/constants/app_constants.dart';
 import '../../../../../data/models/coffee_product_model.dart';
 
 /// Product grid widget displaying products in a 2x2 grid layout
@@ -272,7 +271,7 @@ class _ProductGridWidgetState extends State<ProductGridWidget> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        '${AppConstants.currencySymbol}${product.price.toStringAsFixed(2)}',
+                        product.pricePerKgDisplay,
                         style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(
                               color: AppTheme.primaryBrown,

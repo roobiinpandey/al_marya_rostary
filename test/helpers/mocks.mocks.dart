@@ -23,6 +23,7 @@ import 'package:qahwat_al_emarat/domain/repositories/auth_repository.dart'
 // ignore_for_file: unnecessary_parenthesis
 // ignore_for_file: camel_case_types
 // ignore_for_file: subtype_of_sealed_class
+// ignore_for_file: invalid_use_of_internal_member
 
 class _FakeAuthResponse_0 extends _i1.SmartFake implements _i2.AuthResponse {
   _FakeAuthResponse_0(Object parent, Invocation parentInvocation)
@@ -100,6 +101,23 @@ class MockAuthRepository extends _i1.Mock implements _i3.AuthRepository {
           as _i4.Future<void>);
 
   @override
+  _i4.Future<void> resetPassword(
+    String? token,
+    String? password,
+    String? confirmPassword,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#resetPassword, [
+              token,
+              password,
+              confirmPassword,
+            ]),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
+          )
+          as _i4.Future<void>);
+
+  @override
   _i4.Future<_i2.AuthResponse> refreshToken(String? refreshToken) =>
       (super.noSuchMethod(
             Invocation.method(#refreshToken, [refreshToken]),
@@ -134,6 +152,31 @@ class MockAuthRepository extends _i1.Mock implements _i3.AuthRepository {
           as _i4.Future<_i2.AuthResponse>);
 
   @override
+  _i4.Future<_i2.AuthResponse> updateProfileWithFile(
+    String? name,
+    String? phone,
+    dynamic avatarFile,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#updateProfileWithFile, [
+              name,
+              phone,
+              avatarFile,
+            ]),
+            returnValue: _i4.Future<_i2.AuthResponse>.value(
+              _FakeAuthResponse_0(
+                this,
+                Invocation.method(#updateProfileWithFile, [
+                  name,
+                  phone,
+                  avatarFile,
+                ]),
+              ),
+            ),
+          )
+          as _i4.Future<_i2.AuthResponse>);
+
+  @override
   _i4.Future<bool> isLoggedIn() =>
       (super.noSuchMethod(
             Invocation.method(#isLoggedIn, []),
@@ -153,6 +196,37 @@ class MockAuthRepository extends _i1.Mock implements _i3.AuthRepository {
               newPassword,
               confirmPassword,
             ]),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
+          )
+          as _i4.Future<void>);
+
+  @override
+  _i4.Future<_i2.AuthResponse> signInWithGoogle() =>
+      (super.noSuchMethod(
+            Invocation.method(#signInWithGoogle, []),
+            returnValue: _i4.Future<_i2.AuthResponse>.value(
+              _FakeAuthResponse_0(
+                this,
+                Invocation.method(#signInWithGoogle, []),
+              ),
+            ),
+          )
+          as _i4.Future<_i2.AuthResponse>);
+
+  @override
+  _i4.Future<void> sendEmailVerification() =>
+      (super.noSuchMethod(
+            Invocation.method(#sendEmailVerification, []),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
+          )
+          as _i4.Future<void>);
+
+  @override
+  _i4.Future<void> verifyEmail(String? verificationToken) =>
+      (super.noSuchMethod(
+            Invocation.method(#verifyEmail, [verificationToken]),
             returnValue: _i4.Future<void>.value(),
             returnValueForMissingStub: _i4.Future<void>.value(),
           )

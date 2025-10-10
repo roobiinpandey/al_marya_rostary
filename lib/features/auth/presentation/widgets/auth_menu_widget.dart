@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/routes/routes.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../../providers/auth_provider.dart';
+import '../providers/auth_provider.dart';
 import '../../../profile/presentation/pages/profile_page.dart';
 
 /// A reusable widget that displays authentication-related menu options
@@ -65,8 +65,8 @@ class AuthMenuWidget extends StatelessWidget {
                 Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (context) => ProfilePage(
-                      userName: user.name ?? 'User',
-                      email: user.email ?? 'No email',
+                      userName: user.name,
+                      email: user.email,
                       profileImageUrl: user.avatar ?? '',
                     ),
                   ),
@@ -192,8 +192,8 @@ class AuthMenuWidget extends StatelessWidget {
           Navigator.of(context).push(
             MaterialPageRoute(
               builder: (context) => ProfilePage(
-                userName: user.name ?? 'User',
-                email: user.email ?? 'No email',
+                userName: user.name,
+                email: user.email,
                 profileImageUrl: user.avatar ?? '',
               ),
             ),

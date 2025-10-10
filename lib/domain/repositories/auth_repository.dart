@@ -30,6 +30,15 @@ abstract class AuthRepository {
   /// Throws [AuthException] if the request fails
   Future<void> forgotPassword(String email);
 
+  /// Resets password using the provided reset token and new password
+  ///
+  /// Throws [AuthException] if the reset fails
+  Future<void> resetPassword(
+    String token,
+    String password,
+    String confirmPassword,
+  );
+
   /// Refreshes the authentication token using the refresh token
   ///
   /// Returns [AuthResponse] with new tokens on success
@@ -70,4 +79,20 @@ abstract class AuthRepository {
     String newPassword,
     String confirmPassword,
   );
+
+  /// Signs in with Google authentication
+  ///
+  /// Returns [AuthResponse] containing user info and tokens on success
+  /// Throws [AuthException] if Google sign-in fails
+  Future<AuthResponse> signInWithGoogle();
+
+  /// Sends email verification to the current user's email
+  ///
+  /// Throws [AuthException] if sending verification email fails
+  Future<void> sendEmailVerification();
+
+  /// Verifies email using the provided verification token
+  ///
+  /// Throws [AuthException] if email verification fails
+  Future<void> verifyEmail(String verificationToken);
 }

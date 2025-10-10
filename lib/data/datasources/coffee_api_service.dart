@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:dio_smart_retry/dio_smart_retry.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../core/constants/app_constants.dart';
@@ -41,6 +42,21 @@ class CoffeeApiService {
   }
 
   void _setupInterceptors() {
+    // Add retry interceptor for handling Render.com cold starts
+    _dio.interceptors.add(
+      RetryInterceptor(
+        dio: _dio,
+        logPrint: debugPrint,
+        retries: 3,
+        retryDelays: const [
+          Duration(seconds: 1),
+          Duration(seconds: 3),
+          Duration(seconds: 5),
+        ],
+        retryableExtraStatuses: {408, 502, 503, 504},
+      ),
+    );
+
     _dio.interceptors.addAll([
       // Request interceptor for logging and auth headers
       InterceptorsWrapper(
@@ -148,6 +164,25 @@ class CoffeeApiService {
     }
   }
 
+  /// Check if the server is awake (for Render.com cold starts)
+  Future<bool> _isServerAwake() async {
+    try {
+      debugPrint('🏃‍♂️ Checking if server is awake...');
+      final response = await _dio.get(
+        '/health',
+        options: Options(
+          receiveTimeout: const Duration(seconds: 10),
+          sendTimeout: const Duration(seconds: 10),
+        ),
+      );
+      debugPrint('✅ Server is awake!');
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('😴 Server might be sleeping, will retry with full timeout');
+      return false;
+    }
+  }
+
   Future<List<CoffeeProductModel>> fetchCoffeeProducts({
     int page = 1,
     int limit = 20,
@@ -158,6 +193,9 @@ class CoffeeApiService {
       debugPrint(
         '🌐 CoffeeApiService: Fetching coffees from ${AppConstants.baseUrl}${AppConstants.coffeeEndpoint}',
       );
+
+      // Check if server is awake (helps with Render.com cold starts)
+      await _isServerAwake();
 
       final queryParams = <String, dynamic>{'page': page, 'limit': limit};
 
@@ -217,15 +255,19 @@ class CoffeeApiService {
         switch (e.type) {
           case DioExceptionType.connectionTimeout:
             throw ApiException(
-              'Connection timeout. Please check your internet connection.',
+              'Connection timeout. The server might be starting up, please wait a moment and try again.',
             );
           case DioExceptionType.sendTimeout:
-            throw ApiException('Request timeout. Please try again.');
+            throw ApiException(
+              'Request timeout. Please try again in a moment.',
+            );
           case DioExceptionType.receiveTimeout:
-            throw ApiException('Server response timeout. Please try again.');
+            throw ApiException(
+              'Server is starting up (this may take up to 60 seconds). Please try again.',
+            );
           case DioExceptionType.connectionError:
             throw ApiException(
-              'Connection error. Please check your internet connection.',
+              'Cannot reach server. Please check your internet connection or try again later.',
             );
           case DioExceptionType.badResponse:
             _handleBadResponse(e);

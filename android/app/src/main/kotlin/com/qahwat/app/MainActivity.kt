@@ -1,4 +1,4 @@
-package com.example.qahwat_al_emarat
+package com.qahwat.app
 
 import io.flutter.embedding.android.FlutterActivity
 
