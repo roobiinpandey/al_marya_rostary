@@ -85,7 +85,7 @@ static const bool _useProduction = false;
 ### Backend (.env):
 ```properties
 NODE_ENV=production
-MONGODB_URI=***REMOVED***your_username:your_password@your_cluster.mongodb.net/your_database_name?retryWrites=true&w=majority&appName=your_app_name
+MONGODB_URI=***REMOVED***[USERNAME]:[PASSWORD]@[CLUSTER].mongodb.net/[DATABASE]?retryWrites=true&w=majority&appName=[APP_NAME]
 ```
 
 ### Flutter (app_constants.dart):
