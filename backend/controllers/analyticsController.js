@@ -267,63 +267,143 @@ const getConversionFunnel = async (req, res) => {
 // Admin Analytics Functions
 
 // @desc    Get dashboard overview
-// @route   GET /api/admin/analytics/dashboard
+// @route   GET /api/analytics/admin/dashboard
 // @access  Private/Admin
 const getDashboardOverview = async (req, res) => {
   try {
-    const days = parseInt(req.query.days) || 30;
+    const endDate = new Date();
     const startDate = new Date();
-    startDate.setDate(startDate.getDate() - days);
+    startDate.setDate(startDate.getDate() - 30); // Last 30 days
+    
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const todayEnd = new Date();
+    todayEnd.setHours(23, 59, 59, 999);
 
-    // Get basic stats
-    const totalUsers = await User.countDocuments({ isActive: true });
-    const totalProducts = await Coffee.countDocuments({ isActive: true });
+    // Get basic counts
+    const totalUsers = await User.countDocuments();
+    const totalProducts = await Coffee.countDocuments();
     const totalOrders = await Order.countDocuments({
-      createdAt: { $gte: startDate }
+      createdAt: { $gte: startDate, $lte: endDate }
     });
 
-    // Get revenue
-    const revenueResult = await Order.aggregate([
+    // Get revenue data
+    const revenueAggregation = await Order.aggregate([
       {
         $match: {
-          createdAt: { $gte: startDate },
-          paymentStatus: 'paid'
+          createdAt: { $gte: startDate, $lte: endDate },
+          status: { $in: ['delivered', 'completed'] }
         }
       },
       {
         $group: {
           _id: null,
-          totalRevenue: { $sum: '$totalAmount' },
-          averageOrderValue: { $avg: '$totalAmount' }
+          totalRevenue: { $sum: '$totalAmount' }
         }
       }
     ]);
 
-    const revenue = revenueResult[0] || { totalRevenue: 0, averageOrderValue: 0 };
+    const totalRevenue = revenueAggregation[0]?.totalRevenue || 0;
 
-    // Get daily active users
-    const dailyActiveUsers = await UserAnalytics.getDailyActiveUsers(days);
+    // Get monthly revenue data for chart
+    const monthlyRevenue = await Order.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: new Date(new Date().getFullYear(), 0, 1) }, // This year
+          status: { $in: ['delivered', 'completed'] }
+        }
+      },
+      {
+        $group: {
+          _id: { 
+            year: { $year: '$createdAt' },
+            month: { $month: '$createdAt' }
+          },
+          revenue: { $sum: '$totalAmount' }
+        }
+      },
+      {
+        $sort: { '_id.year': 1, '_id.month': 1 }
+      }
+    ]);
 
-    // Get popular products
-    const popularProducts = await UserAnalytics.getPopularProducts(days, 5);
+    // Format monthly data for chart
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const revenueData = {
+      labels: [],
+      values: []
+    };
 
-    // Get conversion funnel
-    const conversionFunnel = await UserAnalytics.getConversionFunnel(days);
+    for (let i = 0; i < 12; i++) {
+      revenueData.labels.push(months[i]);
+      const monthData = monthlyRevenue.find(item => item._id.month === i + 1);
+      revenueData.values.push(monthData ? monthData.revenue : 0);
+    }
+
+    // Get recent orders
+    const recentOrders = await Order.find()
+      .populate('user', 'name email')
+      .sort({ createdAt: -1 })
+      .limit(10)
+      .select('_id user totalAmount status createdAt items');
+
+    // Get today's stats
+    const todayOrders = await Order.countDocuments({
+      createdAt: { $gte: todayStart, $lte: todayEnd }
+    });
+
+    const todayRevenue = await Order.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: todayStart, $lte: todayEnd },
+          status: { $in: ['delivered', 'completed'] }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          revenue: { $sum: '$totalAmount' }
+        }
+      }
+    ]);
+
+    // Get order status stats
+    const orderStats = await Order.aggregate([
+      {
+        $group: {
+          _id: '$status',
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    const statusCounts = {
+      pending: 0,
+      confirmed: 0,
+      preparing: 0,
+      ready: 0,
+      delivered: 0,
+      cancelled: 0
+    };
+
+    orderStats.forEach(stat => {
+      if (statusCounts.hasOwnProperty(stat._id)) {
+        statusCounts[stat._id] = stat.count;
+      }
+    });
 
     res.json({
       success: true,
       data: {
-        period: `${days} days`,
-        overview: {
-          totalUsers,
-          totalProducts,
-          totalOrders,
-          totalRevenue: revenue.totalRevenue,
-          averageOrderValue: revenue.averageOrderValue
-        },
-        dailyActiveUsers,
-        popularProducts,
-        conversionFunnel
+        totalUsers,
+        totalProducts,
+        totalOrders,
+        totalRevenue,
+        todayOrders,
+        todayRevenue: todayRevenue[0]?.revenue || 0,
+        revenueData,
+        recentOrders,
+        orderStats: statusCounts
       }
     });
   } catch (error) {
