@@ -2137,14 +2137,75 @@
             document.getElementById('slidersTable').innerHTML = tableHTML;
         }
 
-        function showAddSliderModal() {
+        async function showAddSliderModal() {
             document.getElementById('sliderModal').style.display = 'flex';
             document.getElementById('sliderCreationForm').reset();
             document.getElementById('imagePreview').style.display = 'none';
+            
+            // Check backend status and show notification if needed
+            await checkSliderAPIStatus();
+        }
+
+        async function checkSliderAPIStatus() {
+            try {
+                // Test if the backend supports the new API
+                const testResponse = await fetch(`${API_BASE_URL}/api/sliders`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('adminToken') || ''}`
+                    },
+                    body: new FormData() // Empty form data to test
+                });
+                
+                const errorText = await testResponse.text();
+                
+                if (errorText.includes('Image is required')) {
+                    // Backend is using old API, show notification
+                    showAPIStatusNotification();
+                }
+            } catch (error) {
+                console.log('API status check failed, but continuing...', error);
+            }
+        }
+
+        function showAPIStatusNotification() {
+            const existingNotification = document.getElementById('apiStatusNotification');
+            if (existingNotification) {
+                existingNotification.remove();
+            }
+
+            const notification = document.createElement('div');
+            notification.id = 'apiStatusNotification';
+            notification.innerHTML = `
+                <div style="background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+                    <strong>⚠️ Backend Update in Progress</strong><br>
+                    The slider creation API is currently being deployed with image upload fixes. 
+                    If you encounter errors, please try again in 2-3 minutes or use the 
+                    <a href="slider-creation-tool.html" target="_blank" style="color: #8B4513;">standalone slider tool</a>.
+                </div>
+            `;
+            
+            const modalContent = document.querySelector('.modal-content');
+            modalContent.insertBefore(notification, modalContent.firstChild);
         }
 
         function closeSliderModal() {
             document.getElementById('sliderModal').style.display = 'none';
+        }
+
+        function openStandaloneTool() {
+            const standaloneUrl = window.location.origin + '/slider-creation-tool.html';
+            
+            // Copy current admin token to the standalone tool
+            const currentToken = localStorage.getItem('adminToken');
+            if (currentToken) {
+                const urlWithToken = `${standaloneUrl}?token=${encodeURIComponent(currentToken)}`;
+                window.open(urlWithToken, '_blank');
+            } else {
+                window.open(standaloneUrl, '_blank');
+            }
+            
+            closeSliderModal();
         }
 
         // Handle image preview
@@ -2193,6 +2254,17 @@
                 return;
             }
 
+            // Validate image file
+            if (!imageFile.type.startsWith('image/')) {
+                alert('Please select a valid image file (JPG, PNG, etc.)');
+                return;
+            }
+
+            if (imageFile.size > 10 * 1024 * 1024) { // 10MB limit
+                alert('Image file is too large. Please select an image smaller than 10MB.');
+                return;
+            }
+
             try {
                 // Show loading state
                 createBtn.disabled = true;
@@ -2204,38 +2276,79 @@
                 formData.append('image', imageFile);
                 const mobileImageFile = document.getElementById('sliderMobileImage').files[0];
                 if (mobileImageFile) {
-                    formData.append('mobileImage', mobileImageFile);
+                    if (mobileImageFile.type.startsWith('image/')) {
+                        formData.append('mobileImage', mobileImageFile);
+                    }
                 }
 
                 // Add form data
-                formData.append('title', document.getElementById('sliderTitle').value);
-                formData.append('description', document.getElementById('sliderDescription').value);
-                formData.append('buttonText', document.getElementById('sliderButtonText').value);
-                formData.append('buttonLink', document.getElementById('sliderButtonLink').value);
+                const title = document.getElementById('sliderTitle').value.trim();
+                if (!title) {
+                    alert('Please enter a title for the banner');
+                    return;
+                }
+
+                formData.append('title', title);
+                formData.append('description', document.getElementById('sliderDescription').value.trim());
+                formData.append('buttonText', document.getElementById('sliderButtonText').value.trim());
+                formData.append('buttonLink', document.getElementById('sliderButtonLink').value.trim());
                 formData.append('backgroundColor', document.getElementById('sliderBgColor').value);
                 formData.append('textColor', document.getElementById('sliderTextColor').value);
                 formData.append('position', document.getElementById('sliderPosition').value);
-                formData.append('displayOrder', document.getElementById('sliderDisplayOrder').value);
-                formData.append('isActive', document.getElementById('sliderIsActive').checked);
+                formData.append('displayOrder', parseInt(document.getElementById('sliderDisplayOrder').value) || 1);
+                formData.append('isActive', document.getElementById('sliderIsActive').checked.toString());
 
+                // Make the API request with better error handling
+                // Use the same authentication method as other admin functions
                 const response = await authenticatedFetch(`${API_BASE_URL}/api/sliders`, {
                     method: 'POST',
                     body: formData
                 });
 
+                // Check if response is OK
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    let errorMessage = 'Unknown error occurred';
+                    
+                    try {
+                        const errorData = JSON.parse(errorText);
+                        errorMessage = errorData.message || errorMessage;
+                    } catch (e) {
+                        // If not JSON, use status text
+                        errorMessage = `Server error (${response.status}): ${response.statusText}`;
+                    }
+                    
+                    throw new Error(errorMessage);
+                }
+
                 const data = await response.json();
 
                 if (data.success) {
-                    alert('Hero banner created successfully!');
+                    alert('🎉 Hero banner created successfully!');
                     closeSliderModal();
                     loadSliders(); // Refresh the sliders list
                 } else {
-                    alert('Failed to create banner: ' + (data.message || 'Unknown error'));
+                    throw new Error(data.message || 'Failed to create banner');
                 }
 
             } catch (error) {
                 console.error('Error creating slider:', error);
-                alert('Failed to create banner: ' + error.message);
+                
+                let userMessage = 'Failed to create banner: ' + error.message;
+                
+                // Provide specific guidance based on error type
+                if (error.message.includes('Image is required')) {
+                    userMessage = '❌ The backend requires image upload functionality that is currently being deployed. Please try again in a few minutes, or contact the administrator.';
+                } else if (error.message.includes('500')) {
+                    userMessage = '❌ Server error occurred. The backend might be updating. Please try again in a few minutes.';
+                } else if (error.message.includes('Network')) {
+                    userMessage = '❌ Network error. Please check your internet connection and try again.';
+                } else if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+                    userMessage = '❌ Authentication failed. Please refresh the page and login again.';
+                }
+                
+                alert(userMessage);
+                
             } finally {
                 // Reset button state
                 createBtn.disabled = false;
@@ -2417,6 +2530,9 @@
 
                     <div class="modal-actions">
                         <button type="button" class="btn btn-secondary" onclick="closeSliderModal()">Cancel</button>
+                        <button type="button" class="btn" onclick="openStandaloneTool()" style="background: #6c757d; color: white;">
+                            <i class="fas fa-external-link-alt"></i> Use Standalone Tool
+                        </button>
                         <button type="submit" class="btn btn-primary" id="createSliderBtn">
                             <i class="fas fa-plus"></i> Create Banner
                         </button>

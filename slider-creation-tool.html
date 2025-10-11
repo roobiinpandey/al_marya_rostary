@@ -432,11 +432,20 @@
             }
         });
 
-        // Pre-fill admin token if available in localStorage
+        // Pre-fill admin token if available in localStorage or URL
         window.addEventListener('load', function() {
-            const savedToken = localStorage.getItem('qahwat_admin_token');
-            if (savedToken) {
-                document.getElementById('adminToken').value = savedToken;
+            // Check URL parameters first
+            const urlParams = new URLSearchParams(window.location.search);
+            const tokenFromUrl = urlParams.get('token');
+            
+            if (tokenFromUrl) {
+                document.getElementById('adminToken').value = tokenFromUrl;
+                localStorage.setItem('qahwat_admin_token', tokenFromUrl);
+            } else {
+                const savedToken = localStorage.getItem('qahwat_admin_token');
+                if (savedToken) {
+                    document.getElementById('adminToken').value = savedToken;
+                }
             }
         });
 
