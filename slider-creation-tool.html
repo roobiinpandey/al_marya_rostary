@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slider Creation Tool - Qahwat Al Emarat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #8B4513, #D2691E);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: #8B4513;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .form-container {
+            padding: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #8B4513;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+            cursor: pointer;
+        }
+
+        .file-input {
+            width: 100%;
+            height: 50px;
+            border: 2px dashed #8B4513;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f9f9f9;
+            transition: background-color 0.3s;
+        }
+
+        .file-input:hover {
+            background: #f0f0f0;
+        }
+
+        .file-input input[type="file"] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .color-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+        }
+
+        .btn {
+            background: #8B4513;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s;
+        }
+
+        .btn:hover {
+            background: #6B3410;
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .preview {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .preview img {
+            max-width: 200px;
+            max-height: 120px;
+            border-radius: 5px;
+            object-fit: cover;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #8B4513;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #8B4513;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 2s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🖼️ Hero Banner/Slider Creation Tool</h1>
+            <p>Create stunning banners for Qahwat Al Emarat</p>
+        </div>
+        
+        <div class="form-container">
+            <form id="sliderForm" enctype="multipart/form-data">
+                <!-- Image Upload -->
+                <div class="form-group">
+                    <label for="image">Banner Image *</label>
+                    <div class="file-input-wrapper">
+                        <div class="file-input" onclick="document.getElementById('image').click()">
+                            <input type="file" id="image" name="image" accept="image/*" required>
+                            <span>📷 Click to select banner image</span>
+                        </div>
+                    </div>
+                    <small style="color: #666;">Recommended: 1920x600px, JPG/PNG, max 10MB</small>
+                </div>
+
+                <!-- Mobile Image Upload -->
+                <div class="form-group">
+                    <label for="mobileImage">Mobile Image (Optional)</label>
+                    <div class="file-input-wrapper">
+                        <div class="file-input" onclick="document.getElementById('mobileImage').click()">
+                            <input type="file" id="mobileImage" name="mobileImage" accept="image/*">
+                            <span>📱 Click to select mobile image</span>
+                        </div>
+                    </div>
+                    <small style="color: #666;">Recommended: 800x600px for mobile devices</small>
+                </div>
+
+                <!-- Title -->
+                <div class="form-group">
+                    <label for="title">Title *</label>
+                    <input type="text" id="title" name="title" required placeholder="Welcome to Qahwat Al Emarat" maxlength="100">
+                </div>
+
+                <!-- Description -->
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea id="description" name="description" rows="3" placeholder="Discover authentic Arabic coffee experience" maxlength="300"></textarea>
+                </div>
+
+                <!-- Button Configuration -->
+                <div class="form-group">
+                    <label for="buttonText">Button Text</label>
+                    <input type="text" id="buttonText" name="buttonText" placeholder="Order Now" maxlength="50">
+                </div>
+
+                <div class="form-group">
+                    <label for="buttonLink">Button Link</label>
+                    <input type="url" id="buttonLink" name="buttonLink" placeholder="https://***REMOVED***.com/menu">
+                </div>
+
+                <!-- Colors -->
+                <div class="color-group">
+                    <div class="form-group">
+                        <label for="backgroundColor">Background Color</label>
+                        <input type="color" id="backgroundColor" name="backgroundColor" value="#8B4513">
+                    </div>
+                    <div class="form-group">
+                        <label for="textColor">Text Color</label>
+                        <input type="color" id="textColor" name="textColor" value="#FFFFFF">
+                    </div>
+                </div>
+
+                <!-- Position -->
+                <div class="form-group">
+                    <label for="position">Text Position</label>
+                    <select id="position" name="position">
+                        <option value="left">Left</option>
+                        <option value="center" selected>Center</option>
+                        <option value="right">Right</option>
+                    </select>
+                </div>
+
+                <!-- Display Order -->
+                <div class="form-group">
+                    <label for="displayOrder">Display Order</label>
+                    <input type="number" id="displayOrder" name="displayOrder" value="1" min="0">
+                </div>
+
+                <!-- Active Status -->
+                <div class="form-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="isActive" name="isActive" checked>
+                        <label for="isActive">Active (visible to users)</label>
+                    </div>
+                </div>
+
+                <!-- Admin Token -->
+                <div class="form-group">
+                    <label for="adminToken">Admin Token *</label>
+                    <input type="password" id="adminToken" name="adminToken" required placeholder="Enter your admin JWT token">
+                </div>
+
+                <button type="submit" class="btn">🚀 Create Hero Banner</button>
+            </form>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Creating your hero banner...</p>
+            </div>
+
+            <div class="preview" id="preview">
+                <h3>Image Preview:</h3>
+                <div id="previewContent"></div>
+            </div>
+
+            <div class="result" id="result"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://***REMOVED***.onrender.com';
+
+        // Handle file input changes
+        document.getElementById('image').addEventListener('change', function(e) {
+            handleFilePreview(e.target, 'Main Image');
+        });
+
+        document.getElementById('mobileImage').addEventListener('change', function(e) {
+            handleFilePreview(e.target, 'Mobile Image');
+        });
+
+        function handleFilePreview(input, label) {
+            const preview = document.getElementById('preview');
+            const previewContent = document.getElementById('previewContent');
+            
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.alt = label;
+                    
+                    const caption = document.createElement('p');
+                    caption.textContent = `${label}: ${input.files[0].name}`;
+                    
+                    const container = document.createElement('div');
+                    container.style.marginBottom = '10px';
+                    container.appendChild(caption);
+                    container.appendChild(img);
+                    
+                    if (label === 'Main Image') {
+                        previewContent.innerHTML = '';
+                        previewContent.appendChild(container);
+                    } else {
+                        previewContent.appendChild(container);
+                    }
+                    
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // Handle form submission
+        document.getElementById('sliderForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+            const submitBtn = document.querySelector('button[type="submit"]');
+            
+            // Show loading
+            loading.style.display = 'block';
+            result.style.display = 'none';
+            submitBtn.disabled = true;
+            
+            try {
+                const formData = new FormData();
+                
+                // Get form elements
+                const imageFile = document.getElementById('image').files[0];
+                const mobileImageFile = document.getElementById('mobileImage').files[0];
+                const adminToken = document.getElementById('adminToken').value;
+                
+                if (!imageFile) {
+                    throw new Error('Please select a banner image');
+                }
+                
+                if (!adminToken) {
+                    throw new Error('Please enter your admin token');
+                }
+                
+                // Add files
+                formData.append('image', imageFile);
+                if (mobileImageFile) {
+                    formData.append('mobileImage', mobileImageFile);
+                }
+                
+                // Add form data
+                formData.append('title', document.getElementById('title').value);
+                formData.append('description', document.getElementById('description').value);
+                formData.append('buttonText', document.getElementById('buttonText').value);
+                formData.append('buttonLink', document.getElementById('buttonLink').value);
+                formData.append('backgroundColor', document.getElementById('backgroundColor').value);
+                formData.append('textColor', document.getElementById('textColor').value);
+                formData.append('position', document.getElementById('position').value);
+                formData.append('displayOrder', document.getElementById('displayOrder').value);
+                formData.append('isActive', document.getElementById('isActive').checked);
+                
+                // Make API request
+                const response = await fetch(`${API_BASE_URL}/api/sliders`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${adminToken}`
+                    },
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    result.className = 'result success';
+                    result.innerHTML = `
+                        <h3>✅ Success!</h3>
+                        <p>Hero banner created successfully!</p>
+                        <p><strong>ID:</strong> ${data.data._id}</p>
+                        <p><strong>Title:</strong> ${data.data.title}</p>
+                        <p><strong>Image URL:</strong> ${API_BASE_URL}${data.data.image}</p>
+                        ${data.data.mobileImage ? `<p><strong>Mobile Image:</strong> ${API_BASE_URL}${data.data.mobileImage}</p>` : ''}
+                    `;
+                    
+                    // Reset form
+                    document.getElementById('sliderForm').reset();
+                    document.getElementById('preview').style.display = 'none';
+                    
+                } else {
+                    throw new Error(data.message || 'Failed to create slider');
+                }
+                
+            } catch (error) {
+                result.className = 'result error';
+                result.innerHTML = `
+                    <h3>❌ Error</h3>
+                    <p>${error.message}</p>
+                `;
+            } finally {
+                loading.style.display = 'none';
+                result.style.display = 'block';
+                submitBtn.disabled = false;
+            }
+        });
+
+        // Pre-fill admin token if available in localStorage
+        window.addEventListener('load', function() {
+            const savedToken = localStorage.getItem('qahwat_admin_token');
+            if (savedToken) {
+                document.getElementById('adminToken').value = savedToken;
+            }
+        });
+
+        // Save token to localStorage on successful creation
+        document.getElementById('sliderForm').addEventListener('submit', function() {
+            const token = document.getElementById('adminToken').value;
+            if (token) {
+                localStorage.setItem('qahwat_admin_token', token);
+            }
+        });
+    </script>
+</body>
+</html>
