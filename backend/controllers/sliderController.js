@@ -122,7 +122,7 @@ const createSlider = async (req, res) => {
     }
 
     // Check if image was uploaded
-    if (!req.file) {
+    if (!req.files || !req.files.image || !req.files.image[0]) {
       return res.status(400).json({
         success: false,
         message: 'Image is required'
@@ -131,7 +131,7 @@ const createSlider = async (req, res) => {
 
     const sliderData = {
       ...req.body,
-      image: `/uploads/${req.file.filename}`,
+      image: `/uploads/${req.files.image[0].filename}`,
       categories: req.body.categories ? JSON.parse(req.body.categories) : [],
       targetAudience: req.body.targetAudience ? JSON.parse(req.body.targetAudience) : ['all'],
       tags: req.body.tags ? JSON.parse(req.body.tags) : []
@@ -153,10 +153,25 @@ const createSlider = async (req, res) => {
     console.error('Create slider error:', error);
 
     // Delete uploaded files if slider creation fails
-    if (req.file) {
+    if (req.files) {
       const fs = require('fs');
       const path = require('path');
-      fs.unlinkSync(path.join(__dirname, '../uploads', req.file.filename));
+      
+      if (req.files.image && req.files.image[0]) {
+        try {
+          fs.unlinkSync(path.join(__dirname, '../uploads', req.files.image[0].filename));
+        } catch (err) {
+          console.error('Error deleting image file:', err);
+        }
+      }
+      
+      if (req.files.mobileImage && req.files.mobileImage[0]) {
+        try {
+          fs.unlinkSync(path.join(__dirname, '../uploads', req.files.mobileImage[0].filename));
+        } catch (err) {
+          console.error('Error deleting mobile image file:', err);
+        }
+      }
     }
 
     res.status(500).json({
@@ -183,20 +198,9 @@ const updateSlider = async (req, res) => {
 
     let updateData = { ...req.body };
 
-    // Handle file uploads
-    if (req.file) {
-      updateData.image = `/uploads/${req.file.filename}`;
-
-      // Delete old image file
-      const oldSlider = await Slider.findById(req.params.id);
-      if (oldSlider && oldSlider.image) {
-        const fs = require('fs');
-        const path = require('path');
-        const oldImagePath = path.join(__dirname, '..', oldSlider.image);
-        if (fs.existsSync(oldImagePath)) {
-          fs.unlinkSync(oldImagePath);
-        }
-      }
+        // Handle image update
+    if (req.files && req.files.image && req.files.image[0]) {
+      updateData.image = `/uploads/${req.files.image[0].filename}`;
     }
 
     // Handle optional mobile image
@@ -242,10 +246,25 @@ const updateSlider = async (req, res) => {
     console.error('Update slider error:', error);
 
     // Delete uploaded files if update fails
-    if (req.file) {
+    if (req.files) {
       const fs = require('fs');
       const path = require('path');
-      fs.unlinkSync(path.join(__dirname, '../uploads', req.file.filename));
+      
+      if (req.files.image && req.files.image[0]) {
+        try {
+          fs.unlinkSync(path.join(__dirname, '../uploads', req.files.image[0].filename));
+        } catch (err) {
+          console.error('Error deleting image file:', err);
+        }
+      }
+      
+      if (req.files.mobileImage && req.files.mobileImage[0]) {
+        try {
+          fs.unlinkSync(path.join(__dirname, '../uploads', req.files.mobileImage[0].filename));
+        } catch (err) {
+          console.error('Error deleting mobile image file:', err);
+        }
+      }
     }
 
     res.status(500).json({
