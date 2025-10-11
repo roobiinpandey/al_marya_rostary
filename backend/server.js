@@ -13,19 +13,54 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "https://accounts.google.com"],
+      styleSrc: [
+        "'self'", 
+        "'unsafe-inline'", 
+        "https://cdnjs.cloudflare.com",
+        "https://cdn.jsdelivr.net"
+      ],
+      scriptSrc: [
+        "'self'", 
+        "'unsafe-inline'", 
+        "https://accounts.google.com",
+        "https://cdn.jsdelivr.net",
+        "https://cdnjs.cloudflare.com"
+      ],
       scriptSrcAttr: ["'unsafe-inline'"], // Allow inline event handlers (onclick, etc.)
       imgSrc: ["'self'", "data:", "https:", "http://localhost:5001"],
-      connectSrc: ["'self'", "http://localhost:5001", "https://*.onrender.com", "https://*.render.com"],
-      fontSrc: ["'self'", "https:", "data:"],
+      connectSrc: [
+        "'self'", 
+        "http://localhost:5001", 
+        "https://*.onrender.com", 
+        "https://*.render.com",
+        "https://qahwat-al-emarat-backend.onrender.com"
+      ],
+      fontSrc: [
+        "'self'", 
+        "https:", 
+        "data:",
+        "https://cdnjs.cloudflare.com",
+        "https://cdn.jsdelivr.net"
+      ],
       objectSrc: ["'none'"],
       mediaSrc: ["'self'"],
       frameSrc: ["'none'"],
     },
   },
 }));
-app.use(cors());
+
+// CORS Configuration
+app.use(cors({
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:5001', 
+    'https://***REMOVED***.onrender.com',
+    'https://qahwat-al-emarat-backend.onrender.com'
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-csrf-token']
+}));
 app.use(morgan('combined'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
