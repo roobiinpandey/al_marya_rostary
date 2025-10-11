@@ -15,6 +15,7 @@ app.use(helmet({
       defaultSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
       scriptSrc: ["'self'", "'unsafe-inline'", "https://accounts.google.com"],
+      scriptSrcAttr: ["'unsafe-inline'"], // Allow inline event handlers (onclick, etc.)
       imgSrc: ["'self'", "data:", "https:", "http://localhost:5001"],
       connectSrc: ["'self'", "http://localhost:5001", "https://*.onrender.com", "https://*.render.com"],
       fontSrc: ["'self'", "https:", "data:"],
