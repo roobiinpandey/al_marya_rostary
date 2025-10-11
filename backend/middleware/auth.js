@@ -22,6 +22,18 @@ const protect = async (req, res, next) => {
       // Verify token
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
+      // Handle special admin token
+      if (decoded.userId === 'admin' && decoded.role === 'admin') {
+        req.user = {
+          userId: 'admin',
+          email: 'admin@qahwatalemarat.com',
+          roles: ['admin'],
+          isActive: true
+        };
+        next();
+        return;
+      }
+
       // Get user from token
       const user = await User.findById(decoded.userId);
 
@@ -43,7 +55,8 @@ const protect = async (req, res, next) => {
       req.user = {
         userId: user._id,
         email: user.email,
-        roles: user.roles
+        roles: user.roles,
+        isActive: user.isActive
       };
 
       next();
@@ -95,13 +108,26 @@ const optionalAuth = async (req, res, next) => {
     if (token) {
       try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        
+        // Handle special admin token
+        if (decoded.userId === 'admin' && decoded.role === 'admin') {
+          req.user = {
+            userId: 'admin',
+            email: 'admin@qahwatalemarat.com',
+            roles: ['admin'],
+            isActive: true
+          };
+          return next();
+        }
+
         const user = await User.findById(decoded.userId);
 
         if (user && user.isActive) {
           req.user = {
             userId: user._id,
             email: user.email,
-            roles: user.roles
+            roles: user.roles,
+            isActive: user.isActive
           };
         }
       } catch (error) {
