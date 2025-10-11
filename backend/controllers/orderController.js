@@ -3,6 +3,96 @@ const Coffee = require('../models/Coffee');
 const User = require('../models/User');
 const { logAudit } = require('../utils/auditLogger');
 
+// Admin: Get order statistics for dashboard
+const getOrderStats = async (req, res) => {
+  try {
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const todayEnd = new Date();
+    todayEnd.setHours(23, 59, 59, 999);
+
+    // Get order counts by status
+    const statusStats = await Order.aggregate([
+      {
+        $group: {
+          _id: '$status',
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    // Get today's revenue
+    const todayRevenue = await Order.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: todayStart, $lte: todayEnd },
+          status: { $in: ['delivered', 'completed'] }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          revenue: { $sum: '$totalAmount' }
+        }
+      }
+    ]);
+
+    // Get monthly order trends
+    const monthlyOrders = await Order.aggregate([
+      {
+        $match: {
+          createdAt: { 
+            $gte: new Date(new Date().getFullYear(), new Date().getMonth() - 5, 1)
+          }
+        }
+      },
+      {
+        $group: {
+          _id: {
+            year: { $year: '$createdAt' },
+            month: { $month: '$createdAt' }
+          },
+          count: { $sum: 1 },
+          revenue: { $sum: '$totalAmount' }
+        }
+      },
+      {
+        $sort: { '_id.year': 1, '_id.month': 1 }
+      }
+    ]);
+
+    // Format status counts
+    const stats = {
+      pending: 0,
+      confirmed: 0,
+      preparing: 0,
+      ready: 0,
+      delivered: 0,
+      cancelled: 0,
+      todayRevenue: todayRevenue[0]?.revenue || 0,
+      monthlyTrends: monthlyOrders
+    };
+
+    statusStats.forEach(stat => {
+      if (stats.hasOwnProperty(stat._id)) {
+        stats[stat._id] = stat.count;
+      }
+    });
+
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    console.error('Get order stats error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching order statistics',
+      error: error.message
+    });
+  }
+};
+
 // Get all orders with pagination and filtering
 const getOrders = async (req, res) => {
   try {
@@ -267,141 +357,6 @@ const deleteOrder = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to delete order',
-      error: error.message
-    });
-  }
-};
-
-// Get order statistics
-const getOrderStats = async (req, res) => {
-  try {
-    const { period = '30d' } = req.query;
-    
-    // Calculate date range based on period
-    let startDate = new Date();
-    switch (period) {
-      case '24h':
-        startDate.setHours(startDate.getHours() - 24);
-        break;
-      case '7d':
-        startDate.setDate(startDate.getDate() - 7);
-        break;
-      case '30d':
-        startDate.setDate(startDate.getDate() - 30);
-        break;
-      case '3m':
-        startDate.setMonth(startDate.getMonth() - 3);
-        break;
-      case '1y':
-        startDate.setFullYear(startDate.getFullYear() - 1);
-        break;
-      default:
-        startDate.setDate(startDate.getDate() - 30);
-    }
-
-    // Get basic stats
-    const totalOrders = await Order.countDocuments();
-    const totalRevenue = await Order.aggregate([
-      { $match: { paymentStatus: 'paid' } },
-      { $group: { _id: null, total: { $sum: '$totalAmount' } } }
-    ]);
-
-    // Get period stats
-    const periodStats = await Order.aggregate([
-      { $match: { createdAt: { $gte: startDate } } },
-      {
-        $group: {
-          _id: null,
-          totalOrders: { $sum: 1 },
-          totalRevenue: { 
-            $sum: { 
-              $cond: [{ $eq: ['$paymentStatus', 'paid'] }, '$totalAmount', 0] 
-            } 
-          },
-          averageOrderValue: { $avg: '$totalAmount' },
-          pendingOrders: {
-            $sum: { $cond: [{ $eq: ['$status', 'pending'] }, 1, 0] }
-          },
-          confirmedOrders: {
-            $sum: { $cond: [{ $eq: ['$status', 'confirmed'] }, 1, 0] }
-          },
-          preparingOrders: {
-            $sum: { $cond: [{ $eq: ['$status', 'preparing'] }, 1, 0] }
-          },
-          readyOrders: {
-            $sum: { $cond: [{ $eq: ['$status', 'ready'] }, 1, 0] }
-          },
-          deliveredOrders: {
-            $sum: { $cond: [{ $eq: ['$status', 'delivered'] }, 1, 0] }
-          },
-          cancelledOrders: {
-            $sum: { $cond: [{ $eq: ['$status', 'cancelled'] }, 1, 0] }
-          }
-        }
-      }
-    ]);
-
-    // Get payment method breakdown
-    const paymentMethods = await Order.aggregate([
-      { $match: { createdAt: { $gte: startDate }, paymentStatus: 'paid' } },
-      {
-        $group: {
-          _id: '$paymentMethod',
-          count: { $sum: 1 },
-          revenue: { $sum: '$totalAmount' }
-        }
-      }
-    ]);
-
-    // Get delivery method breakdown
-    const deliveryMethods = await Order.aggregate([
-      { $match: { createdAt: { $gte: startDate } } },
-      {
-        $group: {
-          _id: '$deliveryMethod',
-          count: { $sum: 1 }
-        }
-      }
-    ]);
-
-    // Get recent orders
-    const recentOrders = await Order.find({})
-      .sort({ createdAt: -1 })
-      .limit(5)
-      .populate('user', 'name email')
-      .select('orderNumber status totalAmount createdAt');
-
-    const stats = periodStats[0] || {
-      totalOrders: 0,
-      totalRevenue: 0,
-      averageOrderValue: 0,
-      pendingOrders: 0,
-      confirmedOrders: 0,
-      preparingOrders: 0,
-      readyOrders: 0,
-      deliveredOrders: 0,
-      cancelledOrders: 0
-    };
-
-    res.json({
-      success: true,
-      data: {
-        overview: {
-          totalOrdersAllTime: totalOrders,
-          totalRevenueAllTime: totalRevenue[0]?.total || 0,
-          ...stats
-        },
-        paymentMethods,
-        deliveryMethods,
-        recentOrders,
-        period
-      }
-    });
-  } catch (error) {
-    console.error('Get order stats error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to retrieve order statistics',
       error: error.message
     });
   }
