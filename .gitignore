@@ -107,6 +107,7 @@ yarn-error.log*
 .env.development
 backend/.env
 backend/.env.local
+backend/production-env-values.txt
 
 # Firebase related
 .firebase/
