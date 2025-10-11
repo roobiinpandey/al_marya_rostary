@@ -2210,7 +2210,7 @@
                 if (!this.isConnected) return;
 
                 try {
-                    const response = await fetch(`${this.apiBaseUrl}/admin/users/stats`);
+                    const response = await fetch(`${this.publicAdminUrl}/users/stats`);
                     const result = await response.json();
 
                     if (response.ok && result.success) {
@@ -3782,7 +3782,7 @@
                     if (roleFilter) params.append('role', roleFilter);
                     if (statusFilter) params.append('status', statusFilter);
 
-                    const response = await fetch(`${this.apiBaseUrl}/admin/users/export?${params}`);
+                    const response = await fetch(`${this.publicAdminUrl}/users/export?${params}`);
                     
                     if (response.ok) {
                         const blob = await response.blob();
@@ -3807,7 +3807,7 @@
                 if (!this.isConnected) return;
 
                 try {
-                    const response = await fetch(`${this.apiBaseUrl}/admin/users/${userId}`);
+                    const response = await fetch(`${this.publicAdminUrl}/users/${userId}`);
                     const result = await response.json();
 
                     if (response.ok && result.success) {
@@ -3865,7 +3865,7 @@
                 };
 
                 try {
-                    const response = await fetch(`${this.apiBaseUrl}/admin/users/${userId}`, {
+                    const response = await fetch(`${this.publicAdminUrl}/users/${userId}`, {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json'
@@ -3892,7 +3892,7 @@
                 if (!this.isConnected) return;
 
                 try {
-                    const response = await fetch(`${this.apiBaseUrl}/admin/users/${userId}/toggle-status`, {
+                    const response = await fetch(`${this.publicAdminUrl}/users/${userId}/toggle-status`, {
                         method: 'PATCH',
                         headers: {
                             'Content-Type': 'application/json'
@@ -3929,7 +3929,7 @@
                 if (!this.userToDelete || !this.isConnected) return;
 
                 try {
-                    const response = await fetch(`${this.apiBaseUrl}/admin/users/${this.userToDelete}`, {
+                    const response = await fetch(`${this.publicAdminUrl}/users/${this.userToDelete}`, {
                         method: 'DELETE'
                     });
 
