@@ -33,7 +33,9 @@ app.use(helmet({
         "http://localhost:5001", 
         "https://*.onrender.com", 
         "https://*.render.com",
-        "https://qahwat-al-emarat-backend.onrender.com"
+        "https://qahwat-al-emarat-backend.onrender.com",
+        "https://cdn.jsdelivr.net",
+        "https://cdnjs.cloudflare.com"
       ],
       fontSrc: [
         "'self'", 
