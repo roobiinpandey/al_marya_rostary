@@ -30,6 +30,7 @@ services:
       # 
       # REQUIRED Database Configuration:
       # MONGODB_URI=mongodb+srv://qahwat_prod_user:SECURE_PASSWORD@qahwatapp.ph5cazq.mongodb.net/qahwat_al_emarat?retryWrites=true&w=majority&ssl=true
+    # MONGODB_URI=mongodb+srv://your_mongodb_uri_here
       #
       # REQUIRED Security Configuration:
       # JWT_SECRET=<64_CHAR_SECRET_FROM_GENERATOR>
