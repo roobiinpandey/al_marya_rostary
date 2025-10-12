@@ -140,6 +140,9 @@ app.use('/api/support-tickets', require('./routes/support'));
 app.use('/api/feedback', require('./routes/feedback'));
 app.use('/api/analytics', require('./routes/analytics'));
 
+// Firebase Sync Routes
+app.use('/api/firebase-sync', require('./routes/firebaseSync'));
+
 // Public settings route (no auth required)
 const { getPublicSettings } = require('./controllers/settingsController');
 app.get('/api/settings/public', getPublicSettings);

@@ -30,8 +30,18 @@ const coffeeSchema = new mongoose.Schema({
   },
   price: {
     type: Number,
-    required: [true, 'Price is required'],
-    min: [0, 'Price cannot be negative']
+    required: function() {
+      // Price is only required if no variants are provided
+      return !this.variants || this.variants.length === 0;
+    },
+    min: [0, 'Price cannot be negative'],
+    default: function() {
+      // If variants exist, use the minimum variant price as default
+      if (this.variants && this.variants.length > 0) {
+        return Math.min(...this.variants.map(v => v.price));
+      }
+      return undefined;
+    }
   },
   image: {
     type: String,
@@ -62,7 +72,11 @@ const coffeeSchema = new mongoose.Schema({
     size: {
       type: String,
       required: true,
-      enum: ['250g', '500g', '1kg']
+      enum: ['250gm', '500gm', '1kg']
+    },
+    weight: {
+      type: Number,
+      required: true
     },
     price: {
       type: Number,
@@ -73,6 +87,48 @@ const coffeeSchema = new mongoose.Schema({
       type: Number,
       min: [0, 'Variant stock cannot be negative'],
       default: 0
+    },
+    description: {
+      en: {
+        type: String,
+        default: function() {
+          return `${this.size} pack - Perfect for ${this.size === '250gm' ? 'trying new flavors' : this.size === '500gm' ? 'regular consumption' : 'bulk purchase and sharing'}`;
+        }
+      },
+      ar: {
+        type: String,
+        default: function() {
+          const arabicDesc = {
+            '250gm': 'عبوة ٢٥٠ جرام - مثالية لتجربة النكهات الجديدة',
+            '500gm': 'عبوة ٥٠٠ جرام - مثالية للاستهلاك المنتظم',
+            '1kg': 'عبوة كيلو جرام - مثالية للشراء بالجملة والمشاركة'
+          };
+          return arabicDesc[this.size] || `عبوة ${this.size}`;
+        }
+      }
+    },
+    displayName: {
+      en: {
+        type: String,
+        default: function() {
+          return `${this.size} Pack`;
+        }
+      },
+      ar: {
+        type: String,
+        default: function() {
+          const arabicNames = {
+            '250gm': 'عبوة ٢٥٠ جرام',
+            '500gm': 'عبوة ٥٠٠ جرام', 
+            '1kg': 'عبوة كيلو جرام'
+          };
+          return arabicNames[this.size] || `عبوة ${this.size}`;
+        }
+      }
+    },
+    isActive: {
+      type: Boolean,
+      default: true
     }
   }],
   tastingNotes: [String],
@@ -161,6 +217,38 @@ coffeeSchema.methods.isAvailable = function() {
 coffeeSchema.methods.updateStock = function(quantity) {
   this.stock = Math.max(0, this.stock + quantity);
   return this.save();
+};
+
+// Instance method to update variant stock
+coffeeSchema.methods.updateVariantStock = function(size, quantity) {
+  const variant = this.variants.find(v => v.size === size);
+  if (variant) {
+    variant.stock = Math.max(0, variant.stock + quantity);
+    return this.save();
+  }
+  throw new Error(`Variant with size ${size} not found`);
+};
+
+// Instance method to get variant by size
+coffeeSchema.methods.getVariant = function(size) {
+  return this.variants.find(v => v.size === size && v.isActive);
+};
+
+// Instance method to get available variants
+coffeeSchema.methods.getAvailableVariants = function() {
+  return this.variants.filter(v => v.isActive && v.stock > 0);
+};
+
+// Instance method to get price range
+coffeeSchema.methods.getPriceRange = function() {
+  const activeVariants = this.variants.filter(v => v.isActive);
+  if (activeVariants.length === 0) return { min: this.price, max: this.price };
+  
+  const prices = activeVariants.map(v => v.price);
+  return {
+    min: Math.min(...prices),
+    max: Math.max(...prices)
+  };
 };
 
 // Static method to find featured coffees

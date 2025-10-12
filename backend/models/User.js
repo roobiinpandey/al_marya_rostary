@@ -33,6 +33,26 @@ const userSchema = new mongoose.Schema({
     enum: ['customer', 'admin'],
     default: ['customer']
   },
+  // Firebase Integration Fields
+  firebaseUid: {
+    type: String,
+    unique: true,
+    sparse: true, // Allows null values but ensures uniqueness when present
+    index: true
+  },
+  firebaseSyncStatus: {
+    type: String,
+    enum: ['synced', 'pending', 'error', 'manual'],
+    default: 'manual'
+  },
+  lastFirebaseSync: {
+    type: Date,
+    default: null
+  },
+  firebaseSyncError: {
+    type: String,
+    default: null
+  },
   isEmailVerified: {
     type: Boolean,
     default: false
@@ -239,6 +259,56 @@ userSchema.pre('save', async function(next) {
 // Static method to find user by email
 userSchema.statics.findByEmail = function(email) {
   return this.findOne({ email: email.toLowerCase() });
+};
+
+// Static method to find user by Firebase UID
+userSchema.statics.findByFirebaseUid = function(firebaseUid) {
+  return this.findOne({ firebaseUid });
+};
+
+// Instance method to update Firebase sync status
+userSchema.methods.updateFirebaseSync = function(status, error = null) {
+  this.firebaseSyncStatus = status;
+  this.lastFirebaseSync = new Date();
+  this.firebaseSyncError = error;
+  return this.save();
+};
+
+// Instance method to link with Firebase user
+userSchema.methods.linkFirebaseUser = function(firebaseUid) {
+  this.firebaseUid = firebaseUid;
+  this.firebaseSyncStatus = 'synced';
+  this.lastFirebaseSync = new Date();
+  this.firebaseSyncError = null;
+  return this.save();
+};
+
+// Static method to get users needing Firebase sync
+userSchema.statics.getNeedingFirebaseSync = function() {
+  return this.find({
+    $or: [
+      { firebaseSyncStatus: 'pending' },
+      { firebaseSyncStatus: 'error' },
+      { firebaseUid: { $exists: false } }
+    ]
+  });
+};
+
+// Instance method to get Firebase user data format
+userSchema.methods.toFirebaseUser = function() {
+  return {
+    uid: this.firebaseUid,
+    email: this.email,
+    displayName: this.name,
+    phoneNumber: this.phone || null,
+    emailVerified: this.isEmailVerified,
+    disabled: !this.isActive,
+    customClaims: {
+      roles: this.roles,
+      userId: this._id.toString(),
+      lastLogin: this.lastLogin
+    }
+  };
 };
 
 module.exports = mongoose.model('User', userSchema);
