@@ -16,7 +16,7 @@ console.log('');
 console.log('🌐 REQUIRED - App Configuration:');
 console.log('NODE_ENV=production');
 console.log('PORT=3000');
-console.log('BASE_URL=https://***REMOVED***.onrender.com');
+console.log('BASE_URL=https://al-marya-rostary.onrender.com');
 console.log('');
 
 console.log('📧 REQUIRED - Email Configuration:');
@@ -58,12 +58,12 @@ console.log('');
 console.log('🔥 FIREBASE CONSOLE SETUP (Required!):');
 console.log('1. Go to: https://console.firebase.google.com/project/***REMOVED***');
 console.log('2. Navigate to: Authentication → Settings → Authorized domains');
-console.log('3. Add domain: ***REMOVED***.onrender.com');
+console.log('3. Add domain: al-marya-rostary.onrender.com');
 console.log('4. Save changes');
 console.log('');
 
 console.log('✅ TEST YOUR ADMIN LOGIN:');
-console.log('URL: https://***REMOVED***.onrender.com/admin.html');
+console.log('URL: https://al-marya-rostary.onrender.com/admin.html');
 console.log('Username: admin');
 console.log('Password: qahwat2024');
 console.log('');
