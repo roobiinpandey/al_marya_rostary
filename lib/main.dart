@@ -58,7 +58,7 @@ class MyApp extends StatelessWidget {
           }
 
           return MaterialApp(
-            title: 'Qahwat Al Emarat',
+            title: 'Al Marya Rostery',
             theme: AppTheme.lightTheme,
             locale: languageProvider.locale,
             localizationsDelegates: [

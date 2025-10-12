@@ -7,7 +7,7 @@ plugins {
 }
 
 android {
-    namespace = "com.qahwat.app"
+    namespace = "com.almarya.rostery"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -21,8 +21,8 @@ android {
     }
 
     defaultConfig {
-        // Application ID updated to match Firebase configuration
-        applicationId = "com.qahwat.app"
+        // Application ID updated for Al Marya Rostery
+        applicationId = "com.almarya.rostery"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion

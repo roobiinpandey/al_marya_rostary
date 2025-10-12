@@ -23,7 +23,7 @@ class AppConstants {
   static const String authEndpoint = '/api/auth';
 
   // App Info
-  static const String appName = 'Qahwat Al Emarat';
+  static const String appName = 'Al Marya Rostery';
   static const String appVersion = '1.0.0';
 
   // Currency
@@ -31,7 +31,7 @@ class AppConstants {
   static const String currencyCode = 'AED';
 
   // Asset Paths
-  static const String logoPath = 'assets/images/logo.png';
+  static const String logoPath = 'assets/images/common/logo.png';
   static const String defaultProfilePic = 'assets/images/default_profile.png';
 
   // Other constants

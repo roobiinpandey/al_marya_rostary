@@ -47,7 +47,7 @@ void main() {
           imageUrl: 'https://example.com/test.jpg',
           category: 'Test',
           rating: 4.5,
-          sizes: ['Small', 'Medium', 'Large'],
+          sizes: const ['Small', 'Medium', 'Large'],
           isPopular: true,
         );
 

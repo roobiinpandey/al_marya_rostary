@@ -1,6 +1,6 @@
-# qahwat_al_emarat
+# Al Marya Rostery
 
-A new Flutter project.
+A premium coffee ordering Flutter application for Al Marya Rostery.
 
 ## Getting Started
 
