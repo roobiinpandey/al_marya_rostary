@@ -236,7 +236,7 @@ class FirebaseUserSyncService {
   }
 
   /**
-   * Sync all local users to Firebase with batching and progress updates
+   * Sync all local users to Firebase (simplified version)
    * @param {Function} progressCallback - Optional callback for progress updates
    * @param {number} batchSize - Number of users to process in parallel (default: 10)
    * @returns {Promise<Object>} Bulk sync results
@@ -247,93 +247,62 @@ class FirebaseUserSyncService {
     }
 
     try {
-      // Get total count first
-      const totalUsers = await User.countDocuments({});
-      console.log(`🔄 Starting bulk sync for ${totalUsers} users (batch size: ${batchSize})`);
+      const users = await User.find({});
+      console.log(`🔄 Starting bulk sync for ${users.length} users`);
 
       const results = {
-        total: totalUsers,
+        total: users.length,
         synced: 0,
         errors: 0,
         processed: 0,
         details: [],
-        startTime: new Date(),
-        estimatedTimeRemaining: null
+        startTime: new Date()
       };
 
-      // Process users in batches to avoid memory issues
-      let skip = 0;
-      const limit = batchSize * 5; // Fetch more users at once but process in smaller batches
-
-      while (skip < totalUsers) {
-        // Fetch a chunk of users
-        const users = await User.find({}).skip(skip).limit(limit).lean();
-        
-        if (users.length === 0) break;
-
-        // Process users in parallel batches
-        for (let i = 0; i < users.length; i += batchSize) {
-          const batch = users.slice(i, i + batchSize);
+      // Process users sequentially to avoid issues
+      for (const user of users) {
+        try {
+          console.log(`Syncing local user: ${user.email}`);
+          const result = await this.syncUserToFirebase(user);
           
-          // Process batch in parallel
-          const batchPromises = batch.map(async (userData) => {
-            try {
-              // Convert lean document back to mongoose document for sync
-              const user = await User.findById(userData._id);
-              const result = await this.syncUserToFirebase(user);
-              
-              results.processed++;
-              
-              if (result.success) {
-                results.synced++;
-              } else {
-                results.errors++;
-              }
+          results.processed++;
+          
+          if (result.success) {
+            results.synced++;
+          } else {
+            results.errors++;
+          }
 
-              // Calculate progress and ETA
-              const progressPercent = (results.processed / totalUsers) * 100;
-              const elapsed = (new Date() - results.startTime) / 1000;
-              const estimatedTotal = (elapsed / results.processed) * totalUsers;
-              results.estimatedTimeRemaining = Math.max(0, estimatedTotal - elapsed);
-
-              // Call progress callback if provided
-              if (progressCallback) {
-                progressCallback({
-                  processed: results.processed,
-                  total: totalUsers,
-                  synced: results.synced,
-                  errors: results.errors,
-                  progressPercent: progressPercent.toFixed(1),
-                  estimatedTimeRemaining: Math.round(results.estimatedTimeRemaining)
-                });
-              }
-
-              return {
-                email: userData.email,
-                result
-              };
-
-            } catch (error) {
-              console.error(`❌ Error syncing user ${userData.email}:`, error.message);
-              results.processed++;
-              results.errors++;
-              
-              return {
-                email: userData.email,
-                result: { success: false, error: error.message }
-              };
-            }
+          results.details.push({
+            email: user.email,
+            result
           });
 
-          // Wait for batch to complete
-          const batchResults = await Promise.all(batchPromises);
-          results.details.push(...batchResults);
+          // Call progress callback if provided
+          if (progressCallback && results.processed % 5 === 0) {
+            const progressPercent = (results.processed / results.total) * 100;
+            progressCallback({
+              processed: results.processed,
+              total: results.total,
+              synced: results.synced,
+              errors: results.errors,
+              progressPercent: progressPercent.toFixed(1)
+            });
+          }
 
-          // Small delay between batches to respect rate limits
-          await new Promise(resolve => setTimeout(resolve, 200));
+        } catch (error) {
+          console.error(`❌ Error syncing user ${user.email}:`, error.message);
+          results.processed++;
+          results.errors++;
+          
+          results.details.push({
+            email: user.email,
+            result: { success: false, error: error.message }
+          });
         }
 
-        skip += limit;
+        // Small delay between users
+        await new Promise(resolve => setTimeout(resolve, 100));
       }
 
       const duration = (new Date() - results.startTime) / 1000;
@@ -348,7 +317,7 @@ class FirebaseUserSyncService {
   }
 
   /**
-   * Sync all Firebase users to local database with batching and progress updates
+   * Sync all Firebase users to local database (simplified version)
    * @param {Function} progressCallback - Optional callback for progress updates
    * @param {number} batchSize - Number of users to process in parallel (default: 15)
    * @returns {Promise<Object>} Bulk sync results
@@ -366,92 +335,103 @@ class FirebaseUserSyncService {
         errors: 0,
         processed: 0,
         details: [],
-        startTime: new Date(),
-        estimatedTimeRemaining: null
+        startTime: new Date()
       };
 
-      console.log(`🔄 Starting Firebase to local sync (batch size: ${batchSize})`);
+      console.log(`🔄 Starting Firebase to local sync`);
 
-      // First pass: count total Firebase users
+      // Get all Firebase users (simplified approach)
+      const allFirebaseUsers = [];
       let pageToken;
-      let totalFirebaseUsers = 0;
       
       do {
         const listUsersResult = await auth.listUsers(1000, pageToken);
-        totalFirebaseUsers += listUsersResult.users.length;
+        allFirebaseUsers.push(...listUsersResult.users);
         pageToken = listUsersResult.pageToken;
       } while (pageToken);
 
-      results.total = totalFirebaseUsers;
-      console.log(`📊 Found ${totalFirebaseUsers} Firebase users to sync`);
+      results.total = allFirebaseUsers.length;
+      console.log(`📊 Found ${allFirebaseUsers.length} Firebase users to sync`);
 
-      // Second pass: process users in batches
-      pageToken = undefined;
-      do {
-        const listUsersResult = await auth.listUsers(1000, pageToken);
-        
-        // Process Firebase users in parallel batches
-        for (let i = 0; i < listUsersResult.users.length; i += batchSize) {
-          const batch = listUsersResult.users.slice(i, i + batchSize);
+      // Process users sequentially to avoid issues
+      for (const firebaseUser of allFirebaseUsers) {
+        try {
+          console.log(`Syncing Firebase user: ${firebaseUser.email}`);
           
-          // Process batch in parallel
-          const batchPromises = batch.map(async (firebaseUser) => {
-            try {
-              const result = await this.syncUserFromFirebase(firebaseUser);
-              
-              results.processed++;
-              
-              if (result.success) {
-                results.synced++;
-              } else {
-                results.errors++;
-              }
+          // Find existing local user by Firebase UID or email
+          let localUser = await User.findOne({ 
+            $or: [
+              { firebaseUid: firebaseUser.uid },
+              { email: firebaseUser.email }
+            ]
+          });
 
-              // Calculate progress and ETA
-              const progressPercent = (results.processed / totalFirebaseUsers) * 100;
-              const elapsed = (new Date() - results.startTime) / 1000;
-              const estimatedTotal = (elapsed / results.processed) * totalFirebaseUsers;
-              results.estimatedTimeRemaining = Math.max(0, estimatedTotal - elapsed);
+          const userData = {
+            name: firebaseUser.displayName || firebaseUser.email.split('@')[0],
+            email: firebaseUser.email,
+            phone: firebaseUser.phoneNumber || null,
+            isEmailVerified: firebaseUser.emailVerified,
+            isActive: !firebaseUser.disabled,
+            firebaseUid: firebaseUser.uid,
+            firebaseSyncStatus: 'synced',
+            lastFirebaseSync: new Date()
+          };
 
-              // Call progress callback if provided
-              if (progressCallback) {
-                progressCallback({
-                  processed: results.processed,
-                  total: totalFirebaseUsers,
-                  synced: results.synced,
-                  errors: results.errors,
-                  progressPercent: progressPercent.toFixed(1),
-                  estimatedTimeRemaining: Math.round(results.estimatedTimeRemaining)
-                });
-              }
+          if (localUser) {
+            // Update existing user
+            Object.assign(localUser, userData);
+            await localUser.save();
+            console.log(`   ✅ Updated: ${firebaseUser.email}`);
+          } else {
+            // Create new user
+            localUser = new User({
+              ...userData,
+              password: 'firebase-auth-' + Math.random().toString(36).substring(7),
+              roles: ['customer']
+            });
+            await localUser.save();
+            console.log(`   ✅ Created: ${firebaseUser.email}`);
+          }
 
-              return {
-                email: firebaseUser.email,
-                result
-              };
-
-            } catch (error) {
-              console.error(`❌ Error syncing Firebase user ${firebaseUser.email}:`, error.message);
-              results.processed++;
-              results.errors++;
-              
-              return {
-                email: firebaseUser.email,
-                result: { success: false, error: error.message }
-              };
+          results.processed++;
+          results.synced++;
+          
+          results.details.push({
+            email: firebaseUser.email,
+            result: {
+              success: true,
+              userId: localUser._id,
+              action: localUser.firebaseUid ? 'updated' : 'created',
+              message: `Local user ${firebaseUser.email} ${localUser.firebaseUid ? 'updated' : 'created'} from Firebase`
             }
           });
 
-          // Wait for batch to complete
-          const batchResults = await Promise.all(batchPromises);
-          results.details.push(...batchResults);
+          // Call progress callback if provided
+          if (progressCallback && results.processed % 5 === 0) {
+            const progressPercent = (results.processed / results.total) * 100;
+            progressCallback({
+              processed: results.processed,
+              total: results.total,
+              synced: results.synced,
+              errors: results.errors,
+              progressPercent: progressPercent.toFixed(1)
+            });
+          }
 
-          // Small delay between batches
-          await new Promise(resolve => setTimeout(resolve, 100));
+        } catch (error) {
+          console.error(`❌ Error syncing Firebase user ${firebaseUser.email}:`, error.message);
+          results.processed++;
+          results.errors++;
+          
+          results.details.push({
+            email: firebaseUser.email,
+            result: { success: false, error: error.message }
+          });
         }
 
-        pageToken = listUsersResult.pageToken;
-      } while (pageToken);
+        // Small delay between users
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
 
       const duration = (new Date() - results.startTime) / 1000;
       console.log(`✅ Firebase to local sync completed in ${duration.toFixed(1)}s: ${results.synced} synced, ${results.errors} errors`);
