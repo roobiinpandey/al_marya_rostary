@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Qahwat Al Emarat</string>
+	<string>Al Marya Rostery</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -13,7 +13,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>qahwat_al_emarat</string>
+	<string>Al Marya Rostery</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -65,10 +65,10 @@
 	<array>
 		<dict>
 			<key>CFBundleURLName</key>
-			<string>qahwatalemarat</string>
+			<string>almaryarostery</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>qahwatalemarat</string>
+				<string>almaryarostery</string>
 			</array>
 		</dict>
 		<dict>

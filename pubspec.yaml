@@ -1,5 +1,5 @@
 name: qahwat_al_emarat
-description: Qahwat Al Emarat - Premium Coffee App
+description: Al Marya Rostery - Premium Coffee App
 
 publish_to: 'none'
 version: 1.0.0+1
@@ -39,6 +39,7 @@ dependencies:
   # Firebase
   firebase_core: ^3.6.0
   firebase_auth: ^5.3.1
+  firebase_database: ^11.1.4
   
   # Google Sign In
   google_sign_in: ^6.2.1
