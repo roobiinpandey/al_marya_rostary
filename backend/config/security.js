@@ -20,7 +20,7 @@ const securityMiddleware = (app) => {
         process.env.BASE_URL,
         'http://localhost:3000',
         'http://localhost:5001',
-        'https://***REMOVED***.onrender.com'
+  'https://al-marya-rostary.onrender.com'
       ].filter(Boolean);
 
       if (allowedOrigins.indexOf(origin) !== -1) {
@@ -45,7 +45,7 @@ const securityMiddleware = (app) => {
         styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://cdn.jsdelivr.net"],
         scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"],
         imgSrc: ["'self'", "data:", "https:", "blob:"],
-        connectSrc: ["'self'", process.env.BASE_URL, "https://***REMOVED***.onrender.com"].filter(Boolean),
+  connectSrc: ["'self'", process.env.BASE_URL, "https://al-marya-rostary.onrender.com"].filter(Boolean),
         fontSrc: ["'self'", "https:", "data:"],
         objectSrc: ["'none'"],
         mediaSrc: ["'self'"],
