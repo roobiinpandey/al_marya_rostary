@@ -107,7 +107,9 @@ router.post('/sync-from-firebase/:firebaseUid', async (req, res) => {
 router.post('/bulk-sync-to-firebase', async (req, res) => {
   try {
     console.log('🔄 Starting bulk sync to Firebase...');
-    const result = await firebaseUserSyncService.syncAllUsersToFirebase();
+    const { batchSize = 10 } = req.body;
+    
+    const result = await firebaseUserSyncService.syncAllUsersToFirebase(null, batchSize);
 
     res.json({
       success: true,
@@ -126,13 +128,68 @@ router.post('/bulk-sync-to-firebase', async (req, res) => {
 });
 
 /**
+ * Bulk Sync All Users to Firebase with Progress Stream
+ * GET /api/firebase-sync/bulk-sync-to-firebase/stream
+ */
+router.get('/bulk-sync-to-firebase/stream', async (req, res) => {
+  try {
+    // Set up Server-Sent Events
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Headers': 'Cache-Control'
+    });
+
+    const { batchSize = 10 } = req.query;
+
+    // Progress callback function
+    const progressCallback = (progress) => {
+      const data = JSON.stringify({
+        type: 'progress',
+        data: progress
+      });
+      res.write(`data: ${data}\n\n`);
+    };
+
+    // Send start event
+    res.write(`data: ${JSON.stringify({ type: 'start', message: 'Starting bulk sync to Firebase...' })}\n\n`);
+
+    console.log('🔄 Starting streaming bulk sync to Firebase...');
+    const result = await firebaseUserSyncService.syncAllUsersToFirebase(progressCallback, parseInt(batchSize));
+
+    // Send completion event
+    const completionData = JSON.stringify({
+      type: 'complete',
+      data: result,
+      message: 'Bulk sync to Firebase completed'
+    });
+    res.write(`data: ${completionData}\n\n`);
+    res.end();
+
+  } catch (error) {
+    console.error('❌ Streaming bulk sync to Firebase error:', error.message);
+    const errorData = JSON.stringify({
+      type: 'error',
+      error: error.message,
+      message: 'Failed to sync users to Firebase'
+    });
+    res.write(`data: ${errorData}\n\n`);
+    res.end();
+  }
+});
+
+/**
  * Bulk Sync All Users from Firebase
  * POST /api/firebase-sync/bulk-sync-from-firebase
  */
 router.post('/bulk-sync-from-firebase', async (req, res) => {
   try {
     console.log('🔄 Starting bulk sync from Firebase...');
-    const result = await firebaseUserSyncService.syncAllUsersFromFirebase();
+    const { batchSize = 15 } = req.body;
+    
+    const result = await firebaseUserSyncService.syncAllUsersFromFirebase(null, batchSize);
 
     res.json({
       success: true,
@@ -147,6 +204,59 @@ router.post('/bulk-sync-from-firebase', async (req, res) => {
       message: 'Failed to sync users from Firebase',
       error: error.message
     });
+  }
+});
+
+/**
+ * Bulk Sync All Users from Firebase with Progress Stream
+ * GET /api/firebase-sync/bulk-sync-from-firebase/stream
+ */
+router.get('/bulk-sync-from-firebase/stream', async (req, res) => {
+  try {
+    // Set up Server-Sent Events
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Headers': 'Cache-Control'
+    });
+
+    const { batchSize = 15 } = req.query;
+
+    // Progress callback function
+    const progressCallback = (progress) => {
+      const data = JSON.stringify({
+        type: 'progress',
+        data: progress
+      });
+      res.write(`data: ${data}\n\n`);
+    };
+
+    // Send start event
+    res.write(`data: ${JSON.stringify({ type: 'start', message: 'Starting bulk sync from Firebase...' })}\n\n`);
+
+    console.log('🔄 Starting streaming bulk sync from Firebase...');
+    const result = await firebaseUserSyncService.syncAllUsersFromFirebase(progressCallback, parseInt(batchSize));
+
+    // Send completion event
+    const completionData = JSON.stringify({
+      type: 'complete',
+      data: result,
+      message: 'Bulk sync from Firebase completed'
+    });
+    res.write(`data: ${completionData}\n\n`);
+    res.end();
+
+  } catch (error) {
+    console.error('❌ Streaming bulk sync from Firebase error:', error.message);
+    const errorData = JSON.stringify({
+      type: 'error',
+      error: error.message,
+      message: 'Failed to sync users from Firebase'
+    });
+    res.write(`data: ${errorData}\n\n`);
+    res.end();
   }
 });
 
