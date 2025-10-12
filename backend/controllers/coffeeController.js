@@ -1,6 +1,114 @@
 const Coffee = require('../models/Coffee');
 const { validationResult } = require('express-validator');
 
+// Helper function to create default variants based on base price
+const createDefaultVariants = (basePrice) => {
+  const price = parseFloat(basePrice) || 50; // Default base price
+  
+  return [
+    {
+      size: '250gm',
+      weight: 250,
+      price: Math.round(price * 0.8), // 20% less for smaller size
+      stock: 100,
+      description: {
+        en: '250gm pack - Perfect for trying new flavors',
+        ar: 'عبوة ٢٥٠ جرام - مثالية لتجربة النكهات الجديدة'
+      },
+      displayName: {
+        en: '250gm Pack',
+        ar: 'عبوة ٢٥٠ جرام'
+      },
+      isActive: true
+    },
+    {
+      size: '500gm',
+      weight: 500,
+      price: price, // Base price for standard size
+      stock: 100,
+      description: {
+        en: '500gm pack - Perfect for regular consumption',
+        ar: 'عبوة ٥٠٠ جرام - مثالية للاستهلاك المنتظم'
+      },
+      displayName: {
+        en: '500gm Pack',
+        ar: 'عبوة ٥٠٠ جرام'
+      },
+      isActive: true
+    },
+    {
+      size: '1kg',
+      weight: 1000,
+      price: Math.round(price * 1.8), // Better value for bulk
+      stock: 50,
+      description: {
+        en: '1kg pack - Perfect for bulk purchase and sharing',
+        ar: 'عبوة كيلو جرام - مثالية للشراء بالجملة والمشاركة'
+      },
+      displayName: {
+        en: '1kg Pack',
+        ar: 'عبوة كيلو جرام'
+      },
+      isActive: true
+    }
+  ];
+};
+
+// Helper function to process and validate variants
+const processVariants = (variants) => {
+  if (!Array.isArray(variants)) return createDefaultVariants(50);
+  
+  return variants.map(variant => ({
+    size: variant.size || '500gm',
+    weight: variant.weight || (variant.size === '250gm' ? 250 : variant.size === '1kg' ? 1000 : 500),
+    price: parseFloat(variant.price) || 50,
+    stock: parseInt(variant.stock) || 0,
+    description: {
+      en: variant.description?.en || getDefaultDescription(variant.size, 'en'),
+      ar: variant.description?.ar || getDefaultDescription(variant.size, 'ar')
+    },
+    displayName: {
+      en: variant.displayName?.en || getDefaultDisplayName(variant.size, 'en'),
+      ar: variant.displayName?.ar || getDefaultDisplayName(variant.size, 'ar')
+    },
+    isActive: variant.isActive !== undefined ? variant.isActive : true
+  }));
+};
+
+// Helper function to get default descriptions
+const getDefaultDescription = (size, lang) => {
+  const descriptions = {
+    en: {
+      '250gm': '250gm pack - Perfect for trying new flavors',
+      '500gm': '500gm pack - Perfect for regular consumption',
+      '1kg': '1kg pack - Perfect for bulk purchase and sharing'
+    },
+    ar: {
+      '250gm': 'عبوة ٢٥٠ جرام - مثالية لتجربة النكهات الجديدة',
+      '500gm': 'عبوة ٥٠٠ جرام - مثالية للاستهلاك المنتظم',
+      '1kg': 'عبوة كيلو جرام - مثالية للشراء بالجملة والمشاركة'
+    }
+  };
+  return descriptions[lang][size] || `${size} pack`;
+};
+
+// Helper function to get default display names
+const getDefaultDisplayName = (size, lang) => {
+  const names = {
+    en: {
+      '250gm': '250gm Pack',
+      '500gm': '500gm Pack',
+      '1kg': '1kg Pack'
+    },
+    ar: {
+      '250gm': 'عبوة ٢٥٠ جرام',
+      '500gm': 'عبوة ٥٠٠ جرام',
+      '1kg': 'عبوة كيلو جرام'
+    }
+  };
+  return names[lang][size] || `${size} Pack`;
+};
+
 // @desc    Get all coffees
 // @route   GET /api/coffees
 // @access  Public
@@ -116,6 +224,14 @@ const createCoffee = async (req, res) => {
       });
     }
 
+    // Process variants first to determine if we have custom variants
+    const variants = req.body.variants ? processVariants(JSON.parse(req.body.variants)) : createDefaultVariants(req.body.price);
+    
+    // Calculate price and stock from variants if not provided
+    const hasCustomVariants = req.body.variants && JSON.parse(req.body.variants).length > 0;
+    const price = req.body.price || (hasCustomVariants ? Math.min(...variants.map(v => v.price)) : 50);
+    const stock = req.body.stock !== undefined ? req.body.stock : (hasCustomVariants ? variants.reduce((sum, v) => sum + v.stock, 0) : 0);
+
     const coffeeData = {
       name: {
         en: req.body.nameEn || req.body.name,
@@ -125,13 +241,13 @@ const createCoffee = async (req, res) => {
         en: req.body.descriptionEn || req.body.description,
         ar: req.body.descriptionAr || req.body.description
       },
-      price: req.body.price,
+      price: price,
       image: `/uploads/${req.file.filename}`,
       origin: req.body.origin,
       roastLevel: req.body.roastLevel,
-      stock: req.body.stock || 0,
+      stock: stock,
       categories: req.body.categories ? JSON.parse(req.body.categories) : [],
-      variants: req.body.variants ? JSON.parse(req.body.variants) : [],
+      variants: variants,
       tastingNotes: req.body.tastingNotes ? JSON.parse(req.body.tastingNotes) : [],
       brewingMethods: req.body.brewingMethods ? JSON.parse(req.body.brewingMethods) : [],
       certifications: req.body.certifications ? JSON.parse(req.body.certifications) : [],
@@ -221,7 +337,7 @@ const updateCoffee = async (req, res) => {
 
     // Parse JSON fields
     if (req.body.categories) updateData.categories = JSON.parse(req.body.categories);
-    if (req.body.variants) updateData.variants = JSON.parse(req.body.variants);
+    if (req.body.variants) updateData.variants = processVariants(JSON.parse(req.body.variants));
     if (req.body.tastingNotes) updateData.tastingNotes = JSON.parse(req.body.tastingNotes);
     if (req.body.brewingMethods) updateData.brewingMethods = JSON.parse(req.body.brewingMethods);
     if (req.body.certifications) updateData.certifications = JSON.parse(req.body.certifications);
