@@ -45,7 +45,7 @@ const securityMiddleware = (app) => {
         styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://cdn.jsdelivr.net"],
         scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"],
         imgSrc: ["'self'", "data:", "https:", "blob:"],
-  connectSrc: ["'self'", process.env.BASE_URL, "https://al-marya-rostary.onrender.com"].filter(Boolean),
+  connectSrc: ["'self'", process.env.BASE_URL, "https://al-marya-rostary.onrender.com", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"].filter(Boolean),
         fontSrc: ["'self'", "https:", "data:"],
         objectSrc: ["'none'"],
         mediaSrc: ["'self'"],
