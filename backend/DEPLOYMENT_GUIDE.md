@@ -37,7 +37,7 @@ git push origin main
    - Add your IP to the whitelist (or use 0.0.0.0/0 for all IPs)
 4. Get your connection string:
    ```
-   ***REMOVED***username:password@cluster.mongodb.net/database_name?retryWrites=true&w=majority
+   ***REMOVED***your_mongodb_uri_here
    ```
 
 ---
