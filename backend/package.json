@@ -1,7 +1,7 @@
 {
-  "name": "qahwat-al-emarat-backend",
+  "name": "al-marya-rostery-backend",
   "version": "1.0.0",
-  "description": "Backend API for Qahwat Al Emarat coffee ordering app",
+  "description": "Backend API for Al Marya Rostery coffee ordering app",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -19,14 +19,18 @@
     "mongodb",
     "express"
   ],
-  "author": "Qahwat Al Emarat",
+  "author": "Al Marya Rostery",
   "license": "ISC",
   "dependencies": {
     "bcryptjs": "^3.0.2",
+    "compression": "^1.8.1",
     "cors": "^2.8.5",
+    "crypto": "^1.0.1",
     "dotenv": "^17.2.3",
     "exceljs": "^4.4.0",
-    "express": "^5.1.0",
+    "express": "^4.21.2",
+    "express-mongo-sanitize": "^2.2.0",
+    "express-rate-limit": "^8.1.0",
     "express-validator": "^7.2.1",
     "firebase-admin": "^13.5.0",
     "helmet": "^8.1.0",
@@ -34,6 +38,7 @@
     "mongoose": "^8.18.3",
     "morgan": "^1.10.1",
     "multer": "^2.0.2",
+    "node-cache": "^5.1.2",
     "node-fetch": "^2.7.0",
     "nodemailer": "^7.0.9",
     "pdfkit": "^0.17.2"

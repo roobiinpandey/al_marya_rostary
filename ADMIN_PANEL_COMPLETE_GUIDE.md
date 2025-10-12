@@ -1,8 +1,8 @@
-# 🎯 Qahwat Al Emarat - Enhanced Admin Panel Documentation
+# 🎯 Al Marya Rostery - Enhanced Admin Panel Documentation
 
 ## 📋 Overview
 
-The Qahwat Al Emarat admin panel has been completely upgraded with comprehensive features for managing your coffee business. This enhanced web interface provides powerful tools for analytics, reporting, product management, and order processing.
+The Al Marya Rostery admin panel has been completely upgraded with comprehensive features for managing your coffee business. This enhanced web interface provides powerful tools for analytics, reporting, product management, and order processing.
 
 ## 🌐 Admin Panel Access
 

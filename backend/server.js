@@ -1,69 +1,38 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const cors = require('cors');
-const helmet = require('helmet');
-const morgan = require('morgan');
 const path = require('path');
 require('dotenv').config();
 
+// Import optimized configurations
+const { connectDB } = require('./config/database');
+const { securityMiddleware, additionalSecurityHeaders, securityErrorHandler } = require('./config/security');
+const { performanceMiddleware, createCacheMiddleware, optimizeJsonResponse } = require('./config/performance');
+const { monitoring } = require('./config/monitoring');
+
 const app = express();
 
-// Middleware
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: [
-        "'self'", 
-        "'unsafe-inline'", 
-        "https://cdnjs.cloudflare.com",
-        "https://cdn.jsdelivr.net"
-      ],
-      scriptSrc: [
-        "'self'", 
-        "'unsafe-inline'", 
-        "https://accounts.google.com",
-        "https://cdn.jsdelivr.net",
-        "https://cdnjs.cloudflare.com"
-      ],
-      scriptSrcAttr: ["'unsafe-inline'"], // Allow inline event handlers (onclick, etc.)
-      imgSrc: ["'self'", "data:", "https:", "http://localhost:5001"],
-      connectSrc: [
-        "'self'", 
-        "http://localhost:5001", 
-        "https://*.onrender.com", 
-        "https://*.render.com",
-        "https://qahwat-al-emarat-backend.onrender.com",
-        "https://cdn.jsdelivr.net",
-        "https://cdnjs.cloudflare.com"
-      ],
-      fontSrc: [
-        "'self'", 
-        "https:", 
-        "data:",
-        "https://cdnjs.cloudflare.com",
-        "https://cdn.jsdelivr.net"
-      ],
-      objectSrc: ["'none'"],
-      mediaSrc: ["'self'"],
-      frameSrc: ["'none'"],
-    },
-  },
-}));
+console.log('🚀 Starting Al Marya Rostery Server...');
 
-// CORS Configuration
-app.use(cors({
-  origin: [
-    'http://localhost:3000',
-    'http://localhost:5001', 
-    'https://***REMOVED***.onrender.com',
-    'https://qahwat-al-emarat-backend.onrender.com'
-  ],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-csrf-token']
-}));
-app.use(morgan('combined'));
+// Initialize monitoring system
+monitoring.initializeMiddleware(app);
+
+// Security middleware (must be first)
+securityMiddleware(app);
+
+// Performance middleware
+performanceMiddleware(app);
+
+// Additional security headers
+app.use(additionalSecurityHeaders);
+
+// JSON optimization
+app.use(optimizeJsonResponse);
+
+// Request logging (only in development)
+if (process.env.NODE_ENV !== 'production') {
+  const morgan = require('morgan');
+  app.use(morgan('combined'));
+}
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -73,26 +42,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Serve static files from web directory (admin panel)
 app.use(express.static(path.join(__dirname, '../web')));
 
-// MongoDB Connection
-const connectDB = async () => {
-  try {
-    const mongoURI = process.env.MONGODB_URI;
-
-    if (!mongoURI) {
-      throw new Error('MONGODB_URI environment variable is not set');
-    }
-
-    await mongoose.connect(mongoURI, {
-      // Removed deprecated options for MongoDB driver 4.0+
-    });
-
-    console.log('✅ MongoDB Connected Successfully');
-    console.log('📊 Database:', mongoose.connection.db.databaseName);
-  } catch (error) {
-    console.error('❌ MongoDB Connection Error:', error.message);
-    process.exit(1);
-  }
-};
+// Database connection is now handled by the imported connectDB function
 
 // Routes
 app.get('/', (req, res) => {
@@ -106,34 +56,19 @@ app.get('/', (req, res) => {
   });
 });
 
-// Health check endpoint for monitoring
-app.get('/health', (req, res) => {
-  const healthStatus = {
-    status: 'healthy',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    environment: process.env.NODE_ENV || 'development',
-    database: {
-      status: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
-      name: mongoose.connection.db?.databaseName || 'unknown'
-    },
-    memory: {
-      used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + ' MB',
-      total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024) + ' MB'
-    }
-  };
+// Setup comprehensive health check endpoints
+monitoring.setupHealthEndpoints(app);
 
-  // Return 200 if healthy, 503 if database is down
-  const statusCode = mongoose.connection.readyState === 1 ? 200 : 503;
-  res.status(statusCode).json(healthStatus);
-});
-
-// API Routes
+// API Routes with caching for public data
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/users', require('./routes/users'));
-app.use('/api/coffees', require('./routes/coffees'));
-app.use('/api/categories', require('./routes/categories'));
-app.use('/api/sliders', require('./routes/sliders'));
+
+// Cached routes for better performance
+app.use('/api/coffees', createCacheMiddleware({ ttl: 300 }), require('./routes/coffees')); // 5 min cache
+app.use('/api/categories', createCacheMiddleware({ ttl: 600 }), require('./routes/categories')); // 10 min cache
+app.use('/api/sliders', createCacheMiddleware({ ttl: 300 }), require('./routes/sliders')); // 5 min cache
+
+// Non-cached routes (user-specific or frequently changing)
 app.use('/api/notifications', require('./routes/notifications'));
 app.use('/api/newsletters', require('./routes/newsletters'));
 app.use('/api/support-tickets', require('./routes/support'));
@@ -158,45 +93,76 @@ app.use('/api/public-admin', require('./routes/public-admin'));
 app.use('/api/public-admin/orders', require('./routes/public-admin-orders'));
 app.use('/api/public-admin/settings', require('./routes/public-admin-settings'));
 
-// Health check
-app.get('/health', (req, res) => {
-  res.json({
-    status: 'OK',
-    timestamp: new Date().toISOString(),
-    mongodb: mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected'
-  });
-});
-
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({
-    success: false,
-    message: 'Something went wrong!',
-    error: process.env.NODE_ENV === 'development' ? err.message : {}
-  });
-});
+// Security error handler
+app.use(securityErrorHandler);
 
 // 404 handler - must be last
 app.use((req, res) => {
   res.status(404).json({
     success: false,
-    message: 'API endpoint not found'
+    message: 'API endpoint not found',
+    path: req.path,
+    method: req.method,
+    timestamp: new Date().toISOString()
   });
 });
 
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 10000;
 
-// Start server
+// Production-ready server startup
 const startServer = async () => {
-  await connectDB();
+  try {
+    console.log('🔧 Initializing application...');
+    
+    // Connect to database with retry logic
+    await connectDB();
+    
+    // Setup graceful shutdown
+    monitoring.setupGracefulShutdown();
+    
+    // Start periodic health checks
+    monitoring.startPeriodicHealthChecks();
+    
+    // Start the server
+    const server = app.listen(PORT, () => {
+      console.log(`🎉 Al Marya Rostery Server Started Successfully!`);
+      console.log(`🌐 Server running on port ${PORT}`);
+      console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
+      console.log(`📱 API available at: http://localhost:${PORT}`);
+      console.log(`🔍 Health check: http://localhost:${PORT}/health`);
+      console.log(`⚡ Performance optimizations: ENABLED`);
+      console.log(`🛡️ Security middleware: ENABLED`);
+      console.log(`📈 Monitoring: ENABLED`);
+    });
 
-  app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-    console.log(`📱 API available at: http://localhost:${PORT}`);
-  });
+    // Handle server errors
+    server.on('error', (error) => {
+      if (error.syscall !== 'listen') {
+        throw error;
+      }
+
+      switch (error.code) {
+        case 'EACCES':
+          console.error(`� Port ${PORT} requires elevated privileges`);
+          process.exit(1);
+          break;
+        case 'EADDRINUSE':
+          console.error(`💥 Port ${PORT} is already in use`);
+          process.exit(1);
+          break;
+        default:
+          throw error;
+      }
+    });
+
+    return server;
+  } catch (error) {
+    console.error('� Failed to start server:', error);
+    process.exit(1);
+  }
 };
 
+// Start the server
 startServer();
 
 module.exports = app;

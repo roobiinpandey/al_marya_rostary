@@ -192,7 +192,7 @@ class _SplashPageState extends State<SplashPage>
                         children: [
                           // Main brand name
                           Text(
-                            'Qahwat Al Emarat',
+                            'Al Marya Rostery',
                             style: Theme.of(context).textTheme.displayMedium
                                 ?.copyWith(
                                   color: AppTheme.primaryBrown,
@@ -205,7 +205,7 @@ class _SplashPageState extends State<SplashPage>
                           const SizedBox(height: 12),
                           // Arabic text
                           Text(
-                            'قهوة الإمارات',
+                            'المارية روستري',
                             style: Theme.of(context).textTheme.headlineSmall
                                 ?.copyWith(
                                   color: AppTheme.primaryBrown.withValues(

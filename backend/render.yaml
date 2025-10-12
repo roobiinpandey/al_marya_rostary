@@ -1,46 +1,74 @@
 version: "1"
 services:
   - type: web
-    name: qahwat-al-emarat-api
+    name: qahwat-al-emarat-production
     env: node
-    plan: free
-    buildCommand: npm install
+    plan: standard # Upgraded from free for better performance
+    region: oregon # Choose closest region to your users
+    buildCommand: |
+      npm ci --only=production
+      node scripts/generateSecrets.js
     startCommand: npm start
+    
+    # Health check configuration
+    healthCheckPath: /health
+    
+    # Auto-scaling configuration
+    scaling:
+      minInstances: 1
+      maxInstances: 3
+      
+    # Environment variables (configure in Render Dashboard)
     envVars:
-      # Basic Configuration
+      # Core Configuration
       - key: NODE_ENV
         value: production
       - key: PORT
-        generateValue: true
-      
-      # Database Configuration (Set in Dashboard)
-      # MONGODB_URI - MongoDB connection string
-      
-      # Security Configuration (Set in Dashboard)
-      # JWT_SECRET - JWT signing secret (32+ characters)
-      # JWT_EXPIRE - Token expiration (default: 7d)
-      
-      # Application URLs (Set in Dashboard)
-      # BASE_URL - Your app URL (https://your-app.render.com)
-      
-      # Firebase Push Notifications (Set in Dashboard)
-      # FIREBASE_SERVICE_ACCOUNT_KEY - Firebase service account JSON
-      # FIREBASE_PROJECT_ID - Firebase project ID
-      
-      # Email Service Configuration (Set in Dashboard)
-      # SMTP_HOST - Email provider SMTP host
-      # SMTP_PORT - SMTP port (usually 587)
-      # SMTP_SECURE - false for port 587, true for 465
-      # SMTP_USER - SMTP username
-      # SMTP_PASS - SMTP password/API key
-      # EMAIL_FROM_NAME - Sender display name
-      # EMAIL_FROM_ADDRESS - Sender email address
-      
-      # Optional Configuration
-      # BCRYPT_SALT_ROUNDS - Password hashing rounds (default: 12)
-      # MAX_FILE_SIZE - Upload limit in bytes (default: 10MB)
-      # RATE_LIMIT_WINDOW_MS - Rate limiting window (default: 15 minutes)
-      # RATE_LIMIT_MAX_REQUESTS - Max requests per window (default: 100)
+        value: 10000
+        
+      # IMPORTANT: Set these in Render Dashboard (DO NOT commit to Git):
+      # 
+      # REQUIRED Database Configuration:
+      # MONGODB_URI=***REMOVED***qahwat_prod_user:SECURE_PASSWORD@***REMOVED***.ph5cazq.mongodb.net/qahwat_al_emarat?retryWrites=true&w=majority&ssl=true
+      #
+      # REQUIRED Security Configuration:
+      # JWT_SECRET=<64_CHAR_SECRET_FROM_GENERATOR>
+      # JWT_REFRESH_SECRET=<64_CHAR_SECRET_FROM_GENERATOR>
+      # ADMIN_PASSWORD=<STRONG_PASSWORD_FROM_GENERATOR>
+      #
+      # REQUIRED URLs:
+      # BASE_URL=https://qahwat-al-emarat-production.onrender.com
+      # FRONTEND_URL=https://yourdomain.com
+      #
+      # REQUIRED Firebase Configuration:
+      # FIREBASE_PROJECT_ID=***REMOVED***
+      # FIREBASE_PRIVATE_KEY=-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----
+      # FIREBASE_CLIENT_EMAIL=firebase-adminsdk-fbsvc@***REMOVED***.iam.gserviceaccount.com
+      #
+      # REQUIRED Email Configuration:
+      # SMTP_HOST=in-v3.mailjet.com
+      # SMTP_PORT=587
+      # SMTP_SECURE=false
+      # SMTP_USER=<YOUR_MAILJET_USER>
+      # SMTP_PASS=<YOUR_MAILJET_PASSWORD>
+      # EMAIL_FROM_NAME=Qahwat Al Emarat
+      # EMAIL_FROM_ADDRESS=<YOUR_EMAIL>
+      #
+      # OPTIONAL Performance Tuning:
+      # RATE_LIMIT_WINDOW_MS=900000
+      # RATE_LIMIT_MAX_REQUESTS=100
+      # LOGIN_RATE_LIMIT_MAX=5
       
     autoDeploy: true
-    healthCheckPath: /health
+    
+    # Build settings
+    buildFilter:
+      paths:
+      - backend/**
+      - package.json
+      
+    # Disk storage for uploads
+    disk:
+      name: uploads
+      mountPath: /opt/render/project/src/backend/uploads
+      sizeGB: 1
