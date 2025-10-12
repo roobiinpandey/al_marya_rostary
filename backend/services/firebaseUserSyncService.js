@@ -236,41 +236,108 @@ class FirebaseUserSyncService {
   }
 
   /**
-   * Sync all local users to Firebase
+   * Sync all local users to Firebase with batching and progress updates
+   * @param {Function} progressCallback - Optional callback for progress updates
+   * @param {number} batchSize - Number of users to process in parallel (default: 10)
    * @returns {Promise<Object>} Bulk sync results
    */
-  async syncAllUsersToFirebase() {
+  async syncAllUsersToFirebase(progressCallback = null, batchSize = 10) {
     if (!this.initialized) {
       throw new Error('Firebase not initialized');
     }
 
     try {
-      const users = await User.find({});
+      // Get total count first
+      const totalUsers = await User.countDocuments({});
+      console.log(`🔄 Starting bulk sync for ${totalUsers} users (batch size: ${batchSize})`);
+
       const results = {
-        total: users.length,
+        total: totalUsers,
         synced: 0,
         errors: 0,
-        details: []
+        processed: 0,
+        details: [],
+        startTime: new Date(),
+        estimatedTimeRemaining: null
       };
 
-      for (const user of users) {
-        const result = await this.syncUserToFirebase(user);
-        results.details.push({
-          email: user.email,
-          result
-        });
+      // Process users in batches to avoid memory issues
+      let skip = 0;
+      const limit = batchSize * 5; // Fetch more users at once but process in smaller batches
 
-        if (result.success) {
-          results.synced++;
-        } else {
-          results.errors++;
+      while (skip < totalUsers) {
+        // Fetch a chunk of users
+        const users = await User.find({}).skip(skip).limit(limit).lean();
+        
+        if (users.length === 0) break;
+
+        // Process users in parallel batches
+        for (let i = 0; i < users.length; i += batchSize) {
+          const batch = users.slice(i, i + batchSize);
+          
+          // Process batch in parallel
+          const batchPromises = batch.map(async (userData) => {
+            try {
+              // Convert lean document back to mongoose document for sync
+              const user = await User.findById(userData._id);
+              const result = await this.syncUserToFirebase(user);
+              
+              results.processed++;
+              
+              if (result.success) {
+                results.synced++;
+              } else {
+                results.errors++;
+              }
+
+              // Calculate progress and ETA
+              const progressPercent = (results.processed / totalUsers) * 100;
+              const elapsed = (new Date() - results.startTime) / 1000;
+              const estimatedTotal = (elapsed / results.processed) * totalUsers;
+              results.estimatedTimeRemaining = Math.max(0, estimatedTotal - elapsed);
+
+              // Call progress callback if provided
+              if (progressCallback) {
+                progressCallback({
+                  processed: results.processed,
+                  total: totalUsers,
+                  synced: results.synced,
+                  errors: results.errors,
+                  progressPercent: progressPercent.toFixed(1),
+                  estimatedTimeRemaining: Math.round(results.estimatedTimeRemaining)
+                });
+              }
+
+              return {
+                email: userData.email,
+                result
+              };
+
+            } catch (error) {
+              console.error(`❌ Error syncing user ${userData.email}:`, error.message);
+              results.processed++;
+              results.errors++;
+              
+              return {
+                email: userData.email,
+                result: { success: false, error: error.message }
+              };
+            }
+          });
+
+          // Wait for batch to complete
+          const batchResults = await Promise.all(batchPromises);
+          results.details.push(...batchResults);
+
+          // Small delay between batches to respect rate limits
+          await new Promise(resolve => setTimeout(resolve, 200));
         }
 
-        // Add small delay to avoid rate limiting
-        await new Promise(resolve => setTimeout(resolve, 100));
+        skip += limit;
       }
 
-      console.log(`✅ Bulk sync completed: ${results.synced} synced, ${results.errors} errors`);
+      const duration = (new Date() - results.startTime) / 1000;
+      console.log(`✅ Bulk sync completed in ${duration.toFixed(1)}s: ${results.synced} synced, ${results.errors} errors`);
       
       return results;
 
@@ -281,10 +348,12 @@ class FirebaseUserSyncService {
   }
 
   /**
-   * Sync all Firebase users to local database
+   * Sync all Firebase users to local database with batching and progress updates
+   * @param {Function} progressCallback - Optional callback for progress updates
+   * @param {number} batchSize - Number of users to process in parallel (default: 15)
    * @returns {Promise<Object>} Bulk sync results
    */
-  async syncAllUsersFromFirebase() {
+  async syncAllUsersFromFirebase(progressCallback = null, batchSize = 15) {
     if (!this.initialized) {
       throw new Error('Firebase not initialized');
     }
@@ -295,37 +364,97 @@ class FirebaseUserSyncService {
         total: 0,
         synced: 0,
         errors: 0,
-        details: []
+        processed: 0,
+        details: [],
+        startTime: new Date(),
+        estimatedTimeRemaining: null
       };
 
-      // List all Firebase users
+      console.log(`🔄 Starting Firebase to local sync (batch size: ${batchSize})`);
+
+      // First pass: count total Firebase users
       let pageToken;
+      let totalFirebaseUsers = 0;
+      
+      do {
+        const listUsersResult = await auth.listUsers(1000, pageToken);
+        totalFirebaseUsers += listUsersResult.users.length;
+        pageToken = listUsersResult.pageToken;
+      } while (pageToken);
+
+      results.total = totalFirebaseUsers;
+      console.log(`📊 Found ${totalFirebaseUsers} Firebase users to sync`);
+
+      // Second pass: process users in batches
+      pageToken = undefined;
       do {
         const listUsersResult = await auth.listUsers(1000, pageToken);
         
-        for (const firebaseUser of listUsersResult.users) {
-          results.total++;
+        // Process Firebase users in parallel batches
+        for (let i = 0; i < listUsersResult.users.length; i += batchSize) {
+          const batch = listUsersResult.users.slice(i, i + batchSize);
           
-          const result = await this.syncUserFromFirebase(firebaseUser);
-          results.details.push({
-            email: firebaseUser.email,
-            result
+          // Process batch in parallel
+          const batchPromises = batch.map(async (firebaseUser) => {
+            try {
+              const result = await this.syncUserFromFirebase(firebaseUser);
+              
+              results.processed++;
+              
+              if (result.success) {
+                results.synced++;
+              } else {
+                results.errors++;
+              }
+
+              // Calculate progress and ETA
+              const progressPercent = (results.processed / totalFirebaseUsers) * 100;
+              const elapsed = (new Date() - results.startTime) / 1000;
+              const estimatedTotal = (elapsed / results.processed) * totalFirebaseUsers;
+              results.estimatedTimeRemaining = Math.max(0, estimatedTotal - elapsed);
+
+              // Call progress callback if provided
+              if (progressCallback) {
+                progressCallback({
+                  processed: results.processed,
+                  total: totalFirebaseUsers,
+                  synced: results.synced,
+                  errors: results.errors,
+                  progressPercent: progressPercent.toFixed(1),
+                  estimatedTimeRemaining: Math.round(results.estimatedTimeRemaining)
+                });
+              }
+
+              return {
+                email: firebaseUser.email,
+                result
+              };
+
+            } catch (error) {
+              console.error(`❌ Error syncing Firebase user ${firebaseUser.email}:`, error.message);
+              results.processed++;
+              results.errors++;
+              
+              return {
+                email: firebaseUser.email,
+                result: { success: false, error: error.message }
+              };
+            }
           });
 
-          if (result.success) {
-            results.synced++;
-          } else {
-            results.errors++;
-          }
+          // Wait for batch to complete
+          const batchResults = await Promise.all(batchPromises);
+          results.details.push(...batchResults);
 
-          // Add small delay to avoid overwhelming the database
-          await new Promise(resolve => setTimeout(resolve, 50));
+          // Small delay between batches
+          await new Promise(resolve => setTimeout(resolve, 100));
         }
 
         pageToken = listUsersResult.pageToken;
       } while (pageToken);
 
-      console.log(`✅ Firebase to local sync completed: ${results.synced} synced, ${results.errors} errors`);
+      const duration = (new Date() - results.startTime) / 1000;
+      console.log(`✅ Firebase to local sync completed in ${duration.toFixed(1)}s: ${results.synced} synced, ${results.errors} errors`);
       
       return results;
 

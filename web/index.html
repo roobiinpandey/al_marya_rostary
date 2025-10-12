@@ -980,10 +980,13 @@
                         <!-- Sync Actions -->
                         <div style="margin: 2rem 0; display: flex; gap: 1rem; flex-wrap: wrap;">
                             <button class="btn btn-primary" onclick="bulkSyncToFirebase()">
-                                <i class="fas fa-cloud-upload-alt"></i> Sync All to Firebase
+                                <i class="fas fa-cloud-upload-alt"></i> Sync All to Firebase (Advanced)
                             </button>
                             <button class="btn btn-secondary" onclick="bulkSyncFromFirebase()">
-                                <i class="fas fa-cloud-download-alt"></i> Sync All from Firebase
+                                <i class="fas fa-cloud-download-alt"></i> Sync All from Firebase (Advanced)
+                            </button>
+                            <button class="btn btn-success" onclick="quickSyncToFirebase()">
+                                <i class="fas fa-bolt"></i> Quick Sync (Pending Only)
                             </button>
                             <button class="btn btn-warning" onclick="showPendingSyncUsers()">
                                 <i class="fas fa-exclamation-triangle"></i> Show Pending
@@ -2968,46 +2971,110 @@
 
         async function bulkSyncToFirebase() {
             try {
-                const confirmSync = confirm('Sync ALL users to Firebase? This may take a while and will create/update Firebase Auth accounts for all users.');
+                const batchSize = prompt('Enter batch size (users to process in parallel):', '10');
+                if (!batchSize || isNaN(batchSize)) return;
+                
+                const confirmSync = confirm(`Sync ALL users to Firebase in batches of ${batchSize}? This will create/update Firebase Auth accounts for all users with real-time progress.`);
                 if (!confirmSync) return;
                 
                 showLoading('syncResults');
                 document.getElementById('syncResults').style.display = 'block';
-                document.getElementById('syncResultsContent').innerHTML = '<p><i class="fas fa-spinner fa-spin"></i> Starting bulk sync to Firebase...</p>';
                 
-                const response = await authenticatedFetch(`${API_BASE_URL}/api/firebase-sync/bulk-sync-to-firebase`, {
-                    method: 'POST'
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    const results = data.data;
-                    document.getElementById('syncResultsContent').innerHTML = `
-                        <div class="alert alert-success">
-                            <h4><i class="fas fa-check-circle"></i> Bulk Sync to Firebase Completed</h4>
-                            <p><strong>Total:</strong> ${results.total} users</p>
-                            <p><strong>Synced:</strong> ${results.synced} users</p>
-                            <p><strong>Errors:</strong> ${results.errors} users</p>
-                            ${results.errors > 0 ? '<p><em>Check individual user sync status for error details</em></p>' : ''}
+                // Initialize progress display
+                document.getElementById('syncResultsContent').innerHTML = `
+                    <div class="alert alert-info">
+                        <h4><i class="fas fa-sync fa-spin"></i> Bulk Sync to Firebase in Progress</h4>
+                        <div class="progress mb-3" style="height: 25px;">
+                            <div id="syncProgressBar" class="progress-bar progress-bar-striped progress-bar-animated" 
+                                 role="progressbar" style="width: 0%">0%</div>
                         </div>
-                    `;
+                        <p id="syncStatus">Initializing sync...</p>
+                        <div id="syncStats">
+                            <small>
+                                <span id="syncProcessed">0</span> / <span id="syncTotal">0</span> processed |
+                                <span id="syncSynced">0</span> synced |
+                                <span id="syncErrors">0</span> errors |
+                                ETA: <span id="syncETA">calculating...</span>
+                            </small>
+                        </div>
+                    </div>
+                `;
+                
+                // Use Server-Sent Events for real-time progress
+                const eventSource = new EventSource(`${API_BASE_URL}/api/firebase-sync/bulk-sync-to-firebase/stream?batchSize=${batchSize}`);
+                
+                eventSource.onmessage = function(event) {
+                    const response = JSON.parse(event.data);
                     
-                    // Refresh users table and status
-                    await loadUsers();
-                    await loadFirebaseSyncStatus();
-                } else {
+                    switch(response.type) {
+                        case 'start':
+                            document.getElementById('syncStatus').textContent = response.message;
+                            break;
+                            
+                        case 'progress':
+                            const progress = response.data;
+                            document.getElementById('syncProgressBar').style.width = progress.progressPercent + '%';
+                            document.getElementById('syncProgressBar').textContent = progress.progressPercent + '%';
+                            document.getElementById('syncProcessed').textContent = progress.processed;
+                            document.getElementById('syncTotal').textContent = progress.total;
+                            document.getElementById('syncSynced').textContent = progress.synced;
+                            document.getElementById('syncErrors').textContent = progress.errors;
+                            document.getElementById('syncETA').textContent = progress.estimatedTimeRemaining ? 
+                                `${progress.estimatedTimeRemaining}s` : 'calculating...';
+                            document.getElementById('syncStatus').textContent = 
+                                `Processing users... ${progress.processed}/${progress.total} (${progress.progressPercent}%)`;
+                            break;
+                            
+                        case 'complete':
+                            eventSource.close();
+                            const results = response.data;
+                            const duration = ((new Date() - results.startTime) / 1000).toFixed(1);
+                            
+                            document.getElementById('syncResultsContent').innerHTML = `
+                                <div class="alert alert-success">
+                                    <h4><i class="fas fa-check-circle"></i> Bulk Sync to Firebase Completed!</h4>
+                                    <p><strong>Duration:</strong> ${duration} seconds</p>
+                                    <p><strong>Total:</strong> ${results.total} users</p>
+                                    <p><strong>Synced:</strong> ${results.synced} users</p>
+                                    <p><strong>Errors:</strong> ${results.errors} users</p>
+                                    ${results.errors > 0 ? '<p><em>Check individual user sync status for error details</em></p>' : ''}
+                                </div>
+                            `;
+                            
+                            // Refresh users table and status
+                            setTimeout(async () => {
+                                await loadUsers();
+                                await loadFirebaseSyncStatus();
+                            }, 1000);
+                            break;
+                            
+                        case 'error':
+                            eventSource.close();
+                            document.getElementById('syncResultsContent').innerHTML = `
+                                <div class="alert alert-danger">
+                                    <i class="fas fa-exclamation-triangle"></i> ${response.message}
+                                    ${response.error ? `<br><small>${response.error}</small>` : ''}
+                                </div>
+                            `;
+                            break;
+                    }
+                };
+                
+                eventSource.onerror = function(event) {
+                    console.error('EventSource failed:', event);
+                    eventSource.close();
                     document.getElementById('syncResultsContent').innerHTML = `
                         <div class="alert alert-danger">
-                            <i class="fas fa-exclamation-triangle"></i> ${data.message}
+                            <i class="fas fa-times-circle"></i> Connection lost. Sync may still be running in background.
                         </div>
                     `;
-                }
+                };
+                
             } catch (error) {
-                console.error('Error bulk syncing users:', error);
+                console.error('Error starting bulk sync:', error);
                 document.getElementById('syncResultsContent').innerHTML = `
                     <div class="alert alert-danger">
-                        <i class="fas fa-times-circle"></i> Failed to bulk sync users to Firebase
+                        <i class="fas fa-times-circle"></i> Failed to start bulk sync to Firebase
                     </div>
                 `;
             }
@@ -3015,45 +3082,221 @@
 
         async function bulkSyncFromFirebase() {
             try {
-                const confirmSync = confirm('Sync ALL Firebase users to local database? This will import all Firebase Auth users.');
+                const batchSize = prompt('Enter batch size (Firebase users to process in parallel):', '15');
+                if (!batchSize || isNaN(batchSize)) return;
+                
+                const confirmSync = confirm(`Sync ALL Firebase users to local database in batches of ${batchSize}? This will import all Firebase Auth users with real-time progress.`);
                 if (!confirmSync) return;
                 
                 showLoading('syncResults');
                 document.getElementById('syncResults').style.display = 'block';
-                document.getElementById('syncResultsContent').innerHTML = '<p><i class="fas fa-spinner fa-spin"></i> Starting bulk sync from Firebase...</p>';
                 
-                const response = await authenticatedFetch(`${API_BASE_URL}/api/firebase-sync/bulk-sync-from-firebase`, {
-                    method: 'POST'
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    const results = data.data;
-                    document.getElementById('syncResultsContent').innerHTML = `
-                        <div class="alert alert-success">
-                            <h4><i class="fas fa-check-circle"></i> Bulk Sync from Firebase Completed</h4>
-                            <p><strong>Total Firebase Users:</strong> ${results.total}</p>
-                            <p><strong>Synced:</strong> ${results.synced} users</p>
-                            <p><strong>Errors:</strong> ${results.errors} users</p>
+                // Initialize progress display
+                document.getElementById('syncResultsContent').innerHTML = `
+                    <div class="alert alert-info">
+                        <h4><i class="fas fa-download fa-spin"></i> Bulk Sync from Firebase in Progress</h4>
+                        <div class="progress mb-3" style="height: 25px;">
+                            <div id="syncProgressBar" class="progress-bar bg-info progress-bar-striped progress-bar-animated" 
+                                 role="progressbar" style="width: 0%">0%</div>
                         </div>
-                    `;
+                        <p id="syncStatus">Initializing sync...</p>
+                        <div id="syncStats">
+                            <small>
+                                <span id="syncProcessed">0</span> / <span id="syncTotal">0</span> processed |
+                                <span id="syncSynced">0</span> synced |
+                                <span id="syncErrors">0</span> errors |
+                                ETA: <span id="syncETA">calculating...</span>
+                            </small>
+                        </div>
+                    </div>
+                `;
+                
+                // Use Server-Sent Events for real-time progress
+                const eventSource = new EventSource(`${API_BASE_URL}/api/firebase-sync/bulk-sync-from-firebase/stream?batchSize=${batchSize}`);
+                
+                eventSource.onmessage = function(event) {
+                    const response = JSON.parse(event.data);
                     
-                    // Refresh users table and status
-                    await loadUsers();
-                    await loadFirebaseSyncStatus();
-                } else {
+                    switch(response.type) {
+                        case 'start':
+                            document.getElementById('syncStatus').textContent = response.message;
+                            break;
+                            
+                        case 'progress':
+                            const progress = response.data;
+                            document.getElementById('syncProgressBar').style.width = progress.progressPercent + '%';
+                            document.getElementById('syncProgressBar').textContent = progress.progressPercent + '%';
+                            document.getElementById('syncProcessed').textContent = progress.processed;
+                            document.getElementById('syncTotal').textContent = progress.total;
+                            document.getElementById('syncSynced').textContent = progress.synced;
+                            document.getElementById('syncErrors').textContent = progress.errors;
+                            document.getElementById('syncETA').textContent = progress.estimatedTimeRemaining ? 
+                                `${progress.estimatedTimeRemaining}s` : 'calculating...';
+                            document.getElementById('syncStatus').textContent = 
+                                `Processing Firebase users... ${progress.processed}/${progress.total} (${progress.progressPercent}%)`;
+                            break;
+                            
+                        case 'complete':
+                            eventSource.close();
+                            const results = response.data;
+                            const duration = ((new Date() - results.startTime) / 1000).toFixed(1);
+                            
+                            document.getElementById('syncResultsContent').innerHTML = `
+                                <div class="alert alert-success">
+                                    <h4><i class="fas fa-check-circle"></i> Bulk Sync from Firebase Completed!</h4>
+                                    <p><strong>Duration:</strong> ${duration} seconds</p>
+                                    <p><strong>Total Firebase Users:</strong> ${results.total}</p>
+                                    <p><strong>Synced:</strong> ${results.synced} users</p>
+                                    <p><strong>Errors:</strong> ${results.errors} users</p>
+                                    ${results.errors > 0 ? '<p><em>Check individual user records for error details</em></p>' : ''}
+                                </div>
+                            `;
+                            
+                            // Refresh users table and status
+                            setTimeout(async () => {
+                                await loadUsers();
+                                await loadFirebaseSyncStatus();
+                            }, 1000);
+                            break;
+                            
+                        case 'error':
+                            eventSource.close();
+                            document.getElementById('syncResultsContent').innerHTML = `
+                                <div class="alert alert-danger">
+                                    <i class="fas fa-exclamation-triangle"></i> ${response.message}
+                                    ${response.error ? `<br><small>${response.error}</small>` : ''}
+                                </div>
+                            `;
+                            break;
+                    }
+                };
+                
+                eventSource.onerror = function(event) {
+                    console.error('EventSource failed:', event);
+                    eventSource.close();
                     document.getElementById('syncResultsContent').innerHTML = `
                         <div class="alert alert-danger">
-                            <i class="fas fa-exclamation-triangle"></i> ${data.message}
+                            <i class="fas fa-times-circle"></i> Connection lost. Sync may still be running in background.
                         </div>
                     `;
-                }
+                };
+                
             } catch (error) {
-                console.error('Error bulk syncing from Firebase:', error);
+                console.error('Error starting bulk sync from Firebase:', error);
                 document.getElementById('syncResultsContent').innerHTML = `
                     <div class="alert alert-danger">
-                        <i class="fas fa-times-circle"></i> Failed to bulk sync from Firebase
+                        <i class="fas fa-times-circle"></i> Failed to start bulk sync from Firebase
+                    </div>
+                `;
+            }
+        }
+
+        async function quickSyncToFirebase() {
+            try {
+                showLoading('syncResults');
+                document.getElementById('syncResults').style.display = 'block';
+                document.getElementById('syncResultsContent').innerHTML = `
+                    <div class="alert alert-info">
+                        <i class="fas fa-bolt fa-spin"></i> Quick syncing pending users to Firebase...
+                    </div>
+                `;
+                
+                // Get pending users first
+                const pendingResponse = await authenticatedFetch(`${API_BASE_URL}/api/firebase-sync/pending-sync`);
+                const pendingData = await pendingResponse.json();
+                
+                if (!pendingData.success || pendingData.data.length === 0) {
+                    document.getElementById('syncResultsContent').innerHTML = `
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> No pending users found. All users are already synced!
+                        </div>
+                    `;
+                    return;
+                }
+                
+                const pendingUsers = pendingData.data;
+                let processed = 0;
+                let synced = 0;
+                let errors = 0;
+                
+                document.getElementById('syncResultsContent').innerHTML = `
+                    <div class="alert alert-info">
+                        <h4><i class="fas fa-bolt fa-spin"></i> Quick Sync in Progress</h4>
+                        <p>Syncing ${pendingUsers.length} pending users to Firebase...</p>
+                        <div class="progress mb-2" style="height: 20px;">
+                            <div id="quickSyncProgressBar" class="progress-bar bg-success progress-bar-striped progress-bar-animated" 
+                                 role="progressbar" style="width: 0%">0%</div>
+                        </div>
+                        <small id="quickSyncStatus">Starting sync...</small>
+                    </div>
+                `;
+                
+                // Process users in batches of 5 for quick sync
+                const batchSize = 5;
+                for (let i = 0; i < pendingUsers.length; i += batchSize) {
+                    const batch = pendingUsers.slice(i, i + batchSize);
+                    
+                    // Process batch in parallel
+                    const batchPromises = batch.map(async (user) => {
+                        try {
+                            const response = await authenticatedFetch(`${API_BASE_URL}/api/firebase-sync/sync-to-firebase/${user._id}`, {
+                                method: 'POST'
+                            });
+                            const result = await response.json();
+                            
+                            processed++;
+                            if (result.success) {
+                                synced++;
+                            } else {
+                                errors++;
+                            }
+                            
+                            // Update progress
+                            const progressPercent = (processed / pendingUsers.length) * 100;
+                            document.getElementById('quickSyncProgressBar').style.width = progressPercent + '%';
+                            document.getElementById('quickSyncProgressBar').textContent = Math.round(progressPercent) + '%';
+                            document.getElementById('quickSyncStatus').textContent = 
+                                `${processed}/${pendingUsers.length} users processed (${synced} synced, ${errors} errors)`;
+                            
+                            return result;
+                            
+                        } catch (error) {
+                            processed++;
+                            errors++;
+                            return { success: false, error: error.message };
+                        }
+                    });
+                    
+                    await Promise.all(batchPromises);
+                    
+                    // Small delay between batches
+                    if (i + batchSize < pendingUsers.length) {
+                        await new Promise(resolve => setTimeout(resolve, 200));
+                    }
+                }
+                
+                // Show completion
+                document.getElementById('syncResultsContent').innerHTML = `
+                    <div class="alert alert-success">
+                        <h4><i class="fas fa-check-circle"></i> Quick Sync Completed!</h4>
+                        <p><strong>Pending Users:</strong> ${pendingUsers.length}</p>
+                        <p><strong>Synced:</strong> ${synced} users</p>
+                        <p><strong>Errors:</strong> ${errors} users</p>
+                        ${errors > 0 ? '<p><em>Check individual user sync status for error details</em></p>' : ''}
+                    </div>
+                `;
+                
+                // Refresh data
+                setTimeout(async () => {
+                    await loadUsers();
+                    await loadFirebaseSyncStatus();
+                }, 1000);
+                
+            } catch (error) {
+                console.error('Error in quick sync:', error);
+                document.getElementById('syncResultsContent').innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-times-circle"></i> Quick sync failed: ${error.message}
                     </div>
                 `;
             }
