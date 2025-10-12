@@ -15,6 +15,9 @@ migrate_working_dir/
 *.temp
 Thumbs.db
 
+# Deployment configuration with sensitive data
+RENDER_DEPLOYMENT_SETUP.md
+
 # IntelliJ related
 *.iml
 *.ipr
