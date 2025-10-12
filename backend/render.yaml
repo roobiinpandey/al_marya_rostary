@@ -5,18 +5,23 @@ services:
     env: node
     plan: standard # Upgraded from free for better performance
     region: oregon # Choose closest region to your users
+    runtime: node20 # Updated to Node.js 20 for better performance
     buildCommand: |
       npm ci --only=production
       node scripts/generateSecrets.js
     startCommand: npm start
     
-    # Health check configuration
+    # Enhanced health check configuration
     healthCheckPath: /health
+    healthCheckTimeout: 30
     
     # Auto-scaling configuration
     scaling:
       minInstances: 1
-      maxInstances: 3
+      maxInstances: 5
+      criteria:
+        cpu: 70
+        memory: 80
       
     # Environment variables (configure in Render Dashboard)
     envVars:
@@ -25,6 +30,20 @@ services:
         value: production
       - key: PORT
         value: 10000
+        
+      # Performance & Monitoring
+      - key: ENABLE_METRICS
+        value: true
+      - key: LOG_LEVEL
+        value: info
+      - key: REQUEST_TIMEOUT
+        value: 30000
+        
+      # Database Connection Pool
+      - key: DB_CONNECTION_POOL_SIZE
+        value: 10
+      - key: DB_CONNECTION_TIMEOUT
+        value: 30000
         
       # IMPORTANT: Set these in Render Dashboard (DO NOT commit to Git):
       # 
