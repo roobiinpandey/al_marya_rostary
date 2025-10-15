@@ -10,9 +10,12 @@ const {
   getOrderAnalytics,
   exportOrders
 } = require('../controllers/orderController');
+const { protect } = require('../middleware/auth');
+const adminAuth = require('../middleware/adminAuth');
 
-// Public admin order routes (no auth required for local development)
-// These routes should be secured in production
+// Apply authentication to all admin order routes
+router.use(protect);
+router.use(adminAuth);
 router.get('/', getOrders);
 router.get('/stats', getOrderStats);
 router.get('/analytics', getOrderAnalytics);

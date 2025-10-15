@@ -16,7 +16,7 @@ class RealtimeDatabaseService {
   /// Adds a coffee product to the database and returns the generated ID
   Future<String> addCoffee(Coffee coffee) async {
     try {
-      final ref = await coffeeRef.push();
+      final ref = coffeeRef.push();
       await ref.set(coffee.toJson());
       return ref.key!;
     } catch (e) {

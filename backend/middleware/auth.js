@@ -1,6 +1,17 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
+// Security: Validate JWT_SECRET on module load
+if (!process.env.JWT_SECRET) {
+  console.error('FATAL: JWT_SECRET environment variable is not set. Authentication will fail.');
+  process.exit(1);
+}
+
+// Security: Validate JWT_SECRET strength
+if (process.env.JWT_SECRET.length < 32) {
+  console.error('WARNING: JWT_SECRET is too short. Use at least 32 characters for security.');
+}
+
 // Protect routes - require authentication
 const protect = async (req, res, next) => {
   try {
@@ -19,20 +30,20 @@ const protect = async (req, res, next) => {
     }
 
     try {
+      // Security: Additional JWT_SECRET validation before verification
+      if (!process.env.JWT_SECRET) {
+        console.error('JWT_SECRET missing during token verification');
+        return res.status(500).json({
+          success: false,
+          message: 'Server configuration error'
+        });
+      }
+
       // Verify token
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-      // Handle special admin token
-      if (decoded.userId === 'admin' && decoded.role === 'admin') {
-        req.user = {
-          userId: 'admin',
-          email: 'admin@qahwatalemarat.com',
-          roles: ['admin'],
-          isActive: true
-        };
-        next();
-        return;
-      }
+      // Security: Remove hardcoded admin bypass - all users must be validated through database
+      // REMOVED HARDCODED ADMIN TOKEN for security
 
       // Get user from token
       const user = await User.findById(decoded.userId);
@@ -61,9 +72,17 @@ const protect = async (req, res, next) => {
 
       next();
     } catch (error) {
+      // Security: Log JWT verification errors for monitoring
+      console.error('JWT verification failed:', {
+        error: error.message,
+        token: token?.substring(0, 20) + '...', // Log only first 20 chars for debugging
+        timestamp: new Date().toISOString()
+      });
+
+      // Security: Return generic error message to prevent information leakage
       return res.status(401).json({
         success: false,
-        message: 'Not authorized to access this route'
+        message: 'Invalid or expired token'
       });
     }
   } catch (error) {
@@ -109,16 +128,8 @@ const optionalAuth = async (req, res, next) => {
       try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         
-        // Handle special admin token
-        if (decoded.userId === 'admin' && decoded.role === 'admin') {
-          req.user = {
-            userId: 'admin',
-            email: 'admin@qahwatalemarat.com',
-            roles: ['admin'],
-            isActive: true
-          };
-          return next();
-        }
+        // Security: Remove hardcoded admin bypass - all users must be validated through database
+        // REMOVED HARDCODED ADMIN TOKEN for security
 
         const user = await User.findById(decoded.userId);
 

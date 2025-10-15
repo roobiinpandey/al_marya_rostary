@@ -3,6 +3,10 @@ const mongoose = require('mongoose');
 const path = require('path');
 require('dotenv').config();
 
+// Security: Validate environment variables before starting server
+const { validateAndExit } = require('./config/validation');
+validateAndExit();
+
 // Import optimized configurations
 const { connectDB } = require('./config/database');
 const { securityMiddleware, additionalSecurityHeaders, securityErrorHandler } = require('./config/security');
@@ -39,21 +43,28 @@ app.use(express.urlencoded({ extended: true }));
 // Serve static files from uploads directory
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Serve static files from web directory (admin panel)
-app.use(express.static(path.join(__dirname, '../web')));
+// Serve static files from public directory (admin panel)
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Database connection is now handled by the imported connectDB function
 
 // Routes
 app.get('/', (req, res) => {
-  res.json({
-    message: 'Qahwat Al Emarat API Server',
-    status: 'Running',
-    mongodb: mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected',
-    version: '1.0.0',
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development'
-  });
+  // Check if request accepts HTML (browser request)
+  if (req.headers.accept && req.headers.accept.includes('text/html')) {
+    // Serve business portal for browser requests
+    res.sendFile(path.join(__dirname, 'public/index.html'));
+  } else {
+    // Serve JSON API info for API requests
+    res.json({
+      message: 'Qahwat Al Emarat API Server',
+      status: 'Running',
+      mongodb: mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected',
+      version: '1.0.0',
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'development'
+    });
+  }
 });
 
 // Setup comprehensive health check endpoints
@@ -82,6 +93,11 @@ app.use('/api/firebase-sync', require('./routes/firebaseSync'));
 const { getPublicSettings } = require('./controllers/settingsController');
 app.get('/api/settings/public', getPublicSettings);
 
+// Admin panel route (serve index.html for consistency)
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/index.html'));
+});
+
 // Admin Routes
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/admin/settings', require('./routes/settings'));
@@ -93,19 +109,17 @@ app.use('/api/public-admin', require('./routes/public-admin'));
 app.use('/api/public-admin/orders', require('./routes/public-admin-orders'));
 app.use('/api/public-admin/settings', require('./routes/public-admin-settings'));
 
+// Import standardized error handling
+const { globalErrorHandler, notFoundHandler } = require('./middleware/errorHandler');
+
 // Security error handler
 app.use(securityErrorHandler);
 
-// 404 handler - must be last
-app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    message: 'API endpoint not found',
-    path: req.path,
-    method: req.method,
-    timestamp: new Date().toISOString()
-  });
-});
+// 404 handler - must be before global error handler
+app.use(notFoundHandler);
+
+// Global error handler - must be last
+app.use(globalErrorHandler);
 
 const PORT = process.env.PORT || 10000;
 

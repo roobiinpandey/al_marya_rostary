@@ -106,12 +106,8 @@ const createOptimizedIndexes = async () => {
   try {
     console.log('🗂️ Creating database indexes...');
     
-    const collections = mongoose.connection.db.listCollections();
-    const collectionNames = [];
-    
-    await collections.forEach(collection => {
-      collectionNames.push(collection.name);
-    });
+    const collections = await mongoose.connection.db.listCollections().toArray();
+    const collectionNames = collections.map(collection => collection.name);
 
     // User collection indexes
     if (collectionNames.includes('users')) {
