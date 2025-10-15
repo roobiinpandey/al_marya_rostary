@@ -100,6 +100,20 @@ const setupConnectionHandlers = () => {
 };
 
 /**
+ * Helper function to create indexes safely (ignore if already exists)
+ */
+const createIndexSafely = async (collection, indexSpec, options = {}) => {
+  try {
+    await collection.createIndex(indexSpec, options);
+  } catch (error) {
+    // Ignore index already exists errors
+    if (error.code !== 85 && !error.message.includes('already exists')) {
+      console.warn(`⚠️  Index creation warning: ${error.message}`);
+    }
+  }
+};
+
+/**
  * Create optimized database indexes for better performance
  */
 const createOptimizedIndexes = async () => {
@@ -113,90 +127,77 @@ const createOptimizedIndexes = async () => {
     if (collectionNames.includes('users')) {
       const userCollection = mongoose.connection.db.collection('users');
       
-      await userCollection.createIndex(
-        { email: 1 }, 
-        { unique: true, background: true, name: 'email_unique' }
-      );
+      // Check and handle existing email index
+      try {
+        const existingIndexes = await userCollection.indexes();
+        const emailIndexExists = existingIndexes.some(index => 
+          index.key && index.key.email === 1
+        );
+        
+        if (!emailIndexExists) {
+          await userCollection.createIndex(
+            { email: 1 }, 
+            { unique: true, background: true, name: 'email_unique' }
+          );
+        }
+      } catch (indexError) {
+        console.log('ℹ️  Email index already exists with different configuration');
+      }
       
-      await userCollection.createIndex(
-        { firebaseUid: 1 }, 
-        { sparse: true, background: true, name: 'firebase_uid_sparse' }
-      );
-      
-      await userCollection.createIndex(
-        { createdAt: -1 }, 
-        { background: true, name: 'created_desc' }
-      );
-      
-      await userCollection.createIndex(
-        { isActive: 1, roles: 1 }, 
-        { background: true, name: 'active_roles' }
-      );
+      // Create other indexes safely
+      await createIndexSafely(userCollection, { firebaseUid: 1 }, { sparse: true, background: true, name: 'firebase_uid_sparse' });
+      await createIndexSafely(userCollection, { createdAt: -1 }, { background: true, name: 'created_desc' });
+      await createIndexSafely(userCollection, { isActive: 1, roles: 1 }, { background: true, name: 'active_roles' });
     }
 
     // Coffee collection indexes
     if (collectionNames.includes('coffees')) {
       const coffeeCollection = mongoose.connection.db.collection('coffees');
       
-      await coffeeCollection.createIndex(
-        { category: 1, isActive: 1 }, 
-        { background: true, name: 'category_active' }
-      );
+      await createIndexSafely(coffeeCollection, { category: 1, isActive: 1 }, { background: true, name: 'category_active' });
       
-      await coffeeCollection.createIndex(
-        { 'nameEn': 'text', 'nameAr': 'text', 'descriptionEn': 'text', 'descriptionAr': 'text' },
-        { background: true, name: 'text_search' }
-      );
+      // Check if text index already exists before creating
+      try {
+        const existingIndexes = await coffeeCollection.indexes();
+        const textIndexExists = existingIndexes.some(index => 
+          index.key && (index.key._fts === 'text' || Object.keys(index.key).some(key => key.includes('text')))
+        );
+        
+        if (!textIndexExists) {
+          await coffeeCollection.createIndex(
+            { 'nameEn': 'text', 'nameAr': 'text', 'descriptionEn': 'text', 'descriptionAr': 'text' },
+            { background: true, name: 'text_search_new' }
+          );
+        }
+      } catch (e) {
+        console.log('ℹ️  Text search index already exists with different configuration');
+      }
       
-      await coffeeCollection.createIndex(
-        { 'variants.price': 1 }, 
-        { background: true, name: 'price_range' }
-      );
+      await createIndexSafely(coffeeCollection, { 'variants.price': 1 }, { background: true, name: 'price_range' });
     }
 
     // Order collection indexes
     if (collectionNames.includes('orders')) {
       const orderCollection = mongoose.connection.db.collection('orders');
       
-      await orderCollection.createIndex(
-        { userId: 1, createdAt: -1 }, 
-        { background: true, name: 'user_orders' }
-      );
-      
-      await orderCollection.createIndex(
-        { status: 1, paymentStatus: 1 }, 
-        { background: true, name: 'status_payment' }
-      );
-      
-      await orderCollection.createIndex(
-        { createdAt: -1 }, 
-        { background: true, name: 'recent_orders' }
-      );
+      await createIndexSafely(orderCollection, { userId: 1, createdAt: -1 }, { background: true, name: 'user_orders' });
+      await createIndexSafely(orderCollection, { status: 1, paymentStatus: 1 }, { background: true, name: 'status_payment' });
+      await createIndexSafely(orderCollection, { createdAt: -1 }, { background: true, name: 'recent_orders' });
     }
 
     // Category collection indexes
     if (collectionNames.includes('categories')) {
       const categoryCollection = mongoose.connection.db.collection('categories');
       
-      await categoryCollection.createIndex(
-        { displayOrder: 1, isActive: 1 }, 
-        { background: true, name: 'display_active' }
-      );
+      await createIndexSafely(categoryCollection, { displayOrder: 1, isActive: 1 }, { background: true, name: 'display_active' });
     }
 
     // Admin logs indexes
     if (collectionNames.includes('adminlogs')) {
       const logCollection = mongoose.connection.db.collection('adminlogs');
       
-      await logCollection.createIndex(
-        { timestamp: -1 }, 
-        { background: true, name: 'timestamp_desc' }
-      );
-      
-      await logCollection.createIndex(
-        { action: 1, timestamp: -1 }, 
-        { background: true, name: 'action_time' }
-      );
+      await createIndexSafely(logCollection, { timestamp: -1 }, { background: true, name: 'timestamp_desc' });
+      await createIndexSafely(logCollection, { action: 1, timestamp: -1 }, { background: true, name: 'action_time' });
     }
 
     console.log('✅ Database indexes created successfully');

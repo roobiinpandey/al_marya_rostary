@@ -174,11 +174,13 @@ class FirebaseUserSyncService {
           message: `Local user ${firebaseUser.email} updated from Firebase`
         };
       } else {
-        // Create new local user
+        // Create new local user with strong password
+        const randomPassword = 'Firebase@' + Math.random().toString(36).substring(2, 8) + Math.floor(Math.random() * 999);
+        
         localUser = new User({
           ...userData,
-          // Set default password (will be hashed by pre-save middleware)
-          password: 'firebase-auth-' + Math.random().toString(36).substring(7),
+          // Set secure default password that meets validation requirements
+          password: randomPassword,
           roles: ['customer'] // Default role for Firebase users
         });
 
@@ -384,9 +386,12 @@ class FirebaseUserSyncService {
             console.log(`   ✅ Updated: ${firebaseUser.email}`);
           } else {
             // Create new user
+            // Generate secure password that meets validation requirements  
+            const randomPassword = 'Firebase@' + Math.random().toString(36).substring(2, 8) + Math.floor(Math.random() * 999);
+            
             localUser = new User({
               ...userData,
-              password: 'firebase-auth-' + Math.random().toString(36).substring(7),
+              password: randomPassword,
               roles: ['customer']
             });
             await localUser.save();

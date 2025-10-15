@@ -67,6 +67,11 @@ app.get('/', (req, res) => {
   }
 });
 
+// Favicon route
+app.get('/favicon.ico', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/favicon.png'));
+});
+
 // Setup comprehensive health check endpoints
 monitoring.setupHealthEndpoints(app);
 
@@ -88,6 +93,9 @@ app.use('/api/analytics', require('./routes/analytics'));
 
 // Firebase Sync Routes
 app.use('/api/firebase-sync', require('./routes/firebaseSync'));
+
+// Auto Firebase Sync Routes
+app.use('/api/auto-sync', require('./routes/autoSync'));
 
 // Public settings route (no auth required)
 const { getPublicSettings } = require('./controllers/settingsController');
@@ -118,6 +126,38 @@ app.use(securityErrorHandler);
 // 404 handler - must be before global error handler
 app.use(notFoundHandler);
 
+// Custom 404 handler for admin-related requests
+app.use((req, res, next) => {
+  const url = req.originalUrl.toLowerCase();
+  
+  // Check if this might be an admin-related request
+  if (url.includes('admin') || url.includes('dashboard') || url.includes('panel') || 
+      url.includes('manager') || url.includes('control') || url.includes('backend')) {
+    
+    console.log(`ℹ️  Admin-related 404: ${req.method} ${req.originalUrl} - suggesting redirect to /`);
+    
+    // If it's an HTML request, redirect to admin panel
+    if (req.accepts('html')) {
+      return res.redirect(301, '/');
+    }
+    
+    // If it's an API request, provide helpful JSON response
+    return res.status(404).json({
+      success: false,
+      message: 'Admin endpoint not found',
+      suggestion: 'The admin panel is available at /',
+      available_endpoints: {
+        admin_panel: '/',
+        health_check: '/health',
+        api_docs: '/api'
+      }
+    });
+  }
+  
+  // Continue to default 404 handler
+  next();
+});
+
 // Global error handler - must be last
 app.use(globalErrorHandler);
 
@@ -130,6 +170,17 @@ const startServer = async () => {
     
     // Connect to database with retry logic
     await connectDB();
+    
+    // Start Auto Firebase Sync Service if enabled
+    const autoFirebaseSync = require('./services/autoFirebaseSync');
+    if (process.env.ENABLE_AUTO_FIREBASE_SYNC !== 'false') {
+      setTimeout(() => {
+        autoFirebaseSync.start();
+        console.log('🔄 Auto Firebase Sync Service enabled');
+      }, 5000); // Start after 5 seconds to ensure everything is initialized
+    } else {
+      console.log('⚠️ Auto Firebase Sync Service disabled via environment variable');
+    }
     
     // Setup graceful shutdown
     monitoring.setupGracefulShutdown();
