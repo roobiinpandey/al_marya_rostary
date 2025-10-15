@@ -478,11 +478,14 @@ class _LoginPageState extends State<LoginPage> {
               final email = _emailController.text.trim();
               if (email.isNotEmpty) {
                 final authProvider = context.read<AuthProvider>();
+                final navigator = Navigator.of(context);
+                final messenger = ScaffoldMessenger.of(context);
+
                 await authProvider.sendPasswordResetEmail(email);
 
                 if (mounted) {
-                  Navigator.of(context).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  navigator.pop();
+                  messenger.showSnackBar(
                     const SnackBar(
                       content: Text(
                         'Password reset instructions sent to your email!',

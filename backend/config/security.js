@@ -2,6 +2,7 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const mongoSanitize = require('express-mongo-sanitize');
 const cors = require('cors');
+const { inputSanitization } = require('../middleware/sanitization');
 
 /**
  * Production-ready security middleware
@@ -20,7 +21,8 @@ const securityMiddleware = (app) => {
         process.env.BASE_URL,
         'http://localhost:3000',
         'http://localhost:5001',
-  'https://al-marya-rostary.onrender.com'
+        'http://localhost:8000',  // Add admin panel origin
+        'https://al-marya-rostary.onrender.com'
       ].filter(Boolean);
 
       if (allowedOrigins.indexOf(origin) !== -1) {
@@ -43,9 +45,9 @@ const securityMiddleware = (app) => {
       directives: {
         defaultSrc: ["'self'"],
         styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://cdn.jsdelivr.net"],
-        scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com", "https://accounts.google.com"],
         imgSrc: ["'self'", "data:", "https:", "blob:"],
-  connectSrc: ["'self'", process.env.BASE_URL, "https://al-marya-rostary.onrender.com", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"].filter(Boolean),
+  connectSrc: ["'self'", process.env.BASE_URL, "https://al-marya-rostary.onrender.com", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com", "https://accounts.google.com"].filter(Boolean),
         fontSrc: ["'self'", "https:", "data:"],
         objectSrc: ["'none'"],
         mediaSrc: ["'self'"],
@@ -114,7 +116,19 @@ const securityMiddleware = (app) => {
   app.use('/api/auth/forgot-password', authLimiter);
 
   // Data sanitization against NoSQL injection attacks
-  app.use(mongoSanitize());
+  app.use(mongoSanitize({
+    replaceWith: '_'
+  }));
+
+  // Comprehensive input sanitization (XSS, SQL injection, path traversal protection)
+  app.use(inputSanitization({
+    sizeLimit: {
+      maxBodySize: '10mb',
+      maxParamLength: 1000,
+      maxQueryParams: 50,
+      maxHeaderSize: 8192
+    }
+  }));
 
   // Trust proxy for accurate IP addresses (important for Render.com)
   app.set('trust proxy', 1);

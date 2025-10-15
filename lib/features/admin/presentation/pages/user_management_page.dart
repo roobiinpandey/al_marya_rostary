@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/admin_user_provider.dart';
-import '../../data/models/admin_user_model.dart';
 import '../widgets/user_data_table.dart';
 import '../widgets/user_filters_widget.dart';
 import '../widgets/user_stats_cards.dart';

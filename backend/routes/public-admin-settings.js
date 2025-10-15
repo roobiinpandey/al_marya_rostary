@@ -10,9 +10,12 @@ const {
   initializeDefaults,
   resetToDefaults
 } = require('../controllers/publicAdminSettingsController');
+const { protect } = require('../middleware/auth');
+const adminAuth = require('../middleware/adminAuth');
 
-// Public admin settings routes (no auth required for local development)
-// These routes should be secured in production
+// Apply authentication to all admin settings routes
+router.use(protect);
+router.use(adminAuth);
 
 // Special routes first (before /:key which would catch everything)
 router.put('/bulk', bulkUpdateSettings);

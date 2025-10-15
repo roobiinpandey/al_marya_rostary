@@ -3,11 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Qahwat Al Emarat - Admin Portal</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; script-src-elem 'self' 'unsafe-inline' https://accounts.google.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; script-src-attr 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com; connect-src 'self' http://localhost:5001 https://*.onrender.com https://*.render.com https://cdn.jsdelivr.net https://accounts.google.com; img-src 'self' data: http://localhost:5001 https://*.onrender.com https://*.render.com;">
+    <meta name="description" content="Al Marya Rostery Business Management Portal">
+    <title>Al Marya Rostery - Business Portal</title>
+    
+    <!-- Font Awesome for icons -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js" rel="preload" as="script">
+    
+    <!-- Chart.js for analytics -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <!-- Google Identity Services script for Google Sign-In 7.x -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         :root {
             --primary-color: #8B4513;
@@ -512,6 +519,113 @@
         .sync-status-error { background-color: #dc3545; }
         .sync-status-manual { background-color: #6c757d; }
 
+        /* Modal Styles */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .modal-content {
+            background: var(--bg-white);
+            border-radius: 10px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+        }
+
+        .modal-close {
+            cursor: pointer;
+            font-size: 1.5rem;
+            font-weight: bold;
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-close:hover {
+            opacity: 1;
+        }
+
+        .modal-body {
+            padding: 2rem;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-light);
+        }
+
+        /* File Upload Area */
+        .file-upload-area {
+            border: 2px dashed var(--primary-color);
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: var(--bg-light);
+        }
+
+        .file-upload-area:hover {
+            background: var(--border-light);
+            border-color: var(--secondary-color);
+        }
+
+        .file-upload-content i {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .file-upload-content p {
+            margin: 0.5rem 0;
+            color: var(--text-dark);
+            font-weight: 500;
+        }
+
+        .file-upload-content small {
+            color: var(--text-light);
+        }
+
+        /* Notification Animation */
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .sidebar {
@@ -546,7 +660,7 @@
             <div class="login-logo">
                 <i class="fas fa-coffee"></i>
             </div>
-            <h1 class="login-title">Qahwat Al Emarat</h1>
+            <h1 class="login-title">Al Marya Rostery</h1>
             <p class="login-subtitle">Admin Panel Login</p>
             
             <div id="loginError" class="login-error" style="display: none;">
@@ -599,7 +713,7 @@
         <!-- Sidebar -->
         <nav class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <h1><i class="fas fa-coffee"></i> Qahwat Al Emarat</h1>
+                <h1><i class="fas fa-coffee"></i> Al Marya Rostery</h1>
                 <p>Administrative Panel</p>
             </div>
             <div class="sidebar-menu">
@@ -1044,7 +1158,7 @@
                             <div>
                                 <div class="form-group">
                                     <label>App Name</label>
-                                    <input type="text" class="form-control" id="appName" value="Qahwat Al Emarat">
+                                    <input type="text" class="form-control" id="appName" value="Al Marya Rostery">
                                 </div>
                                 <div class="form-group">
                                     <label>Contact Email</label>
@@ -1088,13 +1202,138 @@
             <div id="sliders" class="content-section">
                 <div class="content-header">
                     <h2><i class="fas fa-images"></i> Hero Banner Management</h2>
+                    <div class="header-actions">
+                        <button class="btn btn-success" onclick="showAddSliderModal()">
+                            <i class="fas fa-plus"></i> Create New Banner
+                        </button>
+                        <button class="btn btn-info" onclick="loadSliders()">
+                            <i class="fas fa-sync"></i> Refresh
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Slider Creation Modal -->
+                <div id="sliderModal" class="modal" style="display: none;">
+                    <div class="modal-content" style="max-width: 800px;">
+                        <div class="modal-header">
+                            <h3><i class="fas fa-images"></i> Create Hero Banner</h3>
+                            <span class="modal-close" onclick="hideAddSliderModal()">&times;</span>
+                        </div>
+                        <div class="modal-body">
+                            <form id="sliderForm" enctype="multipart/form-data">
+                                <!-- Image Upload -->
+                                <div class="form-group">
+                                    <label for="sliderImage">Banner Image *</label>
+                                    <div class="file-upload-area" onclick="document.getElementById('sliderImage').click()">
+                                        <input type="file" id="sliderImage" name="image" accept="image/*" required style="display: none;">
+                                        <div class="file-upload-content">
+                                            <i class="fas fa-camera fa-2x"></i>
+                                            <p>Click to select banner image</p>
+                                            <small>Recommended: 1920x600px, JPG/PNG, max 10MB</small>
+                                        </div>
+                                    </div>
+                                    <div id="imagePreview" style="display: none; margin-top: 10px;">
+                                        <img id="previewImg" src="" alt="Preview" style="max-width: 200px; border-radius: 5px;">
+                                        <p id="previewText"></p>
+                                    </div>
+                                </div>
+
+                                <!-- Mobile Image Upload -->
+                                <div class="form-group">
+                                    <label for="sliderMobileImage">Mobile Image (Optional)</label>
+                                    <div class="file-upload-area" onclick="document.getElementById('sliderMobileImage').click()">
+                                        <input type="file" id="sliderMobileImage" name="mobileImage" accept="image/*" style="display: none;">
+                                        <div class="file-upload-content">
+                                            <i class="fas fa-mobile-alt fa-2x"></i>
+                                            <p>Click to select mobile image</p>
+                                            <small>Recommended: 800x600px for mobile devices</small>
+                                        </div>
+                                    </div>
+                                    <div id="mobileImagePreview" style="display: none; margin-top: 10px;">
+                                        <img id="mobilePreviewImg" src="" alt="Mobile Preview" style="max-width: 200px; border-radius: 5px;">
+                                        <p id="mobilePreviewText"></p>
+                                    </div>
+                                </div>
+
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                    <!-- Title -->
+                                    <div class="form-group">
+                                        <label for="sliderTitle">Title *</label>
+                                        <input type="text" id="sliderTitle" name="title" class="form-control" required placeholder="Welcome to Qahwat Al Emarat" maxlength="100">
+                                    </div>
+
+                                    <!-- Display Order -->
+                                    <div class="form-group">
+                                        <label for="sliderDisplayOrder">Display Order</label>
+                                        <input type="number" id="sliderDisplayOrder" name="displayOrder" class="form-control" value="1" min="0">
+                                    </div>
+                                </div>
+
+                                <!-- Description -->
+                                <div class="form-group">
+                                    <label for="sliderDescription">Description</label>
+                                    <textarea id="sliderDescription" name="description" class="form-control" rows="3" placeholder="Discover authentic Arabic coffee experience" maxlength="300"></textarea>
+                                </div>
+
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                    <!-- Button Configuration -->
+                                    <div class="form-group">
+                                        <label for="sliderButtonText">Button Text</label>
+                                        <input type="text" id="sliderButtonText" name="buttonText" class="form-control" placeholder="Order Now" maxlength="50">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="sliderButtonLink">Button Link</label>
+                                        <input type="url" id="sliderButtonLink" name="buttonLink" class="form-control" placeholder="https://***REMOVED***.com/menu">
+                                    </div>
+                                </div>
+
+                                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+                                    <!-- Colors -->
+                                    <div class="form-group">
+                                        <label for="sliderBackgroundColor">Background Color</label>
+                                        <input type="color" id="sliderBackgroundColor" name="backgroundColor" class="form-control" value="#8B4513">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="sliderTextColor">Text Color</label>
+                                        <input type="color" id="sliderTextColor" name="textColor" class="form-control" value="#FFFFFF">
+                                    </div>
+
+                                    <!-- Position -->
+                                    <div class="form-group">
+                                        <label for="sliderPosition">Text Position</label>
+                                        <select id="sliderPosition" name="position" class="form-control">
+                                            <option value="left">Left</option>
+                                            <option value="center" selected>Center</option>
+                                            <option value="right">Right</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Active Status -->
+                                <div class="form-group">
+                                    <label style="display: flex; align-items: center; gap: 10px;">
+                                        <input type="checkbox" id="sliderIsActive" name="isActive" checked>
+                                        Active (visible to users)
+                                    </label>
+                                </div>
+
+                                <div class="form-actions">
+                                    <button type="button" class="btn btn-secondary" onclick="hideAddSliderModal()">Cancel</button>
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="fas fa-plus"></i> Create Banner
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="section-card">
                     <div class="section-header">
                         <h3>Hero Banners & Sliders</h3>
                         <div style="display: flex; gap: 1rem; align-items: center;">
-                            <button class="btn btn-success" onclick="showAddSliderModal()">
-                                <i class="fas fa-plus"></i> Add New Banner
-                            </button>
                             <input type="text" class="form-control" placeholder="Search banners..." id="sliderSearch" style="width: 250px;">
                             <select class="form-control" id="sliderStatusFilter" style="width: 150px;">
                                 <option value="">All Status</option>
@@ -1124,6 +1363,13 @@
         let charts = {};
         let currentUser = null;
         let authToken = null;
+        
+        // Helper function to validate JWT token format
+        function isValidToken(token) {
+            if (!token || typeof token !== 'string') return false;
+            const parts = token.split('.');
+            return parts.length === 3 && parts.every(part => part.length > 0);
+        }
 
         // Initialize admin panel
         document.addEventListener('DOMContentLoaded', function() {
@@ -1136,9 +1382,18 @@
             authToken = localStorage.getItem('adminToken');
             currentUser = JSON.parse(localStorage.getItem('adminUser') || 'null');
             
-            if (authToken && currentUser) {
+            // Validate token format before using it
+            if (authToken && isValidToken(authToken) && currentUser) {
                 showAdminPanel();
             } else {
+                // Clear invalid token data
+                if (authToken && !isValidToken(authToken)) {
+                    console.warn('Invalid token format found, clearing localStorage');
+                    localStorage.removeItem('adminToken');
+                    localStorage.removeItem('adminUser');
+                    authToken = null;
+                    currentUser = null;
+                }
                 showLoginPage();
             }
         }
@@ -1234,7 +1489,8 @@
                 'Content-Type': 'application/json'
             };
             
-            if (authToken) {
+            // Only add auth header if we have a valid token
+            if (authToken && isValidToken(authToken)) {
                 defaultHeaders['Authorization'] = `Bearer ${authToken}`;
             }
             
@@ -1251,14 +1507,9 @@
                 
                 // Check if token is expired or invalid
                 if (response.status === 401) {
-                    // Only logout for auth endpoints, not for dashboard/analytics failures
-                    if (url.includes('/api/auth/')) {
-                        logout();
-                        throw new Error('Authentication failed');
-                    } else {
-                        // For non-auth endpoints, just throw error without logout
-                        throw new Error('Service unavailable - Backend starting up');
-                    }
+                    console.warn(`Authentication failed for ${url} - redirecting to login`);
+                    logout(); // Always logout on 401 to clear invalid token
+                    throw new Error('Authentication expired - please login again');
                 }
                 
                 if (!response.ok) {
@@ -1282,7 +1533,19 @@
             return data;
         }
 
-        function initializeAdmin() {
+        async function initializeAdmin() {
+            // Check backend connectivity first
+            try {
+                const healthCheck = await fetch(`${API_BASE_URL}/health`);
+                if (!healthCheck.ok) {
+                    console.warn('Backend health check failed');
+                }
+            } catch (error) {
+                console.warn('Backend connectivity check failed:', error.message);
+                showError('dashboardStats', 'Backend server unavailable - please start the server');
+                return; // Don't try to load data if backend is down
+            }
+            
             loadDashboardData();
             loadCategories();
             initializeCharts();
@@ -1354,7 +1617,7 @@
                     renderRecentOrders(data.data.recentOrders);
                 }
             } catch (error) {
-                console.error('Error loading dashboard data:', error);
+                console.warn('Dashboard data not available:', error.message);
                 // Show default dashboard instead of failing
                 renderDashboardStats({
                     totalRevenue: 0,
@@ -1363,7 +1626,12 @@
                     revenueData: [],
                     recentOrders: []
                 });
-                showError('dashboardStats', 'Dashboard data unavailable - Backend service starting up');
+                
+                if (error.message.includes('Authentication required')) {
+                    showError('dashboardStats', 'Please login to view dashboard data');
+                } else {
+                    showError('dashboardStats', 'Dashboard data unavailable - Backend service starting up');
+                }
             }
         }
 
@@ -1995,10 +2263,16 @@
         }
 
         function showError(elementId, message) {
+            const isBackendDown = message.includes('server') || message.includes('Backend');
+            const helpText = isBackendDown ? 
+                '<small style="display: block; margin-top: 1rem; opacity: 0.8;">💡 Make sure the backend server is running on port 5001</small>' : 
+                '';
+                
             document.getElementById(elementId).innerHTML = `
                 <div class="text-center" style="padding: 2rem; color: var(--danger);">
                     <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 1rem;"></i>
                     <p>${message}</p>
+                    ${helpText}
                 </div>
             `;
         }
@@ -2374,76 +2648,173 @@
             document.getElementById('slidersTable').innerHTML = tableHTML;
         }
 
-        async function showAddSliderModal() {
+        // Slider Modal Functions
+        function showAddSliderModal() {
             document.getElementById('sliderModal').style.display = 'flex';
-            document.getElementById('sliderCreationForm').reset();
+            document.getElementById('sliderForm').reset();
             document.getElementById('imagePreview').style.display = 'none';
+            document.getElementById('mobileImagePreview').style.display = 'none';
             
-            // Check backend status and show notification if needed
-            await checkSliderAPIStatus();
+            // Set default values
+            document.getElementById('sliderBackgroundColor').value = '#8B4513';
+            document.getElementById('sliderTextColor').value = '#FFFFFF';
+            document.getElementById('sliderDisplayOrder').value = '1';
+            document.getElementById('sliderIsActive').checked = true;
         }
 
-        async function checkSliderAPIStatus() {
-            try {
-                // Test if the backend supports the new API
-                const testResponse = await fetch(`${API_BASE_URL}/api/sliders`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('adminToken') || ''}`
-                    },
-                    body: new FormData() // Empty form data to test
-                });
-                
-                const errorText = await testResponse.text();
-                
-                if (errorText.includes('Image is required')) {
-                    // Backend is using old API, show notification
-                    showAPIStatusNotification();
-                }
-            } catch (error) {
-                console.log('API status check failed, but continuing...', error);
-            }
-        }
-
-        function showAPIStatusNotification() {
-            const existingNotification = document.getElementById('apiStatusNotification');
-            if (existingNotification) {
-                existingNotification.remove();
-            }
-
-            const notification = document.createElement('div');
-            notification.id = 'apiStatusNotification';
-            notification.innerHTML = `
-                <div style="background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
-                    <strong>⚠️ Backend Update in Progress</strong><br>
-                    The slider creation API is currently being deployed with image upload fixes. 
-                    If you encounter errors, please try again in 2-3 minutes or use the 
-                    <a href="slider-creation-tool.html" target="_blank" style="color: #8B4513;">standalone slider tool</a>.
-                </div>
-            `;
-            
-            const modalContent = document.querySelector('.modal-content');
-            modalContent.insertBefore(notification, modalContent.firstChild);
-        }
-
-        function closeSliderModal() {
+        function hideAddSliderModal() {
             document.getElementById('sliderModal').style.display = 'none';
         }
 
-        function openStandaloneTool() {
-            const standaloneUrl = window.location.origin + '/slider-creation-tool.html';
-            
-            // Copy current admin token to the standalone tool
-            const currentToken = localStorage.getItem('adminToken');
-            if (currentToken) {
-                const urlWithToken = `${standaloneUrl}?token=${encodeURIComponent(currentToken)}`;
-                window.open(urlWithToken, '_blank');
-            } else {
-                window.open(standaloneUrl, '_blank');
-            }
-            
-            closeSliderModal();
+        // Alias for compatibility
+        function closeSliderModal() {
+            hideAddSliderModal();
         }
+
+        // Handle file previews for slider images
+        document.addEventListener('DOMContentLoaded', function() {
+            // Main image preview
+            document.getElementById('sliderImage').addEventListener('change', function(e) {
+                handleSliderImagePreview(e.target, 'imagePreview', 'previewImg', 'previewText');
+            });
+
+            // Mobile image preview
+            document.getElementById('sliderMobileImage').addEventListener('change', function(e) {
+                handleSliderImagePreview(e.target, 'mobileImagePreview', 'mobilePreviewImg', 'mobilePreviewText');
+            });
+
+            // Handle slider form submission
+            document.getElementById('sliderForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                await handleSliderFormSubmission(e);
+            });
+        });
+
+        function handleSliderImagePreview(input, previewId, imgId, textId) {
+            const preview = document.getElementById(previewId);
+            const img = document.getElementById(imgId);
+            const text = document.getElementById(textId);
+            
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    img.src = e.target.result;
+                    text.textContent = `Selected: ${input.files[0].name}`;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(input.files[0]);
+            } else {
+                preview.style.display = 'none';
+            }
+        }
+
+        async function handleSliderFormSubmission(event) {
+            event.preventDefault();
+            
+            const submitBtn = event.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            
+            // Show loading state
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+            
+            try {
+                const formData = new FormData();
+                
+                // Get form elements
+                const imageFile = document.getElementById('sliderImage').files[0];
+                const mobileImageFile = document.getElementById('sliderMobileImage').files[0];
+                
+                if (!imageFile) {
+                    throw new Error('Please select a banner image');
+                }
+                
+                // Add files
+                formData.append('image', imageFile);
+                if (mobileImageFile) {
+                    formData.append('mobileImage', mobileImageFile);
+                }
+                
+                // Add form data
+                formData.append('title', document.getElementById('sliderTitle').value);
+                formData.append('description', document.getElementById('sliderDescription').value);
+                formData.append('buttonText', document.getElementById('sliderButtonText').value);
+                formData.append('buttonLink', document.getElementById('sliderButtonLink').value);
+                formData.append('backgroundColor', document.getElementById('sliderBackgroundColor').value);
+                formData.append('textColor', document.getElementById('sliderTextColor').value);
+                formData.append('position', document.getElementById('sliderPosition').value);
+                formData.append('displayOrder', document.getElementById('sliderDisplayOrder').value);
+                formData.append('isActive', document.getElementById('sliderIsActive').checked);
+                
+                // Make API request - use custom fetch for FormData
+                const response = await fetch(`${API_BASE_URL}/api/sliders`, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                        // Don't set Content-Type, let browser set it for FormData
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Success - show notification and close modal
+                    showNotification('Hero banner created successfully!', 'success');
+                    hideAddSliderModal();
+                    loadSliders(); // Refresh the table
+                } else {
+                    throw new Error(data.message || 'Failed to create slider');
+                }
+                
+            } catch (error) {
+                console.error('Slider creation error:', error);
+                showNotification(`Error: ${error.message}`, 'error');
+            } finally {
+                // Reset button state
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            }
+        }
+
+        // Helper function to show notifications
+        function showNotification(message, type = 'info') {
+            // Remove existing notifications
+            const existingNotifications = document.querySelectorAll('.notification');
+            existingNotifications.forEach(n => n.remove());
+            
+            const notification = document.createElement('div');
+            notification.className = `notification alert alert-${type === 'error' ? 'danger' : type}`;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 3000;
+                min-width: 300px;
+                max-width: 500px;
+                padding: 1rem;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                animation: slideIn 0.3s ease-out;
+            `;
+            notification.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>${message}</span>
+                    <button onclick="this.parentElement.parentElement.remove()" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; margin-left: 10px;">&times;</button>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.remove();
+                }
+            }, 5000);
+        }
+
+
 
         // Product Modal Functions
         function closeProductModal() {
@@ -2666,7 +3037,7 @@
             }
 
             // Handle form submission
-            const sliderForm = document.getElementById('sliderCreationForm');
+            const sliderForm = document.getElementById('sliderForm');
             if (sliderForm) {
                 sliderForm.addEventListener('submit', async function(e) {
                     e.preventDefault();
@@ -2683,7 +3054,7 @@
         });
 
         async function createSliderWithUpload() {
-            const form = document.getElementById('sliderCreationForm');
+            const form = document.getElementById('sliderForm');
             const createBtn = document.getElementById('createSliderBtn');
             const imageFile = document.getElementById('sliderImage').files[0];
             
@@ -2730,7 +3101,7 @@
                 formData.append('description', document.getElementById('sliderDescription').value.trim());
                 formData.append('buttonText', document.getElementById('sliderButtonText').value.trim());
                 formData.append('buttonLink', document.getElementById('sliderButtonLink').value.trim());
-                formData.append('backgroundColor', document.getElementById('sliderBgColor').value);
+                formData.append('backgroundColor', document.getElementById('sliderBackgroundColor').value);
                 formData.append('textColor', document.getElementById('sliderTextColor').value);
                 formData.append('position', document.getElementById('sliderPosition').value);
                 formData.append('displayOrder', parseInt(document.getElementById('sliderDisplayOrder').value) || 1);
@@ -3368,111 +3739,6 @@
             }
         }
     </script>
-
-    <!-- Slider Creation Modal -->
-    <div id="sliderModal" class="modal-overlay" style="display: none;">
-        <div class="modal-container">
-            <div class="modal-header">
-                <h2>🖼️ Create New Hero Banner</h2>
-                <button class="modal-close" onclick="closeSliderModal()">&times;</button>
-            </div>
-            <div class="modal-content">
-                <form id="sliderCreationForm" enctype="multipart/form-data">
-                    <!-- Image Upload -->
-                    <div class="form-group">
-                        <label for="sliderImage">Banner Image *</label>
-                        <div class="file-upload-area" onclick="document.getElementById('sliderImage').click()">
-                            <input type="file" id="sliderImage" name="image" accept="image/*" required style="display: none;">
-                            <div class="file-upload-content">
-                                <i class="fas fa-cloud-upload-alt" style="font-size: 2rem; color: #8B4513;"></i>
-                                <p>Click to select banner image</p>
-                                <small>Recommended: 1920x600px, JPG/PNG, max 10MB</small>
-                            </div>
-                        </div>
-                        <div id="imagePreview" style="display: none; margin-top: 10px;">
-                            <img id="previewImg" style="max-width: 200px; max-height: 120px; border-radius: 5px; object-fit: cover;">
-                        </div>
-                    </div>
-
-                    <!-- Mobile Image Upload -->
-                    <div class="form-group">
-                        <label for="sliderMobileImage">Mobile Image (Optional)</label>
-                        <div class="file-upload-area" onclick="document.getElementById('sliderMobileImage').click()">
-                            <input type="file" id="sliderMobileImage" name="mobileImage" accept="image/*" style="display: none;">
-                            <div class="file-upload-content">
-                                <i class="fas fa-mobile-alt" style="font-size: 1.5rem; color: #8B4513;"></i>
-                                <p>Click to select mobile image</p>
-                                <small>Recommended: 800x600px for mobile devices</small>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="sliderTitle">Title *</label>
-                            <input type="text" id="sliderTitle" name="title" required placeholder="Welcome to Qahwat Al Emarat" maxlength="100">
-                        </div>
-                        <div class="form-group">
-                            <label for="sliderDisplayOrder">Display Order</label>
-                            <input type="number" id="sliderDisplayOrder" name="displayOrder" value="1" min="0">
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="sliderDescription">Description</label>
-                        <textarea id="sliderDescription" name="description" rows="3" placeholder="Discover authentic Arabic coffee experience" maxlength="300"></textarea>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="sliderButtonText">Button Text</label>
-                            <input type="text" id="sliderButtonText" name="buttonText" placeholder="Order Now" maxlength="50">
-                        </div>
-                        <div class="form-group">
-                            <label for="sliderButtonLink">Button Link</label>
-                            <input type="url" id="sliderButtonLink" name="buttonLink" placeholder="https://***REMOVED***.com/menu">
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="sliderBgColor">Background Color</label>
-                            <input type="color" id="sliderBgColor" name="backgroundColor" value="#8B4513">
-                        </div>
-                        <div class="form-group">
-                            <label for="sliderTextColor">Text Color</label>
-                            <input type="color" id="sliderTextColor" name="textColor" value="#FFFFFF">
-                        </div>
-                        <div class="form-group">
-                            <label for="sliderPosition">Text Position</label>
-                            <select id="sliderPosition" name="position">
-                                <option value="left">Left</option>
-                                <option value="center" selected>Center</option>
-                                <option value="right">Right</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label style="display: flex; align-items: center; gap: 10px;">
-                            <input type="checkbox" id="sliderIsActive" name="isActive" checked>
-                            Active (visible to users)
-                        </label>
-                    </div>
-
-                    <div class="modal-actions">
-                        <button type="button" class="btn btn-secondary" onclick="closeSliderModal()">Cancel</button>
-                        <button type="button" class="btn" onclick="openStandaloneTool()" style="background: #6c757d; color: white;">
-                            <i class="fas fa-external-link-alt"></i> Use Standalone Tool
-                        </button>
-                        <button type="submit" class="btn btn-primary" id="createSliderBtn">
-                            <i class="fas fa-plus"></i> Create Banner
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
 
     <!-- Product Creation/Edit Modal -->
     <div id="productModal" class="modal-overlay" style="display: none;">

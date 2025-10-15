@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:qahwat_al_emarat/domain/models/auth_models.dart';
 import 'package:qahwat_al_emarat/domain/models/auth_request_models.dart';
+import 'package:qahwat_al_emarat/core/config/app_config.dart';
 
 class AuthService {
   final Dio _dio;
@@ -8,7 +9,7 @@ class AuthService {
   AuthService()
     : _dio = Dio(
         BaseOptions(
-          baseUrl: 'https://api.qahwat.com',
+          baseUrl: AppConfig.baseUrl,
           connectTimeout: const Duration(seconds: 30),
           receiveTimeout: const Duration(seconds: 30),
         ),
@@ -98,6 +99,21 @@ class AuthService {
       );
     } catch (e) {
       throw Exception('Change password failed: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>> adminLogin(
+    String username,
+    String password,
+  ) async {
+    try {
+      final response = await _dio.post(
+        '/api/auth/admin-login',
+        data: {'username': username, 'password': password},
+      );
+      return response.data;
+    } catch (e) {
+      throw Exception('Admin login failed: $e');
     }
   }
 }
