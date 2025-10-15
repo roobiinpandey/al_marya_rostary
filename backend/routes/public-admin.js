@@ -10,9 +10,12 @@ const {
   toggleUserStatus,
   exportUsers
 } = require('../controllers/publicAdminUserController');
+const { protect } = require('../middleware/auth');
+const adminAuth = require('../middleware/adminAuth');
 
-// Simple admin routes without authentication (for local development)
-// These routes should be secured in production
+// Apply authentication to all admin user routes
+router.use(protect);
+router.use(adminAuth);
 router.get('/users', getUsers);
 router.post('/users', createUser);
 router.get('/users/stats', getUserStats);

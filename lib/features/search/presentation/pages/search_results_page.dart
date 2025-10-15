@@ -30,8 +30,8 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
   bool _isLoading = true;
   String _sortBy = 'relevance';
   RangeValues _priceRange = const RangeValues(10, 100);
-  Set<String> _selectedCategories = {};
-  Set<String> _selectedOrigins = {};
+  final Set<String> _selectedCategories = {};
+  final Set<String> _selectedOrigins = {};
 
   // Available filter options
   final List<String> _categories = [

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/constants/app_constants.dart';
+import '../../../../features/auth/presentation/data/services/auth_service.dart';
 import 'admin_dashboard_page.dart';
 
 /// Admin login page for authenticating administrators
@@ -13,14 +14,15 @@ class AdminLoginPage extends StatefulWidget {
 
 class _AdminLoginPageState extends State<AdminLoginPage> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
+  final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _authService = AuthService();
   bool _isLoading = false;
   bool _obscurePassword = true;
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _usernameController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -31,16 +33,21 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
     setState(() => _isLoading = true);
 
     try {
-      // TODO: Implement actual authentication
-      // For now, accept any email/password combination
-      await Future.delayed(
-          const Duration(seconds: 2)); // Simulate network delay
+      final response = await _authService.adminLogin(
+        _usernameController.text.trim(),
+        _passwordController.text,
+      );
 
-      if (mounted) {
-        // Navigate to admin dashboard
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const AdminDashboardPage()),
-        );
+      if (response['success'] == true) {
+        if (mounted) {
+          // Store the token (you might want to use a secure storage solution)
+          // For now, we'll just navigate to the dashboard
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const AdminDashboardPage()),
+          );
+        }
+      } else {
+        throw Exception(response['message'] ?? 'Login failed');
       }
     } catch (e) {
       if (mounted) {
@@ -66,10 +73,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              AppTheme.primaryBrown,
-              AppTheme.primaryLightBrown,
-            ],
+            colors: [AppTheme.primaryBrown, AppTheme.primaryLightBrown],
           ),
         ),
         child: SafeArea(
@@ -105,16 +109,16 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                   Text(
                     'Admin Panel',
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Qahwat Al Emarat',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: Colors.white.withValues(alpha: 0.8),
-                        ),
+                      color: Colors.white.withValues(alpha: 0.8),
+                    ),
                   ),
                   const SizedBox(height: 48),
 
@@ -139,9 +143,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                         children: [
                           Text(
                             'Sign In',
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineSmall
+                            style: Theme.of(context).textTheme.headlineSmall
                                 ?.copyWith(
                                   color: AppTheme.textDark,
                                   fontWeight: FontWeight.bold,
@@ -150,26 +152,22 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                           ),
                           const SizedBox(height: 32),
 
-                          // Email Field
+                          // Username Field
                           TextFormField(
-                            controller: _emailController,
+                            controller: _usernameController,
                             decoration: InputDecoration(
-                              labelText: 'Email',
-                              hintText: 'admin@qahwatalemarat.com',
-                              prefixIcon: const Icon(Icons.email),
+                              labelText: 'Username',
+                              hintText: 'admin',
+                              prefixIcon: const Icon(Icons.person),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               filled: true,
                               fillColor: Colors.grey.shade50,
                             ),
-                            keyboardType: TextInputType.emailAddress,
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return 'Please enter your email';
-                              }
-                              if (!value.contains('@')) {
-                                return 'Please enter a valid email';
+                                return 'Please enter your username';
                               }
                               return null;
                             },
@@ -190,8 +188,9 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                                       : Icons.visibility_off,
                                 ),
                                 onPressed: () {
-                                  setState(() =>
-                                      _obscurePassword = !_obscurePassword);
+                                  setState(
+                                    () => _obscurePassword = !_obscurePassword,
+                                  );
                                 },
                               ),
                               border: OutlineInputBorder(
@@ -234,7 +233,8 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                                         strokeWidth: 2,
                                         valueColor:
                                             AlwaysStoppedAnimation<Color>(
-                                                Colors.white),
+                                              Colors.white,
+                                            ),
                                       ),
                                     )
                                   : const Text(
@@ -253,21 +253,21 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                           Container(
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: AppTheme.primaryLightBrown
-                                  .withValues(alpha: 0.1),
+                              color: AppTheme.primaryLightBrown.withValues(
+                                alpha: 0.1,
+                              ),
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
-                                color: AppTheme.primaryLightBrown
-                                    .withValues(alpha: 0.3),
+                                color: AppTheme.primaryLightBrown.withValues(
+                                  alpha: 0.3,
+                                ),
                               ),
                             ),
                             child: Column(
                               children: [
                                 Text(
                                   'Demo Credentials',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall
+                                  style: Theme.of(context).textTheme.bodySmall
                                       ?.copyWith(
                                         fontWeight: FontWeight.bold,
                                         color: AppTheme.primaryBrown,
@@ -275,13 +275,9 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  'Email: admin@demo.com\nPassword: admin123',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall
-                                      ?.copyWith(
-                                        color: AppTheme.textMedium,
-                                      ),
+                                  'Username: admin\nPassword: almarya2024',
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(color: AppTheme.textMedium),
                                   textAlign: TextAlign.center,
                                 ),
                               ],

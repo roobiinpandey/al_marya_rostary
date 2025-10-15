@@ -360,7 +360,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         ),
         value: value,
         onChanged: onChanged,
-        activeColor: AppTheme.primaryBrown,
+        activeThumbColor: AppTheme.primaryBrown,
       ),
     );
   }

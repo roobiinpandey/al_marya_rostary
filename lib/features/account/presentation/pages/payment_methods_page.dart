@@ -717,7 +717,7 @@ class _AddEditPaymentMethodPageState extends State<AddEditPaymentMethodPage> {
                         _isDefault = value;
                       });
                     },
-                    activeColor: AppTheme.primaryBrown,
+                    activeThumbColor: AppTheme.primaryBrown,
                   ),
                 ),
 
@@ -822,7 +822,8 @@ class _AddEditPaymentMethodPageState extends State<AddEditPaymentMethodPage> {
                 ),
                 trailing: Radio<PaymentMethodType>(
                   value: type,
-                  groupValue: _selectedType,
+                  toggleable: true,
+                  // ignore: deprecated_member_use
                   onChanged: (value) {
                     setState(() {
                       _selectedType = value!;

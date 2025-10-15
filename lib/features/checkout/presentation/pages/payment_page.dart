@@ -145,7 +145,8 @@ class _PaymentPageState extends State<PaymentPage> {
       margin: const EdgeInsets.only(bottom: 8),
       child: RadioListTile<String>(
         value: value,
-        groupValue: _selectedPaymentMethod,
+        selected: _selectedPaymentMethod == value,
+        // ignore: deprecated_member_use
         onChanged: (value) {
           setState(() {
             _selectedPaymentMethod = value!;

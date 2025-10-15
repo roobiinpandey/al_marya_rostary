@@ -441,7 +441,7 @@ class _AccountSettingsPageState extends State<AccountSettingsPage> {
       ),
       value: value,
       onChanged: onChanged,
-      activeColor: AppTheme.primaryBrown,
+      activeThumbColor: AppTheme.primaryBrown,
     );
   }
 

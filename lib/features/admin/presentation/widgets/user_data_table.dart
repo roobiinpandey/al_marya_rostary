@@ -14,11 +14,12 @@ class UserDataTable extends StatelessWidget {
       builder: (context, provider, child) {
         return SingleChildScrollView(
           scrollDirection: Axis.horizontal,
-          child: Container(
+          child: SizedBox(
             width: MediaQuery.of(context).size.width,
             child: DataTable(
-              headingRowColor: MaterialStateProperty.all(Colors.grey[100]),
-              dataRowHeight: 64,
+              headingRowColor: WidgetStateProperty.all(Colors.grey[100]),
+              dataRowMinHeight: 64,
+              dataRowMaxHeight: 64,
               headingRowHeight: 56,
               columnSpacing: 24,
               horizontalMargin: 16,

@@ -725,7 +725,7 @@ class _AddEditAddressPageState extends State<AddEditAddressPage> {
                         _isDefault = value;
                       });
                     },
-                    activeColor: AppTheme.primaryBrown,
+                    activeThumbColor: AppTheme.primaryBrown,
                   ),
                 ),
 
@@ -816,7 +816,7 @@ class _AddEditAddressPageState extends State<AddEditAddressPage> {
 
   Widget _buildEmirateDropdown() {
     return DropdownButtonFormField<String>(
-      value: _selectedEmirate,
+      initialValue: _selectedEmirate,
       decoration: InputDecoration(
         labelText: 'Emirate',
         prefixIcon: const Icon(Icons.location_on, color: AppTheme.primaryBrown),

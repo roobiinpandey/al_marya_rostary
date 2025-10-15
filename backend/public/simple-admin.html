@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Al Marya Admin - Simple</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; }
+        
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .card { background: white; padding: 20px; margin: 20px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .btn { padding: 10px 20px; background: #8B4513; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .btn:hover { background: #6B3410; }
+        
+        .nav { background: #8B4513; color: white; padding: 15px 0; }
+        .nav h1 { text-align: center; }
+        
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .stat { text-align: center; }
+        .stat h3 { font-size: 2rem; color: #8B4513; }
+        
+        .hidden { display: none; }
+        
+        .login { max-width: 400px; margin: 100px auto; }
+        .form-group { margin: 15px 0; }
+        .form-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <!-- Login Form -->
+    <div id="loginPage" class="login">
+        <div class="card">
+            <h2 style="text-align: center; margin-bottom: 20px;">
+                <i class="fas fa-coffee"></i> Al Marya Admin
+            </h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <input type="email" id="email" placeholder="Email" value="almarya@admin" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="password" placeholder="Password" value="almaryaadmin2020" required>
+                </div>
+                <button type="submit" class="btn" style="width: 100%;">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </button>
+            </form>
+            <div id="loginError" style="color: red; text-align: center; margin-top: 10px; display: none;"></div>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard -->
+    <div id="adminPage" class="hidden">
+        <div class="nav">
+            <div class="container">
+                <h1><i class="fas fa-coffee"></i> Al Marya Rostery Admin</h1>
+                <button onclick="logout()" class="btn" style="float: right;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+
+        <div class="container">
+            <!-- Quick Stats -->
+            <div class="card">
+                <h2><i class="fas fa-chart-bar"></i> Dashboard</h2>
+                <div class="grid" id="stats">
+                    <div class="stat">
+                        <h3 id="totalUsers">-</h3>
+                        <p>Total Users</p>
+                    </div>
+                    <div class="stat">
+                        <h3 id="totalProducts">-</h3>
+                        <p>Products</p>
+                    </div>
+                    <div class="stat">
+                        <h3 id="totalOrders">-</h3>
+                        <p>Orders</p>
+                    </div>
+                    <div class="stat">
+                        <h3 id="totalRevenue">$-</h3>
+                        <p>Revenue</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card">
+                <h2><i class="fas fa-tools"></i> Quick Actions</h2>
+                <div class="grid">
+                    <button class="btn" onclick="showSection('users')">
+                        <i class="fas fa-users"></i> Manage Users
+                    </button>
+                    <button class="btn" onclick="showSection('products')">
+                        <i class="fas fa-coffee"></i> Manage Products
+                    </button>
+                    <button class="btn" onclick="showSection('orders')">
+                        <i class="fas fa-shopping-cart"></i> View Orders
+                    </button>
+                    <button class="btn" onclick="showSection('slider')">
+                        <i class="fas fa-images"></i> Create Slider
+                    </button>
+                </div>
+            </div>
+
+            <!-- Users Section -->
+            <div id="usersSection" class="card hidden">
+                <h2><i class="fas fa-users"></i> Users Management</h2>
+                <div id="usersList">Loading users...</div>
+            </div>
+
+            <!-- Products Section -->
+            <div id="productsSection" class="card hidden">
+                <h2><i class="fas fa-coffee"></i> Products Management</h2>
+                <div id="productsList">Loading products...</div>
+            </div>
+
+            <!-- Orders Section -->
+            <div id="ordersSection" class="card hidden">
+                <h2><i class="fas fa-shopping-cart"></i> Orders Management</h2>
+                <div id="ordersList">Loading orders...</div>
+            </div>
+
+            <!-- Simple Slider Creator -->
+            <div id="sliderSection" class="card hidden">
+                <h2><i class="fas fa-images"></i> Simple Slider Creator</h2>
+                <div class="form-group">
+                    <input type="text" id="sliderTitle" placeholder="Slider Title">
+                </div>
+                <div class="form-group">
+                    <input type="url" id="sliderImage" placeholder="Image URL">
+                </div>
+                <button class="btn" onclick="createSlider()">
+                    <i class="fas fa-plus"></i> Create Slider
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let token = localStorage.getItem('adminToken');
+        
+        // Initialize
+        if (token) {
+            showAdmin();
+        }
+
+        // Login
+        document.getElementById('loginForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({email, password})
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    token = data.data.token;
+                    localStorage.setItem('adminToken', token);
+                    showAdmin();
+                } else {
+                    document.getElementById('loginError').textContent = data.message;
+                    document.getElementById('loginError').style.display = 'block';
+                }
+            } catch (error) {
+                document.getElementById('loginError').textContent = 'Login failed';
+                document.getElementById('loginError').style.display = 'block';
+            }
+        };
+
+        // Show admin panel
+        function showAdmin() {
+            document.getElementById('loginPage').style.display = 'none';
+            document.getElementById('adminPage').style.display = 'block';
+            loadDashboard();
+        }
+
+        // Load dashboard data
+        async function loadDashboard() {
+            try {
+                const response = await fetch('/api/analytics/admin/dashboard', {
+                    headers: {'Authorization': `Bearer ${token}`}
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('totalUsers').textContent = data.data.totalUsers;
+                    document.getElementById('totalProducts').textContent = data.data.totalProducts;
+                    document.getElementById('totalOrders').textContent = data.data.totalOrders;
+                    document.getElementById('totalRevenue').textContent = '$' + data.data.totalRevenue;
+                }
+            } catch (error) {
+                console.error('Failed to load dashboard:', error);
+            }
+        }
+
+        // Show different sections
+        function showSection(section) {
+            // Hide all sections
+            ['users', 'products', 'orders', 'slider'].forEach(s => {
+                document.getElementById(s + 'Section').classList.add('hidden');
+            });
+            
+            // Show selected section
+            document.getElementById(section + 'Section').classList.remove('hidden');
+            
+            // Load data for section
+            if (section === 'users') loadUsers();
+            if (section === 'products') loadProducts();
+            if (section === 'orders') loadOrders();
+        }
+
+        // Load users
+        async function loadUsers() {
+            try {
+                const response = await fetch('/api/users', {
+                    headers: {'Authorization': `Bearer ${token}`}
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    const html = data.data.users.map(user => 
+                        `<div style="padding: 10px; border: 1px solid #ddd; margin: 5px 0;">
+                            <strong>${user.name}</strong> - ${user.email}
+                        </div>`
+                    ).join('');
+                    document.getElementById('usersList').innerHTML = html;
+                }
+            } catch (error) {
+                document.getElementById('usersList').innerHTML = 'Error loading users';
+            }
+        }
+
+        // Load products
+        async function loadProducts() {
+            try {
+                const response = await fetch('/api/products');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const html = data.data.products.map(product => 
+                        `<div style="padding: 10px; border: 1px solid #ddd; margin: 5px 0;">
+                            <strong>${product.name}</strong> - $${product.price}
+                        </div>`
+                    ).join('');
+                    document.getElementById('productsList').innerHTML = html;
+                }
+            } catch (error) {
+                document.getElementById('productsList').innerHTML = 'Error loading products';
+            }
+        }
+
+        // Load orders (placeholder)
+        function loadOrders() {
+            document.getElementById('ordersList').innerHTML = 'No orders yet';
+        }
+
+        // Simple slider creator
+        function createSlider() {
+            const title = document.getElementById('sliderTitle').value;
+            const image = document.getElementById('sliderImage').value;
+            
+            if (title && image) {
+                alert(`Slider "${title}" created with image: ${image}`);
+                document.getElementById('sliderTitle').value = '';
+                document.getElementById('sliderImage').value = '';
+            } else {
+                alert('Please fill in both title and image URL');
+            }
+        }
+
+        // Logout
+        function logout() {
+            localStorage.removeItem('adminToken');
+            token = null;
+            document.getElementById('loginPage').style.display = 'block';
+            document.getElementById('adminPage').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

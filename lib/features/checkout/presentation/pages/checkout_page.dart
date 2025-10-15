@@ -327,7 +327,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
 
             // Emirate Dropdown
             DropdownButtonFormField<String>(
-              value: _emirateController.text.isEmpty
+              initialValue: _emirateController.text.isEmpty
                   ? null
                   : _emirateController.text,
               decoration: InputDecoration(
@@ -385,7 +385,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
                   title: const Text('Standard Delivery'),
                   subtitle: const Text('3-5 business days - Free'),
                   value: 'standard',
-                  groupValue: _selectedDeliveryMethod,
+                  selected: _selectedDeliveryMethod == 'standard',
+                  // ignore: deprecated_member_use
                   onChanged: (value) {
                     setState(() {
                       _selectedDeliveryMethod = value!;
@@ -396,7 +397,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
                   title: const Text('Express Delivery'),
                   subtitle: const Text('1-2 business days - AED 15'),
                   value: 'express',
-                  groupValue: _selectedDeliveryMethod,
+                  selected: _selectedDeliveryMethod == 'express',
+                  // ignore: deprecated_member_use
                   onChanged: (value) {
                     setState(() {
                       _selectedDeliveryMethod = value!;
@@ -407,7 +409,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
                   title: const Text('Same Day Delivery'),
                   subtitle: const Text('Today - AED 25'),
                   value: 'same_day',
-                  groupValue: _selectedDeliveryMethod,
+                  selected: _selectedDeliveryMethod == 'same_day',
+                  // ignore: deprecated_member_use
                   onChanged: (value) {
                     setState(() {
                       _selectedDeliveryMethod = value!;

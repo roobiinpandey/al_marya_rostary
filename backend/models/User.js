@@ -12,13 +12,32 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Email is required'],
     unique: true,
-    lowercase: true
+    lowercase: true,
+    trim: true,
+    validate: {
+      validator: function(email) {
+        // Comprehensive email validation regex
+        const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+        return emailRegex.test(email);
+      },
+      message: 'Please provide a valid email address'
+    },
+    maxlength: [254, 'Email address too long'] // RFC 5321 limit
   },
   password: {
     type: String,
     required: [true, 'Password is required'],
-    minlength: [6, 'Password must be at least 6 characters'],
-    select: false // Don't include password in queries by default
+    minlength: [8, 'Password must be at least 8 characters'],
+    maxlength: [128, 'Password too long'],
+    select: false, // Don't include password in queries by default
+    validate: {
+      validator: function(password) {
+        // Strong password policy: at least 8 chars, 1 uppercase, 1 lowercase, 1 number, 1 special char
+        const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/;
+        return strongPasswordRegex.test(password);
+      },
+      message: 'Password must contain at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character (@$!%*?&)'
+    }
   },
   phone: {
     type: String,
@@ -37,8 +56,8 @@ const userSchema = new mongoose.Schema({
   firebaseUid: {
     type: String,
     unique: true,
-    sparse: true, // Allows null values but ensures uniqueness when present
-    index: true
+    sparse: true // Allows null values but ensures uniqueness when present
+    // Removed index: true since unique: true creates an index automatically
   },
   firebaseSyncStatus: {
     type: String,
@@ -223,8 +242,18 @@ const userSchema = new mongoose.Schema({
   toObject: { virtuals: true }
 });
 
-// Index for better query performance
-// Removed duplicate email index since unique: true creates it automatically
+// Optimized indexes for query performance
+// Note: email and firebaseUid indexes are automatically created by unique: true
+userSchema.index({ 'roles': 1 }); // For role-based queries
+userSchema.index({ isActive: 1 }); // For filtering active users
+userSchema.index({ createdAt: -1 }); // For recent users queries
+userSchema.index({ lastLogin: -1 }); // For user activity tracking
+userSchema.index({ firebaseSyncStatus: 1 }); // For sync status queries
+
+// Compound indexes for common query patterns
+userSchema.index({ email: 1, isActive: 1 }); // Login queries
+userSchema.index({ roles: 1, isActive: 1 }); // Admin user queries
+userSchema.index({ firebaseUid: 1, isActive: 1 }); // Firebase auth queries
 
 // Virtual for full name (if needed)
 userSchema.virtual('fullName').get(function() {

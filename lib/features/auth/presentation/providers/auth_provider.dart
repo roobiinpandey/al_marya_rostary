@@ -303,10 +303,6 @@ class AuthProvider extends ChangeNotifier {
     });
   }
 
-  void _updateSessionTimer() {
-    _lastAuthTime = DateTime.now();
-  }
-
   // Error handling
   void _handleAuthError(dynamic error) {
     String message;

@@ -1,5 +1,7 @@
 const Slider = require('../models/Slider');
 const { validationResult } = require('express-validator');
+const fs = require('fs');
+const path = require('path');
 
 // @desc    Get all sliders
 // @route   GET /api/sliders
@@ -154,8 +156,6 @@ const createSlider = async (req, res) => {
 
     // Delete uploaded files if slider creation fails
     if (req.files) {
-      const fs = require('fs');
-      const path = require('path');
       
       if (req.files.image && req.files.image[0]) {
         try {
@@ -210,8 +210,6 @@ const updateSlider = async (req, res) => {
       // Delete old mobile image file
       const oldSlider = await Slider.findById(req.params.id);
       if (oldSlider && oldSlider.mobileImage) {
-        const fs = require('fs');
-        const path = require('path');
         const oldMobileImagePath = path.join(__dirname, '..', oldSlider.mobileImage);
         if (fs.existsSync(oldMobileImagePath)) {
           fs.unlinkSync(oldMobileImagePath);
@@ -247,8 +245,6 @@ const updateSlider = async (req, res) => {
 
     // Delete uploaded files if update fails
     if (req.files) {
-      const fs = require('fs');
-      const path = require('path');
       
       if (req.files.image && req.files.image[0]) {
         try {
@@ -291,8 +287,6 @@ const deleteSlider = async (req, res) => {
 
     // Delete image files
     if (slider.image) {
-      const fs = require('fs');
-      const path = require('path');
       const imagePath = path.join(__dirname, '..', slider.image);
       if (fs.existsSync(imagePath)) {
         fs.unlinkSync(imagePath);
@@ -300,8 +294,6 @@ const deleteSlider = async (req, res) => {
     }
 
     if (slider.mobileImage) {
-      const fs = require('fs');
-      const path = require('path');
       const mobileImagePath = path.join(__dirname, '..', slider.mobileImage);
       if (fs.existsSync(mobileImagePath)) {
         fs.unlinkSync(mobileImagePath);

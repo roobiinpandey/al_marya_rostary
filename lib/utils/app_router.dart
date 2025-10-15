@@ -10,6 +10,7 @@ import '../features/auth/presentation/pages/forgot_password_page.dart';
 import '../features/auth/presentation/screens/email_verification_screen.dart';
 import '../core/guards/email_verification_guard.dart';
 import '../debug/auth_debug_page.dart';
+import '../features/admin/presentation/pages/admin_login_page.dart';
 
 class AppRouter {
   static const String home = '/';
@@ -84,10 +85,7 @@ class AppRouter {
         );
 
       case '/admin':
-        return _buildRoute(
-          _buildPlaceholderPage('Admin Dashboard'),
-          settings: settings,
-        );
+        return _buildRoute(const AdminLoginPage(), settings: settings);
 
       case '/admin/users':
         return _buildRoute(
