@@ -1,7 +1,7 @@
 version: "1"
 services:
   - type: web
-    name: qahwat-al-emarat-production
+    name: al-marya-rostery-production
     env: node
     plan: standard # Upgraded from free for better performance
     region: oregon # Choose closest region to your users
@@ -71,7 +71,7 @@ services:
       # SMTP_SECURE=false
       # SMTP_USER=<YOUR_MAILJET_USER>
       # SMTP_PASS=<YOUR_MAILJET_PASSWORD>
-      # EMAIL_FROM_NAME=Qahwat Al Emarat
+      # EMAIL_FROM_NAME=Al Marya Rostery
       # EMAIL_FROM_ADDRESS=<YOUR_EMAIL>
       #
       # OPTIONAL Performance Tuning:

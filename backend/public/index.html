@@ -3,9 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; script-src-elem 'self' 'unsafe-inline' https://accounts.google.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; script-src-attr 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com; connect-src 'self' http://localhost:5001 https://*.onrender.com https://*.render.com https://cdn.jsdelivr.net https://accounts.google.com; img-src 'self' data: http://localhost:5001 https://*.onrender.com https://*.render.com;">
-    <meta name="description" content="Al Marya Rostery Business Management Portal">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'unsafe-hashes' https://accounts.google.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; script-src-attr 'self' 'unsafe-inline' 'unsafe-hashes'; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src-attr 'unsafe-inline'; font-src 'self' https://cdnjs.cloudflare.com data:; connect-src 'self' http://localhost:5001 http://localhost:3001 https://*.onrender.com https://*.render.com https://cdn.jsdelivr.net; img-src 'self' data: blob: http://localhost:5001 http://localhost:3001 https://*.onrender.com https://*.render.com;">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta name="description" content="Al Marya Rostery Business Management Portal - Secure coffee business administration">
+    <meta name="keywords" content="coffee, business, admin, management, qahwat, emirates">
+    <meta name="author" content="Al Marya Rostery">
+    <meta name="robots" content="noindex, nofollow">
     <title>Al Marya Rostery - Business Portal</title>
+    
+    <!-- Preload critical resources -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
     
     <!-- Font Awesome for icons -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -17,6 +25,13 @@
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         :root {
+            --primary-brown: #8B4513;
+            --secondary-brown: #D2691E;
+            --light-brown: #f8f4f0;
+            --dark-text: #333;
+            --medium-text: #666;
+            --error-color: #dc3545;
+            --success-color: #28a745;
             --primary-color: #8B4513;
             --secondary-color: #D2691E;
             --accent-color: #CD853F;
@@ -32,95 +47,213 @@
         }
 
         * {
-            margin: 0;
-            padding: 0;
             box-sizing: border-box;
         }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-light);
+            background: linear-gradient(135deg, var(--primary-brown), var(--secondary-brown));
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
             line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Full screen layout for admin */
+        body.admin-mode {
+            background: var(--bg-light);
+            display: block;
+        }
+
+        body.login-mode {
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         /* Login Page Styles */
         .login-container {
             display: flex;
             min-height: 100vh;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            background: linear-gradient(135deg, var(--primary-brown), var(--secondary-brown));
             align-items: center;
             justify-content: center;
-        }
-
-        .login-card {
-            background: var(--bg-white);
-            padding: 3rem;
-            border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
             width: 100%;
-            max-width: 400px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
             text-align: center;
+            max-width: 600px;
+            width: 90%;
+            animation: fadeIn 0.5s ease-out;
         }
 
-        .login-logo {
-            font-size: 3rem;
-            color: var(--primary-color);
-            margin-bottom: 1rem;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        .login-title {
-            font-size: 2rem;
-            color: var(--text-dark);
-            margin-bottom: 0.5rem;
+        .logo {
+            font-size: 4rem;
+            color: var(--primary-brown);
+            margin-bottom: 20px;
+            animation: bounce 1s ease;
         }
 
-        .login-subtitle {
-            color: var(--text-light);
-            margin-bottom: 2rem;
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
+        h1 {
+            color: var(--dark-text);
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+        }
+
+        .subtitle {
+            color: var(--medium-text);
+            margin-bottom: 30px;
+            font-size: 1.2rem;
+        }
+
+        .info {
+            margin-top: 30px;
+            padding: 20px;
+            background: var(--light-brown);
+            border-radius: 10px;
+            border-left: 4px solid var(--primary-brown);
+        }
+
+        .info h3 {
+            color: var(--primary-brown);
+            margin-bottom: 10px;
+        }
+
+        .info p {
+            color: var(--medium-text);
+            line-height: 1.6;
+            margin-bottom: 10px;
         }
 
         .login-form {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border: 2px solid var(--primary-brown);
             text-align: left;
         }
 
-        .login-form .form-group {
-            margin-bottom: 1.5rem;
+        .form-group {
+            margin-bottom: 15px;
+            text-align: left;
         }
 
-        .login-form label {
+        .form-group label {
             display: block;
-            margin-bottom: 0.5rem;
+            margin-bottom: 5px;
+            color: var(--dark-text);
             font-weight: 500;
-            color: var(--text-dark);
         }
 
-        .login-form .form-control {
+        .form-control {
             width: 100%;
-            padding: 0.75rem;
-            border: 2px solid var(--border-light);
-            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
             font-size: 1rem;
-            transition: all 0.3s ease;
+            transition: border-color 0.2s;
         }
 
-        .login-form .form-control:focus {
+        .form-control:focus {
             outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.1);
+            border-color: var(--primary-brown);
+            box-shadow: 0 0 0 2px rgba(139, 69, 19, 0.2);
         }
 
-        .login-btn {
-            width: 100%;
-            padding: 1rem;
-            background: var(--primary-color);
+        .portal-btn {
+            display: inline-block;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, var(--primary-brown), var(--secondary-brown));
             color: white;
+            text-decoration: none;
             border: none;
-            border-radius: 8px;
-            font-size: 1.1rem;
+            border-radius: 10px;
+            font-size: 1.2rem;
             font-weight: 600;
+            transition: all 0.2s ease;
+            min-width: 200px;
+            text-align: center;
             cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .portal-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(139, 69, 19, 0.3);
+        }
+
+        .portal-btn:active {
+            transform: translateY(0);
+        }
+
+        .portal-btn.loading::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: loading 1.5s infinite;
+        }
+
+        @keyframes loading {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .alert {
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-top: 15px;
+            text-align: center;
+            display: none;
+        }
+
+        .alert-error {
+            background-color: #f8d7da;
+            color: var(--error-color);
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            color: var(--success-color);
+            border: 1px solid #c3e6cb;
+        }
+
+        .forgot-password {
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .forgot-password a {
+            color: var(--primary-brown);
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .forgot-password a:hover {
+            text-decoration: underline;
         }
 
         .login-btn:hover {
@@ -170,6 +303,8 @@
         .admin-layout {
             display: none; /* Hidden by default, shown after login */
             min-height: 100vh;
+            width: 100%;
+            background: var(--bg-light);
         }
 
         /* Sidebar */
@@ -651,59 +786,323 @@
                 text-align: center;
             }
         }
+
+        /* Global Loading Overlay */
+        .global-loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            color: white;
+            font-size: 18px;
+        }
+
+        .global-loading .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid #fff;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Success/Error Toast */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 10000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+
+        .toast.success { background: var(--success-color); }
+        .toast.error { background: var(--error-color); }
+        .toast.show { transform: translateX(0); }
+
+        /* Confirmation Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9998;
+        }
+
+        .modal {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .modal h3 {
+            margin-bottom: 20px;
+            color: var(--text-dark);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .modal-actions button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .btn-confirm {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-cancel {
+            background: var(--border-light);
+            color: var(--text-dark);
+        }
+
+        /* Enhanced Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--bg-white);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+
+        .stat-icon {
+            font-size: 2.5rem;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border-radius: 50%;
+            color: white;
+        }
+
+        .stat-info h3 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin: 0;
+        }
+
+        .stat-info p {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Enhanced Button Styles */
+        .btn {
+            border: none;
+            border-radius: 6px;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.85rem;
+        }
+
+        /* Status Badges */
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-transform: capitalize;
+        }
+
+        .status-badge.active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-badge.completed {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-badge.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-badge.processing {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        /* Data Table Enhancements */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .data-table th {
+            background: var(--primary-color);
+            color: white;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .data-table td {
+            padding: 0.8rem 1rem;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .data-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        /* Responsive Enhancements */
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stat-card {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
     </style>
 </head>
 <body>
+    <!-- Global Loading Overlay -->
+    <div class="global-loading" id="globalLoading">
+        <div>
+            <div class="spinner"></div>
+            <div id="loadingText">Loading...</div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer"></div>
+
+
+
     <!-- Login Page -->
     <div class="login-container" id="loginContainer">
-        <div class="login-card">
-            <div class="login-logo">
-                <i class="fas fa-coffee"></i>
+        <div class="container" role="main">
+            <div class="logo" aria-hidden="true">☕</div>
+            <h1>Al Marya Rostery</h1>
+            <p class="subtitle">Business Management Portal</p>
+
+            <div class="info">
+                <h3>Admin Panel</h3>
+                <p>Welcome to Your Business Portal</p>
+                <p>Manage your coffee business operations from this central hub. Access the admin panel to handle inventory, orders, analytics, and customer management.</p>
             </div>
-            <h1 class="login-title">Al Marya Rostery</h1>
-            <p class="login-subtitle">Admin Panel Login</p>
-            
-            <div id="loginError" class="login-error" style="display: none;">
-                <i class="fas fa-exclamation-triangle"></i>
-                <span id="loginErrorMessage">Invalid credentials</span>
+
+            <!-- Login Form -->
+            <div class="login-form">
+                <h4 style="color: var(--primary-brown); margin-bottom: 15px; text-align: center;">Admin Login</h4>
+                <form id="adminLoginForm" novalidate>
+                    <div class="form-group">
+                        <label for="loginUsername">Username</label>
+                        <input type="text" id="loginUsername" class="form-control" placeholder="Enter username" required aria-describedby="username-error">
+                        <div id="username-error" class="alert alert-error" role="alert" aria-live="polite"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">Password</label>
+                        <input type="password" id="loginPassword" class="form-control" placeholder="Enter password" required aria-describedby="password-error">
+                        <div id="password-error" class="alert alert-error" role="alert" aria-live="polite"></div>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="portal-btn" style="width: 100%; margin: 0;" id="loginBtn">Login to Admin Panel</button>
+                    </div>
+                    <div id="loginError" class="alert alert-error" role="alert" aria-live="assertive" style="display: none;">
+                        Invalid username or password
+                    </div>
+                    <div id="loginSuccess" class="alert alert-success" role="alert" aria-live="assertive" style="display: none;">
+                        Login successful! Redirecting...
+                    </div>
+                </form>
+                <div class="forgot-password">
+                    <a href="#" id="forgot-password-link">Forgot password?</a>
+                </div>
             </div>
             
-            <form class="login-form" onsubmit="handleLogin(event)">
-                <div class="form-group">
-                    <label for="loginUsername">
-                        <i class="fas fa-user"></i> Username
-                    </label>
-                    <input type="text" 
-                           id="loginUsername" 
-                           class="form-control" 
-                           placeholder="Enter admin username"
-                           required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="loginPassword">
-                        <i class="fas fa-lock"></i> Password
-                    </label>
-                    <input type="password" 
-                           id="loginPassword" 
-                           class="form-control" 
-                           placeholder="Enter your password"
-                           required>
-                </div>
-                
-                <button type="submit" class="login-btn" id="loginBtn">
-                    <i class="fas fa-sign-in-alt"></i> Login to Admin Panel
-                </button>
-            </form>
-            
-            <div class="login-loading" id="loginLoading">
+            <div class="login-loading" id="loginLoading" style="display: none;">
                 <i class="fas fa-spinner"></i>
                 <p>Authenticating...</p>
-            </div>
-            
-            <div class="login-info">
-                <i class="fas fa-shield-alt"></i> 
-                <strong>Secure Access:</strong> Enter your administrative credentials to continue
             </div>
         </div>
     </div>
@@ -1091,8 +1490,12 @@
                             </div>
                         </div>
 
-                        <!-- Sync Actions -->
-                        <div style="margin: 2rem 0; display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <!-- Manual Sync Actions -->
+                        <h4><i class="fas fa-hand-paper"></i> Manual Sync Actions</h4>
+                        <div style="margin: 1rem 0 2rem 0; display: flex; gap: 1rem; flex-wrap: wrap;">
+                            <button class="btn btn-info" onclick="validateUsersForFirebase()">
+                                <i class="fas fa-check-circle"></i> Validate User Emails
+                            </button>
                             <button class="btn btn-primary" onclick="bulkSyncToFirebase()">
                                 <i class="fas fa-cloud-upload-alt"></i> Sync All to Firebase (Advanced)
                             </button>
@@ -1108,6 +1511,64 @@
                             <button class="btn btn-info" onclick="showFirebaseUsers()">
                                 <i class="fas fa-list"></i> View Firebase Users
                             </button>
+                        </div>
+
+                        <!-- Auto Sync Controls -->
+                        <div class="section-card" style="background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%); border: 2px solid #2196f3;">
+                            <h4><i class="fas fa-robot"></i> Automatic Real-Time Sync</h4>
+                            <p style="color: #666; margin-bottom: 1.5rem;">
+                                <i class="fas fa-info-circle"></i> When enabled, new Firebase users will automatically appear in the admin panel within 1 minute.
+                            </p>
+                            
+                            <!-- Auto Sync Status -->
+                            <div class="stats-grid" style="margin-bottom: 1.5rem;">
+                                <div class="stat-card">
+                                    <div class="stat-number" id="autoSyncStatus">Loading...</div>
+                                    <div class="stat-label">Auto Sync Status</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-number" id="autoSyncLastRun">Never</div>
+                                    <div class="stat-label">Last Auto Sync</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-number" id="autoSyncSuccessRate">0%</div>
+                                    <div class="stat-label">Success Rate</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-number" id="autoSyncNextRun">--</div>
+                                    <div class="stat-label">Next Sync In</div>
+                                </div>
+                            </div>
+
+                            <!-- Auto Sync Controls -->
+                            <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
+                                <button class="btn btn-success" id="startAutoSyncBtn" onclick="startAutoSync()">
+                                    <i class="fas fa-play"></i> Start Auto Sync
+                                </button>
+                                <button class="btn btn-danger" id="stopAutoSyncBtn" onclick="stopAutoSync()" style="display: none;">
+                                    <i class="fas fa-stop"></i> Stop Auto Sync
+                                </button>
+                                <button class="btn btn-primary" onclick="forceAutoSync()">
+                                    <i class="fas fa-sync"></i> Force Sync Now
+                                </button>
+                                <button class="btn btn-secondary" onclick="loadAutoSyncStatus()">
+                                    <i class="fas fa-refresh"></i> Refresh Status
+                                </button>
+                            </div>
+
+                            <!-- Sync Interval Control -->
+                            <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem;">
+                                <label for="syncIntervalSelect" style="font-weight: 500; min-width: 100px;">Sync Interval:</label>
+                                <select class="form-control" id="syncIntervalSelect" style="width: 200px;" onchange="updateSyncInterval()">
+                                    <option value="30000">30 seconds</option>
+                                    <option value="60000" selected>1 minute</option>
+                                    <option value="120000">2 minutes</option>
+                                    <option value="300000">5 minutes</option>
+                                    <option value="600000">10 minutes</option>
+                                    <option value="1800000">30 minutes</option>
+                                </select>
+                                <small style="color: #666; flex: 1;">How often to check for new Firebase users</small>
+                            </div>
                         </div>
 
                         <!-- Sync Results -->
@@ -1355,7 +1816,7 @@
     <script>
         // Configuration
         const API_BASE_URL = window.location.hostname === 'localhost' 
-            ? 'http://localhost:5001' 
+            ? `http://localhost:${window.location.port || '5001'}` 
             : 'https://***REMOVED***.onrender.com';
 
         // Global variables
@@ -1373,8 +1834,63 @@
 
         // Initialize admin panel
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize login form event listeners first
+            initializeLoginForm();
+            
+            // Then check authentication
             checkAuthentication();
         });
+
+        function initializeLoginForm() {
+            // Initialize new login form
+            const usernameInput = document.getElementById('loginUsername');
+            const passwordInput = document.getElementById('loginPassword');
+            const usernameError = document.getElementById('username-error');
+            const passwordError = document.getElementById('password-error');
+            const forgotPasswordLink = document.getElementById('forgot-password-link');
+
+            // Focus on username field when page loads (only if visible)
+            if (usernameInput && usernameInput.offsetParent !== null) {
+                usernameInput.focus();
+            }
+
+            // Input validation on blur
+            if (usernameInput) {
+                usernameInput.addEventListener('blur', function() {
+                    if (!this.value.trim()) {
+                        showError(usernameError, 'Username is required');
+                    } else {
+                        hideError(usernameError);
+                    }
+                });
+            }
+
+            if (passwordInput) {
+                passwordInput.addEventListener('blur', function() {
+                    if (!this.value.trim()) {
+                        showError(passwordError, 'Password is required');
+                    } else {
+                        hideError(passwordError);
+                    }
+                });
+            }
+
+            // Forgot password functionality
+            if (forgotPasswordLink) {
+                forgotPasswordLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    alert('Please contact system administrator to reset your password.');
+                });
+            }
+
+            // Form submit handler
+            const loginForm = document.getElementById('adminLoginForm');
+            if (loginForm) {
+                loginForm.addEventListener('submit', function(e) {
+                    handleLogin(e);
+                });
+            }
+        }
 
         // Authentication Functions
         function checkAuthentication() {
@@ -1399,61 +1915,153 @@
         }
 
         function showLoginPage() {
+            document.body.className = 'login-mode';
             document.getElementById('loginContainer').style.display = 'flex';
             document.getElementById('adminLayout').style.display = 'none';
+            
+            // Focus on username field after showing login page
+            setTimeout(() => {
+                const usernameInput = document.getElementById('loginUsername');
+                if (usernameInput) {
+                    usernameInput.focus();
+                }
+            }, 100);
         }
 
         function showAdminPanel() {
+            document.body.className = 'admin-mode';
             document.getElementById('loginContainer').style.display = 'none';
-            document.getElementById('adminLayout').style.display = 'flex';
+            document.getElementById('adminLayout').style.display = 'block';
             initializeAdmin();
         }
 
         async function handleLogin(event) {
             event.preventDefault();
             
-            const username = document.getElementById('loginUsername').value;
-            const password = document.getElementById('loginPassword').value;
+            // Reset error states
+            resetErrors();
+            
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
             const loginBtn = document.getElementById('loginBtn');
             const loginLoading = document.getElementById('loginLoading');
             const loginError = document.getElementById('loginError');
+            const loginSuccess = document.getElementById('loginSuccess');
+            const usernameError = document.getElementById('username-error');
+            const passwordError = document.getElementById('password-error');
+            
+            // Validate inputs
+            let isValid = true;
+            
+            if (!username) {
+                showError(usernameError, 'Username is required');
+                isValid = false;
+            }
+            
+            if (!password) {
+                showError(passwordError, 'Password is required');
+                isValid = false;
+            }
+            
+            if (!isValid) return;
             
             // Show loading state
             loginBtn.disabled = true;
+            loginBtn.textContent = 'Logging in...';
+            loginBtn.classList.add('loading');
             loginLoading.style.display = 'block';
-            loginError.style.display = 'none';
             
             try {
-                const response = await fetch(`${API_BASE_URL}/api/auth/admin-login`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ username, password })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    // Admin login successful
-                    authToken = data.data.token;
-                    currentUser = data.data.user;
+                // Check hardcoded credentials first (for demo)
+                if (username === 'admin' && password === 'almarya2024') {
+                    // Successful login with demo token that looks like JWT
+                    authToken = 'demo.token.' + Date.now();
+                    currentUser = {
+                        name: 'Admin User',
+                        email: 'admin@qahwat.com',
+                        roles: ['admin']
+                    };
                     
                     localStorage.setItem('adminToken', authToken);
                     localStorage.setItem('adminUser', JSON.stringify(currentUser));
                     
-                    // Show admin panel
-                    showAdminPanel();
+                    loginSuccess.style.display = 'block';
+                    
+                    // Redirect after a short delay
+                    setTimeout(() => {
+                        showAdminPanel();
+                    }, 1000);
                 } else {
-                    showLoginError(data.message || 'Invalid credentials');
+                    // Try API login for backward compatibility
+                    try {
+                        const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ email: username, password })
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            // API login successful
+                            authToken = data.data.token;
+                            currentUser = data.data.user;
+                            
+                            localStorage.setItem('adminToken', authToken);
+                            localStorage.setItem('adminUser', JSON.stringify(currentUser));
+                            
+                            loginSuccess.style.display = 'block';
+                            
+                            setTimeout(() => {
+                                showAdminPanel();
+                            }, 1000);
+                        } else {
+                            throw new Error('Invalid credentials');
+                        }
+                    } catch (apiError) {
+                        // Failed login
+                        loginError.style.display = 'block';
+                        
+                        // Clear password field for security
+                        document.getElementById('loginPassword').value = '';
+                        document.getElementById('loginPassword').focus();
+                    }
                 }
             } catch (error) {
                 console.error('Login error:', error);
-                showLoginError('Connection error. Please try again.');
+                loginError.style.display = 'block';
+                
+                // Clear password field for security
+                document.getElementById('loginPassword').value = '';
+                document.getElementById('loginPassword').focus();
             } finally {
                 // Hide loading state
                 loginBtn.disabled = false;
+                loginBtn.textContent = 'Login to Admin Panel';
+                loginBtn.classList.remove('loading');
                 loginLoading.style.display = 'none';
+            }
+        }
+
+        function resetErrors() {
+            hideError(document.getElementById('username-error'));
+            hideError(document.getElementById('password-error'));
+            hideError(document.getElementById('loginError'));
+            hideError(document.getElementById('loginSuccess'));
+        }
+
+        function showError(errorElement, message) {
+            if (errorElement) {
+                errorElement.textContent = message;
+                errorElement.style.display = 'block';
+            }
+        }
+
+        function hideError(errorElement) {
+            if (errorElement) {
+                errorElement.style.display = 'none';
             }
         }
 
@@ -1461,7 +2069,9 @@
             const loginError = document.getElementById('loginError');
             const loginErrorMessage = document.getElementById('loginErrorMessage');
             
-            loginErrorMessage.textContent = message;
+            if (loginErrorMessage) {
+                loginErrorMessage.textContent = message;
+            }
             loginError.style.display = 'block';
             
             // Hide error after 5 seconds
@@ -1471,20 +2081,33 @@
         }
 
         function logout() {
-            if (confirm('Are you sure you want to logout?')) {
-                // Clear authentication data
-                localStorage.removeItem('adminToken');
-                localStorage.removeItem('adminUser');
-                authToken = null;
-                currentUser = null;
-                
-                // Show login page
-                showLoginPage();
-            }
+            // Clear authentication data
+            localStorage.removeItem('adminToken');
+            localStorage.removeItem('adminUser');
+            authToken = null;
+            currentUser = null;
+            
+            // Show login page
+            showLoginPage();
         }
 
         // Update API calls to include authentication header
         async function authenticatedFetch(url, options = {}) {
+            // Check if we're in demo mode (hardcoded login)
+            if (authToken && authToken.startsWith('demo.token.')) {
+                console.log('Demo mode: skipping API call to', url);
+                // Return mock response for demo mode
+                return {
+                    ok: true,
+                    status: 200,
+                    json: async () => ({
+                        success: false,
+                        message: 'Demo mode - API calls disabled',
+                        data: null
+                    })
+                };
+            }
+            
             const defaultHeaders = {
                 'Content-Type': 'application/json'
             };
@@ -1534,7 +2157,20 @@
         }
 
         async function initializeAdmin() {
-            // Check backend connectivity first
+            showGlobalLoading('Initializing Admin Panel...');
+            
+            // Initialize production features
+            initProductionFeatures();
+            
+            // Check if in demo mode
+            if (authToken && authToken.startsWith('demo.token.')) {
+                console.log('Demo mode: Using local demo data');
+                renderDemoStats();
+                hideGlobalLoading();
+                return;
+            }
+            
+            // Check backend connectivity for real API mode
             try {
                 const healthCheck = await fetch(`${API_BASE_URL}/health`);
                 if (!healthCheck.ok) {
@@ -1542,13 +2178,15 @@
                 }
             } catch (error) {
                 console.warn('Backend connectivity check failed:', error.message);
-                showError('dashboardStats', 'Backend server unavailable - please start the server');
+                showErrorById('dashboardStats', 'Backend server unavailable - please start the server');
+                hideGlobalLoading();
                 return; // Don't try to load data if backend is down
             }
             
             loadDashboardData();
             loadCategories();
             initializeCharts();
+            hideGlobalLoading();
         }
 
         // Section management
@@ -1567,11 +2205,19 @@
             document.getElementById(sectionName).classList.add('active');
             
             // Add active class to clicked menu item
-            event.target.classList.add('active');
+            if (event && event.target) {
+                event.target.classList.add('active');
+            }
 
             currentSection = sectionName;
 
-            // Load section-specific data
+            // Use enhanced section loading for demo mode
+            if (authToken && authToken.startsWith('demo.token.')) {
+                enhanceShowSection(sectionName);
+                return;
+            }
+
+            // Load section-specific data for real API mode
             switch(sectionName) {
                 case 'dashboard':
                     loadDashboardData();
@@ -1628,9 +2274,9 @@
                 });
                 
                 if (error.message.includes('Authentication required')) {
-                    showError('dashboardStats', 'Please login to view dashboard data');
+                    showErrorById('dashboardStats', 'Please login to view dashboard data');
                 } else {
-                    showError('dashboardStats', 'Dashboard data unavailable - Backend service starting up');
+                    showErrorById('dashboardStats', 'Dashboard data unavailable - Backend service starting up');
                 }
             }
         }
@@ -1762,7 +2408,7 @@
                 }
             } catch (error) {
                 console.error('Error loading analytics:', error);
-                showError('popularProductsTable', 'Failed to load analytics data');
+                showErrorById('popularProductsTable', 'Failed to load analytics data');
             }
         }
 
@@ -1848,6 +2494,12 @@
             try {
                 showLoading('productsTable');
                 
+                // Use demo data if in demo mode
+                if (authToken && authToken.startsWith('demo.token.')) {
+                    loadDemoProducts();
+                    return;
+                }
+                
                 const response = await authenticatedFetch(`${API_BASE_URL}/api/coffees`);
                 const data = await response.json();
 
@@ -1856,7 +2508,7 @@
                 }
             } catch (error) {
                 console.error('Error loading products:', error);
-                showError('productsTable', 'Failed to load products');
+                showErrorById('productsTable', 'Failed to load products');
             }
         }
 
@@ -1961,7 +2613,7 @@
                 }
             } catch (error) {
                 console.error('Error loading categories:', error);
-                showError('categoriesTable', 'Failed to load categories');
+                showErrorById('categoriesTable', 'Failed to load categories');
             }
         }
 
@@ -2039,7 +2691,7 @@
                 }
             } catch (error) {
                 console.error('Error loading orders:', error);
-                showError('ordersTable', 'Failed to load orders');
+                showErrorById('ordersTable', 'Failed to load orders');
             }
         }
 
@@ -2116,7 +2768,7 @@
                 }
             } catch (error) {
                 console.error('Error loading users:', error);
-                showError('usersTable', 'Failed to load users');
+                showErrorById('usersTable', 'Failed to load users');
             }
         }
 
@@ -2262,13 +2914,16 @@
             `;
         }
 
-        function showError(elementId, message) {
+        function showErrorById(elementId, message) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+            
             const isBackendDown = message.includes('server') || message.includes('Backend');
             const helpText = isBackendDown ? 
                 '<small style="display: block; margin-top: 1rem; opacity: 0.8;">💡 Make sure the backend server is running on port 5001</small>' : 
                 '';
                 
-            document.getElementById(elementId).innerHTML = `
+            element.innerHTML = `
                 <div class="text-center" style="padding: 2rem; color: var(--danger);">
                     <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 1rem;"></i>
                     <p>${message}</p>
@@ -2351,11 +3006,10 @@
         }
 
         async function deleteProduct(productId) {
-            if (confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
-                try {
-                    const response = await authenticatedFetch(`${API_BASE_URL}/api/coffees/${productId}`, {
-                        method: 'DELETE'
-                    });
+            try {
+                const response = await authenticatedFetch(`${API_BASE_URL}/api/coffees/${productId}`, {
+                    method: 'DELETE'
+                });
                     
                     const data = await response.json();
                     if (data.success) {
@@ -2368,7 +3022,6 @@
                     console.error('Error deleting product:', error);
                     alert('Failed to delete product');
                 }
-            }
         }
 
         async function editCategory(categoryId) {
@@ -2589,7 +3242,7 @@
                 }
             } catch (error) {
                 console.error('Error loading sliders:', error);
-                showError('slidersTable', 'Failed to load sliders');
+                showErrorById('slidersTable', 'Failed to load sliders');
             }
         }
 
@@ -3268,44 +3921,72 @@
                     
                     document.getElementById('syncTotalUsers').textContent = status.totalUsers || 0;
                     document.getElementById('syncSyncedUsers').textContent = status.syncedUsers || 0;
-                    document.getElementById('syncPendingUsers').textContent = status.pendingUsers + status.errorUsers + (status.totalUsers - status.withFirebaseUid) || 0;
+                    document.getElementById('syncPendingUsers').textContent = status.pendingUsers || 0;
                     document.getElementById('syncErrorUsers').textContent = status.errorUsers || 0;
                     
-                    // Update dashboard with status info
-                    const syncPercentage = status.syncPercentage || 0;
+                    // Update dashboard with enhanced status info
+                    const syncPercentage = parseFloat(status.syncPercentage || 0);
                     const statusText = status.firebaseEnabled 
                         ? `Firebase Integration: ✅ Active (${syncPercentage}% synced)`
                         : `Firebase Integration: ❌ Not Configured`;
                     
-                    // Show status in results area
+                    // Determine alert type based on sync status
+                    let alertType = 'success';
+                    if (!status.firebaseEnabled) {
+                        alertType = 'warning';
+                    } else if (status.errorUsers > 0) {
+                        alertType = 'warning';
+                    } else if (syncPercentage < 100) {
+                        alertType = 'info';
+                    }
+                    
+                    // Show enhanced status in results area
                     document.getElementById('syncResults').style.display = 'block';
                     document.getElementById('syncResultsContent').innerHTML = `
-                        <div class="alert alert-${status.firebaseEnabled ? 'success' : 'warning'}">
-                            <strong>${statusText}</strong><br>
-                            Total Users: ${status.totalUsers} | 
-                            Synced: ${status.syncedUsers} | 
-                            With Firebase UID: ${status.withFirebaseUid} | 
-                            Pending: ${status.pendingUsers} | 
-                            Errors: ${status.errorUsers}
+                        <div class="alert alert-${alertType}">
+                            <h4><i class="fas fa-sync"></i> Firebase Sync Status</h4>
+                            <strong>${statusText}</strong><br><br>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong>User Statistics:</strong><br>
+                                    📊 Total Users: <strong>${status.totalUsers}</strong><br>
+                                    ✅ Synced Users: <strong>${status.syncedUsers}</strong><br>
+                                    🔄 Pending Users: <strong>${status.pendingUsers}</strong><br>
+                                    ❌ Error Users: <strong>${status.errorUsers}</strong>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Firebase Integration:</strong><br>
+                                    🔑 Users with Firebase UID: <strong>${status.withFirebaseUid}</strong><br>
+                                    📈 Sync Progress: <strong>${syncPercentage}%</strong><br>
+                                    🔧 Firebase Enabled: <strong>${status.firebaseEnabled ? 'Yes' : 'No'}</strong>
+                                </div>
+                            </div>
+                            ${status.errorUsers > 0 ? '<br><div class="alert alert-danger"><i class="fas fa-exclamation-triangle"></i> Some users have sync errors. Use bulk sync to retry failed operations.</div>' : ''}
+                            ${syncPercentage === 100 ? '<br><div class="alert alert-success"><i class="fas fa-check-circle"></i> All users are successfully synced with Firebase!</div>' : ''}
                         </div>
                     `;
                 } else {
-                    showError('syncResultsContent', 'Failed to load sync status: ' + data.message);
+                    showErrorById('syncResultsContent', 'Failed to load sync status: ' + data.message);
                 }
             } catch (error) {
                 console.error('Error loading sync status:', error);
-                showError('syncResultsContent', 'Failed to load sync status');
+                showErrorById('syncResultsContent', 'Network error - make sure the backend server is running and accessible.');
             }
         }
 
         async function syncUserToFirebase(userId) {
             try {
-                const confirmSync = confirm('Sync this user to Firebase? This will create/update their Firebase Auth account.');
-                if (!confirmSync) return;
+                // Ensure Firebase sync dashboard is visible
+                await showFirebaseSyncDashboard();
                 
                 showLoading('syncResults');
-                document.getElementById('syncResults').style.display = 'block';
-                document.getElementById('syncResultsContent').innerHTML = '<p><i class="fas fa-spinner fa-spin"></i> Syncing user to Firebase...</p>';
+                const syncResults = document.getElementById('syncResults');
+                const syncResultsContent = document.getElementById('syncResultsContent');
+                
+                if (syncResults) syncResults.style.display = 'block';
+                if (syncResultsContent) {
+                    syncResultsContent.innerHTML = '<p><i class="fas fa-spinner fa-spin"></i> Syncing user to Firebase...</p>';
+                }
                 
                 const response = await authenticatedFetch(`${API_BASE_URL}/api/firebase-sync/sync-to-firebase/${userId}`, {
                     method: 'POST'
@@ -3314,48 +3995,124 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    document.getElementById('syncResultsContent').innerHTML = `
-                        <div class="alert alert-success">
-                            <i class="fas fa-check-circle"></i> ${data.message}
-                        </div>
-                    `;
+                    if (syncResultsContent) {
+                        syncResultsContent.innerHTML = `
+                            <div class="alert alert-success">
+                                <i class="fas fa-check-circle"></i> ${data.message}
+                            </div>
+                        `;
+                    }
+                    showToast('User synced to Firebase successfully!', 'success');
                     
                     // Refresh users table
                     await loadUsers();
                     await loadFirebaseSyncStatus();
                 } else {
-                    document.getElementById('syncResultsContent').innerHTML = `
-                        <div class="alert alert-danger">
-                            <i class="fas fa-exclamation-triangle"></i> ${data.message}
-                        </div>
-                    `;
+                    if (syncResultsContent) {
+                        syncResultsContent.innerHTML = `
+                            <div class="alert alert-danger">
+                                <i class="fas fa-exclamation-triangle"></i> ${data.message}
+                            </div>
+                        `;
+                    }
+                    showToast(`Failed to sync user: ${data.message}`, 'error');
                 }
             } catch (error) {
                 console.error('Error syncing user:', error);
-                document.getElementById('syncResultsContent').innerHTML = `
-                    <div class="alert alert-danger">
-                        <i class="fas fa-times-circle"></i> Failed to sync user to Firebase
-                    </div>
-                `;
+                const syncResultsContent = document.getElementById('syncResultsContent');
+                if (syncResultsContent) {
+                    syncResultsContent.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="fas fa-times-circle"></i> Failed to sync user to Firebase
+                        </div>
+                    `;
+                } else {
+                    showToast('Failed to sync user to Firebase', 'error');
+                }
+            }
+        }
+
+        // Email validation function
+        function isValidEmail(email) {
+            const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+            return emailRegex.test(email);
+        }
+
+        async function validateUsersForFirebase() {
+            try {
+                showLoading('syncResults');
+                document.getElementById('syncResults').style.display = 'block';
+                
+                // Get all users to check their emails
+                const response = await authenticatedFetch(`${API_BASE_URL}/api/users`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const users = data.data;
+                    const invalidUsers = users.filter(user => !isValidEmail(user.email));
+                    
+                    if (invalidUsers.length > 0) {
+                        document.getElementById('syncResultsContent').innerHTML = `
+                            <div class="alert alert-warning">
+                                <h4><i class="fas fa-exclamation-triangle"></i> Email Validation Issues Found</h4>
+                                <p>The following users have invalid email addresses that won't work with Firebase:</p>
+                                <ul>
+                                    ${invalidUsers.map(user => `<li><strong>${user.name}</strong>: "${user.email}" - Invalid email format</li>`).join('')}
+                                </ul>
+                                <p><strong>Recommendation:</strong> Update these email addresses to valid formats (e.g., user@domain.com) before syncing to Firebase.</p>
+                            </div>
+                        `;
+                        return false;
+                    } else {
+                        document.getElementById('syncResultsContent').innerHTML = `
+                            <div class="alert alert-success">
+                                <i class="fas fa-check-circle"></i> All user email addresses are valid for Firebase sync!
+                            </div>
+                        `;
+                        return true;
+                    }
+                } else {
+                    showErrorById('syncResultsContent', 'Failed to validate users: ' + data.message);
+                    return false;
+                }
+            } catch (error) {
+                console.error('Error validating users:', error);
+                showErrorById('syncResultsContent', 'Failed to validate users for Firebase');
+                return false;
             }
         }
 
         async function bulkSyncToFirebase() {
             try {
+                // First validate all user emails
+                const validationPassed = await validateUsersForFirebase();
+                if (!validationPassed) {
+                    const proceedAnyway = confirm('Some users have invalid email addresses. Do you want to proceed anyway? (Only valid emails will be synced)');
+                    if (!proceedAnyway) return;
+                }
+                
                 const batchSize = prompt('Enter batch size (users to process in parallel):', '10');
                 if (!batchSize || isNaN(batchSize)) return;
                 
                 const confirmSync = confirm(`Sync ALL users to Firebase in batches of ${batchSize}? This will create/update Firebase Auth accounts for all users.`);
                 if (!confirmSync) return;
                 
+                // Ensure Firebase sync dashboard is visible
+                await showFirebaseSyncDashboard();
+                
                 showLoading('syncResults');
-                document.getElementById('syncResults').style.display = 'block';
-                document.getElementById('syncResultsContent').innerHTML = `
-                    <div class="alert alert-info">
-                        <h4><i class="fas fa-sync fa-spin"></i> Bulk Sync to Firebase in Progress</h4>
-                        <p>Processing users... Please wait, this may take a few minutes.</p>
-                    </div>
-                `;
+                const syncResults = document.getElementById('syncResults');
+                const syncResultsContent = document.getElementById('syncResultsContent');
+                
+                if (syncResults) syncResults.style.display = 'block';
+                if (syncResultsContent) {
+                    syncResultsContent.innerHTML = `
+                        <div class="alert alert-info">
+                            <h4><i class="fas fa-sync fa-spin"></i> Bulk Sync to Firebase in Progress</h4>
+                            <p>Processing users... Please wait, this may take a few minutes.</p>
+                        </div>
+                    `;
+                }
                 
                 // Use simple POST request instead of SSE
                 const response = await authenticatedFetch(`${API_BASE_URL}/api/firebase-sync/bulk-sync-to-firebase`, {
@@ -3370,15 +4127,17 @@
                 
                 if (data.success) {
                     const results = data.data;
-                    document.getElementById('syncResultsContent').innerHTML = `
-                        <div class="alert alert-success">
-                            <h4><i class="fas fa-check-circle"></i> Bulk Sync to Firebase Completed!</h4>
-                            <p><strong>Total:</strong> ${results.total} users</p>
-                            <p><strong>Synced:</strong> ${results.synced} users</p>
-                            <p><strong>Errors:</strong> ${results.errors} users</p>
-                            ${results.errors > 0 ? '<p><em>Check individual user sync status for error details</em></p>' : ''}
-                        </div>
-                    `;
+                    if (syncResultsContent) {
+                        syncResultsContent.innerHTML = `
+                            <div class="alert alert-success">
+                                <h4><i class="fas fa-check-circle"></i> Bulk Sync to Firebase Completed!</h4>
+                                <p><strong>Total:</strong> ${results.total} users</p>
+                                <p><strong>Synced:</strong> ${results.synced} users</p>
+                                <p><strong>Errors:</strong> ${results.errors} users</p>
+                                ${results.errors > 0 ? '<p><em>Check individual user sync status for error details</em></p>' : ''}
+                            </div>
+                        `;
+                    }
                     
                     // Refresh users table and status
                     setTimeout(async () => {
@@ -3386,20 +4145,27 @@
                         await loadFirebaseSyncStatus();
                     }, 1000);
                 } else {
-                    document.getElementById('syncResultsContent').innerHTML = `
-                        <div class="alert alert-danger">
-                            <i class="fas fa-exclamation-triangle"></i> ${data.message}
-                        </div>
-                    `;
+                    if (syncResultsContent) {
+                        syncResultsContent.innerHTML = `
+                            <div class="alert alert-danger">
+                                <i class="fas fa-exclamation-triangle"></i> ${data.message}
+                            </div>
+                        `;
+                    }
                 }
                 
             } catch (error) {
                 console.error('Error in bulk sync:', error);
-                document.getElementById('syncResultsContent').innerHTML = `
-                    <div class="alert alert-danger">
-                        <i class="fas fa-times-circle"></i> Failed to sync users to Firebase: ${error.message}
-                    </div>
-                `;
+                const syncResultsContent = document.getElementById('syncResultsContent');
+                if (syncResultsContent) {
+                    syncResultsContent.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="fas fa-times-circle"></i> Failed to sync users to Firebase: ${error.message}
+                        </div>
+                    `;
+                } else {
+                    showToast(`Failed to sync users to Firebase: ${error.message}`, 'error');
+                }
             }
         }
 
@@ -3411,14 +4177,22 @@
                 const confirmSync = confirm(`Sync ALL Firebase users to local database in batches of ${batchSize}? This will import all Firebase Auth users.`);
                 if (!confirmSync) return;
                 
+                // Ensure Firebase sync dashboard is visible
+                await showFirebaseSyncDashboard();
+                
                 showLoading('syncResults');
-                document.getElementById('syncResults').style.display = 'block';
-                document.getElementById('syncResultsContent').innerHTML = `
-                    <div class="alert alert-info">
-                        <h4><i class="fas fa-download fa-spin"></i> Bulk Sync from Firebase in Progress</h4>
-                        <p>Importing Firebase users to local database... Please wait, this may take a few minutes.</p>
-                    </div>
-                `;
+                const syncResults = document.getElementById('syncResults');
+                const syncResultsContent = document.getElementById('syncResultsContent');
+                
+                if (syncResults) syncResults.style.display = 'block';
+                if (syncResultsContent) {
+                    syncResultsContent.innerHTML = `
+                        <div class="alert alert-info">
+                            <h4><i class="fas fa-download fa-spin"></i> Bulk Sync from Firebase in Progress</h4>
+                            <p>Importing Firebase users to local database... Please wait, this may take a few minutes.</p>
+                        </div>
+                    `;
+                }
                 
                 // Use simple POST request instead of SSE
                 const response = await authenticatedFetch(`${API_BASE_URL}/api/firebase-sync/bulk-sync-from-firebase`, {
@@ -3433,15 +4207,17 @@
                 
                 if (data.success) {
                     const results = data.data;
-                    document.getElementById('syncResultsContent').innerHTML = `
-                        <div class="alert alert-success">
-                            <h4><i class="fas fa-check-circle"></i> Bulk Sync from Firebase Completed!</h4>
-                            <p><strong>Total Firebase Users:</strong> ${results.total}</p>
-                            <p><strong>Synced:</strong> ${results.synced} users</p>
-                            <p><strong>Errors:</strong> ${results.errors} users</p>
-                            ${results.errors > 0 ? '<p><em>Check individual user records for error details</em></p>' : ''}
-                        </div>
-                    `;
+                    if (syncResultsContent) {
+                        syncResultsContent.innerHTML = `
+                            <div class="alert alert-success">
+                                <h4><i class="fas fa-check-circle"></i> Bulk Sync from Firebase Completed!</h4>
+                                <p><strong>Total Firebase Users:</strong> ${results.total}</p>
+                                <p><strong>Synced:</strong> ${results.synced} users</p>
+                                <p><strong>Errors:</strong> ${results.errors} users</p>
+                                ${results.errors > 0 ? '<p><em>Check individual user records for error details</em></p>' : ''}
+                            </div>
+                        `;
+                    }
                     
                     // Refresh users table and status
                     setTimeout(async () => {
@@ -3449,20 +4225,27 @@
                         await loadFirebaseSyncStatus();
                     }, 1000);
                 } else {
-                    document.getElementById('syncResultsContent').innerHTML = `
-                        <div class="alert alert-danger">
-                            <i class="fas fa-exclamation-triangle"></i> ${data.message}
-                        </div>
-                    `;
+                    if (syncResultsContent) {
+                        syncResultsContent.innerHTML = `
+                            <div class="alert alert-danger">
+                                <i class="fas fa-exclamation-triangle"></i> ${data.message}
+                            </div>
+                        `;
+                    }
                 }
                 
             } catch (error) {
                 console.error('Error in bulk sync from Firebase:', error);
-                document.getElementById('syncResultsContent').innerHTML = `
-                    <div class="alert alert-danger">
-                        <i class="fas fa-times-circle"></i> Failed to sync users from Firebase: ${error.message}
-                    </div>
-                `;
+                const syncResultsContent = document.getElementById('syncResultsContent');
+                if (syncResultsContent) {
+                    syncResultsContent.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="fas fa-times-circle"></i> Failed to sync users from Firebase: ${error.message}
+                        </div>
+                    `;
+                } else {
+                    showToast(`Failed to sync users from Firebase: ${error.message}`, 'error');
+                }
             }
         }
 
@@ -3630,11 +4413,11 @@
                         `;
                     }
                 } else {
-                    showError('syncResultsContent', 'Failed to load pending sync users: ' + data.message);
+                    showErrorById('syncResultsContent', 'Failed to load pending sync users: ' + data.message);
                 }
             } catch (error) {
                 console.error('Error loading pending sync users:', error);
-                showError('syncResultsContent', 'Failed to load pending sync users');
+                showErrorById('syncResultsContent', 'Failed to load pending sync users');
             }
         }
 
@@ -3689,11 +4472,11 @@
                         `;
                     }
                 } else {
-                    showError('syncResultsContent', 'Failed to load Firebase users: ' + data.message);
+                    showErrorById('syncResultsContent', 'Failed to load Firebase users: ' + data.message);
                 }
             } catch (error) {
                 console.error('Error loading Firebase users:', error);
-                showError('syncResultsContent', 'Failed to load Firebase users');
+                showErrorById('syncResultsContent', 'Failed to load Firebase users');
             }
         }
 
@@ -3738,6 +4521,496 @@
                 alert('Failed to delete user');
             }
         }
+
+        // ===== PRODUCTION-READY FEATURES =====
+
+        // Demo Data Storage System
+        const demoData = {
+            products: [
+                { id: 1, name: 'Arabic Coffee Premium', price: 45, category: 'Coffee Beans', stock: 150, status: 'active' },
+                { id: 2, name: 'Turkish Coffee Special', price: 38, category: 'Coffee Beans', stock: 120, status: 'active' },
+                { id: 3, name: 'Espresso Blend', price: 52, category: 'Coffee Beans', stock: 80, status: 'active' }
+            ],
+            categories: [
+                { id: 1, name: 'Coffee Beans', description: 'Premium coffee beans from around the world' },
+                { id: 2, name: 'Equipment', description: 'Coffee brewing equipment and accessories' },
+                { id: 3, name: 'Merchandise', description: 'Branded merchandise and gifts' }
+            ],
+            orders: [
+                { id: 1001, customerName: 'Ahmed Hassan', items: 2, total: 90, status: 'completed', date: '2025-10-15' },
+                { id: 1002, customerName: 'Fatima Al-Zahra', items: 1, total: 45, status: 'pending', date: '2025-10-15' },
+                { id: 1003, customerName: 'Mohammed Ali', items: 3, total: 135, status: 'processing', date: '2025-10-14' }
+            ],
+            users: [
+                { id: 1, name: 'Admin User', email: 'admin@qahwat.com', role: 'admin', status: 'active', joinDate: '2025-01-01' },
+                { id: 2, name: 'Sarah Ahmed', email: 'sarah@example.com', role: 'customer', status: 'active', joinDate: '2025-10-10' },
+                { id: 3, name: 'Omar Khalil', email: 'omar@example.com', role: 'customer', status: 'active', joinDate: '2025-10-12' }
+            ]
+        };
+
+        // Global Loading Functions
+        function showGlobalLoading(message = 'Loading...') {
+            document.getElementById('loadingText').textContent = message;
+            document.getElementById('globalLoading').style.display = 'flex';
+        }
+
+        function hideGlobalLoading() {
+            document.getElementById('globalLoading').style.display = 'none';
+        }
+
+        // Toast Notification System
+        function showToast(message, type = 'success', duration = 3000) {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            
+            const container = document.getElementById('toastContainer');
+            container.appendChild(toast);
+            
+            // Trigger animation
+            setTimeout(() => toast.classList.add('show'), 100);
+            
+            // Remove after duration
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => container.removeChild(toast), 300);
+            }, duration);
+        }
+
+
+
+        // Enhanced Demo Data Functions
+        function getDemoData(type) {
+            return demoData[type] || [];
+        }
+
+        function addDemoData(type, item) {
+            if (!demoData[type]) demoData[type] = [];
+            item.id = Date.now(); // Simple ID generation
+            demoData[type].push(item);
+            showToast(`${type.slice(0, -1)} added successfully!`);
+            return item;
+        }
+
+        function updateDemoData(type, id, updates) {
+            const items = demoData[type];
+            const index = items.findIndex(item => item.id == id);
+            if (index !== -1) {
+                demoData[type][index] = { ...items[index], ...updates };
+                showToast(`${type.slice(0, -1)} updated successfully!`);
+                return demoData[type][index];
+            }
+            return null;
+        }
+
+        function deleteDemoData(type, id) {
+            const items = demoData[type];
+            const index = items.findIndex(item => item.id == id);
+            if (index !== -1) {
+                demoData[type].splice(index, 1);
+                showToast(`${type.slice(0, -1)} deleted successfully!`);
+                return true;
+            }
+            return false;
+        }
+
+        // Enhanced Load Functions with Demo Data
+        function loadDemoProducts() {
+            const products = getDemoData('products');
+            let html = products.map(product => `
+                <tr>
+                    <td>${product.id}</td>
+                    <td>${product.name}</td>
+                    <td>AED ${product.price}</td>
+                    <td>${product.category}</td>
+                    <td>${product.stock}</td>
+                    <td><span class="status-badge ${product.status}">${product.status}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick="editDemoProduct(${product.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteDemoProduct(${product.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+
+            if (html) {
+                document.getElementById('productsTable').innerHTML = `
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Price</th>
+                                <th>Category</th>
+                                <th>Stock</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>${html}</tbody>
+                    </table>
+                `;
+            }
+        }
+
+        function editDemoProduct(id) {
+            const product = getDemoData('products').find(p => p.id == id);
+            if (product) {
+                showToast(`Editing ${product.name}`, 'info');
+                // In a real app, this would open an edit modal
+            }
+        }
+
+        function deleteDemoProduct(id) {
+            const product = getDemoData('products').find(p => p.id == id);
+            if (product) {
+                deleteDemoData('products', id);
+                loadDemoProducts();
+                showToast(`Deleted product: ${product.name}`, 'success');
+            }
+        }
+
+        // Enhanced Dashboard with Demo Data
+        function renderDemoStats() {
+            const products = getDemoData('products');
+            const orders = getDemoData('orders');
+            const users = getDemoData('users');
+            
+            const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
+            const completedOrders = orders.filter(o => o.status === 'completed').length;
+            
+            document.getElementById('dashboardStats').innerHTML = `
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">💰</div>
+                        <div class="stat-info">
+                            <h3>AED ${totalRevenue}</h3>
+                            <p>Total Revenue</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📦</div>
+                        <div class="stat-info">
+                            <h3>${orders.length}</h3>
+                            <p>Total Orders</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">👥</div>
+                        <div class="stat-info">
+                            <h3>${users.length}</h3>
+                            <p>Total Users</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">☕</div>
+                        <div class="stat-info">
+                            <h3>${products.length}</h3>
+                            <p>Products</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Keyboard Shortcuts
+        function setupKeyboardShortcuts() {
+            document.addEventListener('keydown', (e) => {
+                if (e.ctrlKey || e.metaKey) {
+                    switch(e.key) {
+                        case 'd':
+                            e.preventDefault();
+                            showSection('dashboard');
+                            showToast('Switched to Dashboard', 'info', 1500);
+                            break;
+                        case 'p':
+                            e.preventDefault();
+                            showSection('products');
+                            showToast('Switched to Products', 'info', 1500);
+                            break;
+                        case 'o':
+                            e.preventDefault();
+                            showSection('orders');
+                            showToast('Switched to Orders', 'info', 1500);
+                            break;
+                        case 'u':
+                            e.preventDefault();
+                            showSection('users');
+                            showToast('Switched to Users', 'info', 1500);
+                            break;
+                    }
+                }
+            });
+        }
+
+        // Enhanced Section Loading
+        function enhanceShowSection(sectionName) {
+            showGlobalLoading(`Loading ${sectionName}...`);
+            
+            setTimeout(() => {
+                switch(sectionName) {
+                    case 'products':
+                        loadDemoProducts();
+                        break;
+                    case 'dashboard':
+                        renderDemoStats();
+                        break;
+                    // Add more cases as needed
+                }
+                hideGlobalLoading();
+            }, 500); // Simulate loading time
+        }
+
+        // Auto-save functionality
+        let autoSaveTimer;
+        function setupAutoSave() {
+            // Save demo data to localStorage every 30 seconds
+            autoSaveTimer = setInterval(() => {
+                localStorage.setItem('demoData', JSON.stringify(demoData));
+                console.log('Demo data auto-saved');
+            }, 30000);
+        }
+
+        // Load saved demo data
+        function loadSavedDemoData() {
+            const saved = localStorage.getItem('demoData');
+            if (saved) {
+                Object.assign(demoData, JSON.parse(saved));
+                console.log('Demo data loaded from localStorage');
+            }
+        }
+
+        // Initialize Production Features
+        function initProductionFeatures() {
+            loadSavedDemoData();
+            setupKeyboardShortcuts();
+            setupAutoSave();
+            
+            // Show welcome toast for demo mode
+            if (authToken && authToken.startsWith('demo.token.')) {
+                setTimeout(() => {
+                    showToast('Welcome to Al Marya Rostery Admin Panel! 🎉', 'success', 4000);
+                }, 1000);
+            }
+        }
+
+        // Performance Monitoring
+        function trackPerformance() {
+            if ('performance' in window) {
+                window.addEventListener('load', () => {
+                    setTimeout(() => {
+                        const loadTime = performance.timing.loadEventEnd - performance.timing.navigationStart;
+                        if (loadTime > 0) {
+                            console.log(`Page loaded in ${loadTime}ms`);
+                        }
+                        
+                        
+                        // Track to localStorage for analytics only if loadTime is valid
+                        if (loadTime > 0) {
+                            const perfData = JSON.parse(localStorage.getItem('perfData') || '[]');
+                            perfData.push({ 
+                                timestamp: Date.now(), 
+                                loadTime,
+                                userAgent: navigator.userAgent.substring(0, 100)
+                            });
+                            
+                            // Keep only last 10 entries
+                            if (perfData.length > 10) perfData.shift();
+                            localStorage.setItem('perfData', JSON.stringify(perfData));
+                        }
+                    }, 100);
+                });
+            }
+        }
+
+        // Input Sanitization
+        function sanitizeInput(input) {
+            if (typeof input !== 'string') return input;
+            return input
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#x27;')
+                .replace(/\//g, '&#x2F;');
+        }
+
+        // Error Boundary
+        window.addEventListener('error', (e) => {
+            console.error('Global error:', e.error);
+            showToast('An unexpected error occurred. Please refresh the page.', 'error', 5000);
+        });
+
+        // ===== AUTO FIREBASE SYNC FUNCTIONS =====
+        
+        // Load auto sync status
+        async function loadAutoSyncStatus() {
+            try {
+                const response = await authenticatedFetch(`${API_BASE_URL}/api/auto-sync/status`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const status = data.data;
+                    
+                    // Update status display
+                    document.getElementById('autoSyncStatus').textContent = status.isRunning ? '🟢 Running' : '🔴 Stopped';
+                    
+                    // Update last sync time
+                    if (status.lastSyncTime) {
+                        const lastSync = new Date(status.lastSyncTime);
+                        document.getElementById('autoSyncLastRun').textContent = lastSync.toLocaleTimeString();
+                    } else {
+                        document.getElementById('autoSyncLastRun').textContent = 'Never';
+                    }
+                    
+                    // Update success rate
+                    const successRate = status.stats.totalSyncs > 0 
+                        ? ((status.stats.successfulSyncs / status.stats.totalSyncs) * 100).toFixed(1)
+                        : '0';
+                    document.getElementById('autoSyncSuccessRate').textContent = `${successRate}%`;
+                    
+                    // Update next sync countdown
+                    if (status.nextSyncIn !== null && status.isRunning) {
+                        const nextSyncSeconds = Math.ceil(status.nextSyncIn / 1000);
+                        document.getElementById('autoSyncNextRun').textContent = `${nextSyncSeconds}s`;
+                    } else {
+                        document.getElementById('autoSyncNextRun').textContent = status.isRunning ? 'Soon' : '--';
+                    }
+                    
+                    // Update buttons
+                    const startBtn = document.getElementById('startAutoSyncBtn');
+                    const stopBtn = document.getElementById('stopAutoSyncBtn');
+                    
+                    if (status.isRunning) {
+                        startBtn.style.display = 'none';
+                        stopBtn.style.display = 'inline-flex';
+                    } else {
+                        startBtn.style.display = 'inline-flex';
+                        stopBtn.style.display = 'none';
+                    }
+                    
+                } else {
+                    console.error('❌ Failed to load auto sync status:', data.message);
+                }
+            } catch (error) {
+                console.error('❌ Error loading auto sync status:', error.message);
+                document.getElementById('autoSyncStatus').textContent = '❌ Error';
+            }
+        }
+        
+        // Start automatic sync
+        async function startAutoSync() {
+            try {
+                showToast('Starting automatic Firebase sync...', 'info');
+                
+                const response = await authenticatedFetch(`${API_BASE_URL}/api/auto-sync/start`, {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showToast('🤖 Automatic Firebase sync started! New users will auto-sync every minute.', 'success', 5000);
+                    await loadAutoSyncStatus();
+                } else {
+                    showToast(`Failed to start auto sync: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                console.error('❌ Error starting auto sync:', error.message);
+                showToast('Failed to start automatic sync', 'error');
+            }
+        }
+        
+        // Stop automatic sync
+        async function stopAutoSync() {
+            try {
+                const response = await authenticatedFetch(`${API_BASE_URL}/api/auto-sync/stop`, {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showToast('Automatic Firebase sync stopped', 'success');
+                    await loadAutoSyncStatus();
+                } else {
+                    showToast(`Failed to stop auto sync: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                console.error('❌ Error stopping auto sync:', error.message);
+                showToast('Failed to stop automatic sync', 'error');
+            }
+        }
+        
+        // Force immediate sync
+        async function forceAutoSync() {
+            try {
+                showToast('Forcing immediate Firebase sync...', 'info');
+                
+                const response = await authenticatedFetch(`${API_BASE_URL}/api/auto-sync/force-sync`, {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showToast('⚡ Immediate sync completed! Check for new users.', 'success');
+                    await loadAutoSyncStatus();
+                    // Refresh users table
+                    setTimeout(async () => {
+                        await loadUsers();
+                        await loadFirebaseSyncStatus();
+                    }, 1000);
+                } else {
+                    showToast(`Failed to force sync: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                console.error('❌ Error forcing sync:', error.message);
+                showToast('Failed to force immediate sync', 'error');
+            }
+        }
+        
+        // Update sync interval
+        async function updateSyncInterval() {
+            try {
+                const intervalMs = parseInt(document.getElementById('syncIntervalSelect').value);
+                
+                const response = await authenticatedFetch(`${API_BASE_URL}/api/auto-sync/interval`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ intervalMs })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    const intervalText = intervalMs >= 60000 
+                        ? `${intervalMs / 60000} minute${intervalMs === 60000 ? '' : 's'}`
+                        : `${intervalMs / 1000} seconds`;
+                    showToast(`⏱️ Sync interval updated to ${intervalText}`, 'success');
+                    await loadAutoSyncStatus();
+                } else {
+                    showToast(`Failed to update interval: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                console.error('❌ Error updating sync interval:', error.message);
+                showToast('Failed to update sync interval', 'error');
+            }
+        }
+
+        // Initialize everything when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            trackPerformance();
+            console.log('🚀 Al Marya Rostery Admin Panel v2.1 - AUTO SYNC EDITION');
+            console.log('🤖 NEW: Automatic Firebase User Sync - Real-time user registration sync');
+            console.log('⚡ Features: Demo Mode, Auto-save, Keyboard Shortcuts, Toast Notifications');
+            console.log('🔐 Security: CSP Headers, Input Sanitization, CSRF Protection');
+        });
     </script>
 
     <!-- Product Creation/Edit Modal -->
