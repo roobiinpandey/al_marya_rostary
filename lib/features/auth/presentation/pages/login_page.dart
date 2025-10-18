@@ -24,6 +24,7 @@ class _LoginPageState extends State<LoginPage> {
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
   bool _rememberMe = false;
+  bool _isGuestLoading = false; // Separate loading state for guest login
 
   // Get the singleton instance
   // final GoogleSignIn _googleSignIn = GoogleSignIn.instance;  // Temporarily disabled
@@ -94,14 +95,78 @@ class _LoginPageState extends State<LoginPage> {
 
   Widget _buildGuestLoginButton(AuthProvider authProvider) {
     return ElevatedButton.icon(
-      icon: const Icon(Icons.person_outline),
-      label: const Text('Continue as Guest'),
-      onPressed: () async {
-        await authProvider.loginAsGuest();
-        if (authProvider.isAuthenticated && mounted) {
-          Navigator.of(context).pushReplacementNamed('/home');
-        }
-      },
+      icon: _isGuestLoading
+          ? const SizedBox(
+              height: 20,
+              width: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  AppTheme.primaryBrown,
+                ),
+              ),
+            )
+          : const Icon(Icons.person_outline),
+      label: Text(_isGuestLoading ? 'Please wait...' : 'Continue as Guest'),
+      onPressed: _isGuestLoading
+          ? null
+          : () async {
+              // Set guest loading state
+              if (mounted) {
+                setState(() {
+                  _isGuestLoading = true;
+                });
+              }
+
+              try {
+                // Try to login as guest
+                await authProvider.loginAsGuest();
+
+                // Wait a bit for state to settle
+                await Future.delayed(const Duration(milliseconds: 200));
+
+                if (mounted) {
+                  setState(() {
+                    _isGuestLoading = false;
+                  });
+
+                  // Check if guest mode was enabled successfully
+                  if (authProvider.isGuest) {
+                    // Navigate using root navigator to ensure clean navigation
+                    Navigator.of(
+                      context,
+                      rootNavigator: true,
+                    ).pushNamedAndRemoveUntil('/home', (route) => false);
+                  } else if (authProvider.hasError) {
+                    // Error occurred - show error snackbar
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          authProvider.errorMessage ??
+                              'Failed to continue as guest',
+                        ),
+                        backgroundColor: Colors.red,
+                        duration: const Duration(seconds: 4),
+                      ),
+                    );
+                  }
+                }
+              } catch (e) {
+                if (mounted) {
+                  setState(() {
+                    _isGuestLoading = false;
+                  });
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Error: ${e.toString()}'),
+                      backgroundColor: Colors.red,
+                      duration: const Duration(seconds: 4),
+                    ),
+                  );
+                }
+              }
+            },
       style: ElevatedButton.styleFrom(
         backgroundColor: AppTheme.primaryLightBrown,
         foregroundColor: AppTheme.primaryBrown,
@@ -279,8 +344,11 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Widget _buildLoginButton(AuthProvider authProvider) {
+    // Only show loading if it's NOT guest loading
+    final isSignInLoading = authProvider.isLoading && !_isGuestLoading;
+
     return ElevatedButton(
-      onPressed: authProvider.isLoading ? null : _login,
+      onPressed: isSignInLoading ? null : _login,
       style: ElevatedButton.styleFrom(
         backgroundColor: AppTheme.primaryBrown,
         foregroundColor: Colors.white,
@@ -288,7 +356,7 @@ class _LoginPageState extends State<LoginPage> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         elevation: 2,
       ),
-      child: authProvider.isLoading
+      child: isSignInLoading
           ? const SizedBox(
               height: 20,
               width: 20,
@@ -438,8 +506,15 @@ class _LoginPageState extends State<LoginPage> {
         _passwordController.text,
       );
 
+      // Wait for state to settle
+      await Future.delayed(const Duration(milliseconds: 200));
+
       if (authProvider.isAuthenticated && mounted) {
-        Navigator.of(context).pushReplacementNamed('/home');
+        // Use root navigator to ensure clean navigation
+        Navigator.of(
+          context,
+          rootNavigator: true,
+        ).pushNamedAndRemoveUntil('/home', (route) => false);
       }
     }
   }

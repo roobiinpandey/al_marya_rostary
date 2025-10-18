@@ -4,13 +4,38 @@ import '../features/wishlist/presentation/pages/wishlist_page.dart';
 import '../pages/orders_page.dart';
 import '../pages/profile_page.dart';
 import '../pages/home_page.dart';
-import '../pages/login_page.dart';
+import '../features/auth/presentation/pages/login_page.dart'; // FIXED: Use features-based login page
 import '../features/auth/presentation/pages/register_page.dart';
 import '../features/auth/presentation/pages/forgot_password_page.dart';
 import '../features/auth/presentation/screens/email_verification_screen.dart';
 import '../core/guards/email_verification_guard.dart';
 import '../debug/auth_debug_page.dart';
 import '../features/admin/presentation/pages/admin_login_page.dart';
+import '../core/theme/app_theme.dart';
+// Import missing pages
+import '../features/coffee/presentation/pages/product_detail_page.dart';
+import '../features/coffee/presentation/pages/coffee_list_page_wrapper.dart';
+import '../features/cart/presentation/pages/cart_page.dart';
+import '../features/cart/presentation/pages/guest_checkout_page.dart';
+import '../features/checkout/presentation/pages/checkout_page.dart';
+import '../features/checkout/presentation/pages/order_confirmation_page.dart';
+import '../features/checkout/presentation/pages/order_tracking_page.dart';
+import '../features/admin/presentation/pages/admin_dashboard_page.dart';
+import '../features/admin/presentation/pages/admin_orders_page.dart';
+import '../features/admin/presentation/pages/user_management_page.dart';
+import '../features/search/presentation/pages/search_results_page.dart';
+import '../features/account/presentation/pages/account_settings_page.dart';
+import '../features/account/presentation/pages/edit_profile_page.dart';
+import '../features/account/presentation/pages/change_password_page.dart';
+import '../features/account/presentation/pages/address_management_page.dart';
+import '../features/account/presentation/pages/payment_methods_page.dart';
+import '../features/coffee/presentation/pages/category_browse_page.dart';
+import '../features/coffee/presentation/pages/filter_sort_page.dart';
+import '../features/coffee/presentation/pages/reviews_page.dart';
+import '../features/coffee/presentation/pages/write_review_page.dart';
+import '../features/account/presentation/pages/loyalty_rewards_page.dart';
+import '../features/account/presentation/pages/referral_page.dart';
+import '../features/account/presentation/pages/subscription_management_page.dart';
 
 class AppRouter {
   static const String home = '/';
@@ -24,8 +49,27 @@ class AppRouter {
   static const String orders = '/orders';
   static const String coffee = '/coffee';
   static const String cart = '/cart';
+  static const String checkout = '/checkout';
+  static const String orderConfirmation = '/orderConfirmation';
+  static const String orderTracking = '/order-tracking';
   static const String admin = '/admin';
+  static const String adminDashboard = '/admin/dashboard';
   static const String adminUsers = '/admin/users';
+  static const String adminOrders = '/admin/orders';
+  static const String search = '/search';
+  static const String productDetail = '/product';
+  static const String accountSettings = '/account-settings';
+  static const String editProfile = '/edit-profile';
+  static const String changePassword = '/change-password';
+  static const String addressManagement = '/address-management';
+  static const String paymentMethods = '/payment-methods';
+  static const String categoryBrowse = '/category-browse';
+  static const String filterSort = '/filter-sort';
+  static const String reviews = '/reviews';
+  static const String writeReview = '/write-review';
+  static const String loyaltyRewards = '/loyalty-rewards';
+  static const String referral = '/referral';
+  static const String subscriptions = '/subscriptions';
   static const String debugAuth = '/debug/auth';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -73,23 +117,171 @@ class AppRouter {
         );
 
       case '/coffee':
+        return _buildRoute(const CoffeeListPageWrapper(), settings: settings);
+
+      case '/cart':
+        return _buildRoute(const CartPage(), settings: settings);
+
+      case '/guest-checkout':
+        return _buildRoute(const GuestCheckoutPage(), settings: settings);
+
+      case '/checkout':
         return _buildRoute(
-          _buildPlaceholderPage('Coffee Menu'),
+          const EmailVerificationGuard(child: CheckoutPage()),
           settings: settings,
         );
 
-      case '/cart':
+      case '/orderConfirmation':
+        final orderData = settings.arguments as Map<String, dynamic>?;
+        if (orderData == null) {
+          return _buildRoute(
+            _buildErrorPage('Order data not found'),
+            settings: settings,
+          );
+        }
         return _buildRoute(
-          _buildPlaceholderPage('Shopping Cart'),
+          OrderConfirmationPage(orderData: orderData),
+          settings: settings,
+        );
+
+      case '/order-tracking':
+        final orderNumber = settings.arguments as String?;
+        if (orderNumber == null) {
+          return _buildRoute(
+            _buildErrorPage('Order number not provided'),
+            settings: settings,
+          );
+        }
+        return _buildRoute(
+          OrderTrackingPage(orderNumber: orderNumber),
+          settings: settings,
+        );
+
+      case '/product':
+        final product = settings.arguments as dynamic;
+        if (product == null) {
+          return _buildRoute(
+            _buildErrorPage('Product not found'),
+            settings: settings,
+          );
+        }
+        return _buildRoute(
+          ProductDetailPage(product: product),
+          settings: settings,
+        );
+
+      case '/search':
+        final query = settings.arguments as String?;
+        return _buildRoute(
+          SearchResultsPage(initialQuery: query ?? ''),
           settings: settings,
         );
 
       case '/admin':
         return _buildRoute(const AdminLoginPage(), settings: settings);
 
+      case '/admin/dashboard':
+        return _buildRoute(
+          const EmailVerificationGuard(child: AdminDashboardPage()),
+          settings: settings,
+        );
+
       case '/admin/users':
         return _buildRoute(
-          _buildPlaceholderPage('User Management'),
+          const EmailVerificationGuard(child: UserManagementPage()),
+          settings: settings,
+        );
+
+      case '/admin/orders':
+        return _buildRoute(const AdminOrdersPage(), settings: settings);
+
+      case '/account-settings':
+        return _buildRoute(
+          const EmailVerificationGuard(child: AccountSettingsPage()),
+          settings: settings,
+        );
+
+      case '/edit-profile':
+        return _buildRoute(
+          const EmailVerificationGuard(child: EditProfilePage()),
+          settings: settings,
+        );
+
+      case '/change-password':
+        return _buildRoute(
+          const EmailVerificationGuard(child: ChangePasswordPage()),
+          settings: settings,
+        );
+
+      case '/address-management':
+        return _buildRoute(
+          const EmailVerificationGuard(child: AddressManagementPage()),
+          settings: settings,
+        );
+
+      case '/payment-methods':
+        return _buildRoute(
+          const EmailVerificationGuard(child: PaymentMethodsPage()),
+          settings: settings,
+        );
+
+      case '/category-browse':
+        final initialCategory = settings.arguments as String?;
+        return _buildRoute(
+          CategoryBrowsePage(initialCategory: initialCategory),
+          settings: settings,
+        );
+
+      case '/filter-sort':
+        final initialFilters = settings.arguments as Map<String, dynamic>?;
+        return _buildRoute(
+          FilterSortPage(initialFilters: initialFilters),
+          settings: settings,
+        );
+
+      case '/reviews':
+        final args = settings.arguments as Map<String, dynamic>?;
+        if (args == null ||
+            !args.containsKey('productId') ||
+            !args.containsKey('productName')) {
+          return _buildRoute(
+            _buildErrorPage('Product information not provided'),
+            settings: settings,
+          );
+        }
+        return _buildRoute(
+          ReviewsPage(
+            productId: args['productId'] as String,
+            productName: args['productName'] as String,
+          ),
+          settings: settings,
+        );
+
+      case '/write-review':
+        final args = settings.arguments as Map<String, dynamic>?;
+        return _buildRoute(
+          WriteReviewPage(
+            productId: args?['productId'] as String?,
+            productName: args?['productName'] as String?,
+          ),
+          settings: settings,
+        );
+
+      case '/loyalty-rewards':
+        return _buildRoute(
+          const EmailVerificationGuard(child: LoyaltyRewardsPage()),
+          settings: settings,
+        );
+
+      case '/referral':
+        return _buildRoute(
+          const EmailVerificationGuard(child: ReferralPage()),
+          settings: settings,
+        );
+
+      case '/subscriptions':
+        return _buildRoute(
+          const EmailVerificationGuard(child: SubscriptionManagementPage()),
           settings: settings,
         );
 
@@ -111,17 +303,14 @@ class AppRouter {
     );
   }
 
-  static Widget _buildPlaceholderPage(String pageName) {
+  static Widget _buildErrorPage(String message) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          pageName,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
+        title: const Text(
+          'Error',
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
-        backgroundColor: const Color(0xFF8B4513),
+        backgroundColor: const Color(0xFFA89A6A),
         foregroundColor: Colors.white,
         elevation: 0,
       ),
@@ -132,33 +321,20 @@ class AppRouter {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(
-                Icons.construction,
-                size: 80,
-                color: Color(0xFF8C8C8C),
-              ),
+              const Icon(Icons.error_outline, size: 80, color: Colors.red),
               const SizedBox(height: 24),
               Text(
-                pageName,
+                'Oops!',
                 style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF8B4513),
+                  color: Color(0xFFA89A6A),
                 ),
               ),
               const SizedBox(height: 16),
-              const Text(
-                'Coming Soon!',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w500,
-                  color: Color(0xFF5D5D5D),
-                ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'This page is under development and will be available soon.',
-                style: TextStyle(fontSize: 14, color: Color(0xFF8C8C8C)),
+              Text(
+                message,
+                style: const TextStyle(fontSize: 16, color: Color(0xFF5D5D5D)),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -175,7 +351,7 @@ class AppRouter {
           'Page Not Found',
           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
-        backgroundColor: const Color(0xFF8B4513),
+        backgroundColor: AppTheme.primaryBrown,
         foregroundColor: Colors.white,
         elevation: 0,
       ),
@@ -193,7 +369,7 @@ class AppRouter {
                 style: TextStyle(
                   fontSize: 48,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF8B4513),
+                  color: AppTheme.primaryBrown,
                 ),
               ),
               SizedBox(height: 16),

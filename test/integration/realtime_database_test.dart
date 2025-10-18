@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:qahwat_al_emarat/services/realtime_database_service.dart';
 import 'package:qahwat_al_emarat/models/coffee.dart';
 import 'package:qahwat_al_emarat/firebase_options.dart';
+import 'package:flutter/foundation.dart';
 
 void main() {
   group('Firebase Realtime Database Tests', () {
@@ -27,11 +28,11 @@ void main() {
       try {
         final coffees = await dbService.getCoffees();
         expect(coffees, isA<List<Coffee>>());
-        print(
+        debugPrint(
           'Successfully fetched ${coffees.length} coffees from Realtime Database',
         );
       } catch (e) {
-        print('Database connection test: $e');
+        debugPrint('Database connection test: $e');
         // Don't fail the test if database is empty or connection fails
         expect(e, isA<Exception>());
       }
@@ -54,19 +55,19 @@ void main() {
         // Add coffee to database
         final coffeeId = await dbService.addCoffee(testCoffee);
         expect(coffeeId, isNotNull);
-        print('Successfully added test coffee with ID: $coffeeId');
+        debugPrint('Successfully added test coffee with ID: $coffeeId');
 
         // Fetch the coffee back
         final fetchedCoffee = await dbService.getCoffee(coffeeId);
         expect(fetchedCoffee, isNotNull);
         expect(fetchedCoffee!.name, equals('Test Coffee'));
-        print('Successfully fetched test coffee: ${fetchedCoffee.name}');
+        debugPrint('Successfully fetched test coffee: ${fetchedCoffee.name}');
 
         // Clean up - delete the test coffee
         await dbService.deleteCoffee(coffeeId);
-        print('Successfully cleaned up test coffee');
+        debugPrint('Successfully cleaned up test coffee');
       } catch (e) {
-        print('Test coffee creation failed: $e');
+        debugPrint('Test coffee creation failed: $e');
         // Don't fail if we don't have write permissions
         expect(e, isA<Exception>());
       }

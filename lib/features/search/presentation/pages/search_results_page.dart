@@ -89,7 +89,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
         description: 'Premium Ethiopian coffee with floral notes',
         price: 45.0,
         imageUrl:
-            'https://via.placeholder.com/300x300/8B4513/FFFFFF?text=Ethiopian',
+            'https://via.placeholder.com/300x300/A89A6A/FFFFFF?text=Ethiopian',
         origin: 'Ethiopia',
         categories: ['Arabica'],
         rating: 4.8,
@@ -103,7 +103,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
         description: 'Traditional Yemeni coffee with chocolate undertones',
         price: 55.0,
         imageUrl:
-            'https://via.placeholder.com/300x300/8B4513/FFFFFF?text=Yemeni',
+            'https://via.placeholder.com/300x300/A89A6A/FFFFFF?text=Yemeni',
         origin: 'Yemen',
         categories: ['Traditional'],
         rating: 4.9,
@@ -117,7 +117,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
         description: 'Rich Colombian coffee with balanced acidity',
         price: 40.0,
         imageUrl:
-            'https://via.placeholder.com/300x300/8B4513/FFFFFF?text=Colombian',
+            'https://via.placeholder.com/300x300/A89A6A/FFFFFF?text=Colombian',
         origin: 'Colombia',
         categories: ['Arabica'],
         rating: 4.6,
@@ -131,7 +131,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
         description: 'Perfect espresso blend for your morning shot',
         price: 38.0,
         imageUrl:
-            'https://via.placeholder.com/300x300/8B4513/FFFFFF?text=Espresso',
+            'https://via.placeholder.com/300x300/A89A6A/FFFFFF?text=Espresso',
         origin: 'Brazil',
         categories: ['Espresso'],
         rating: 4.5,
@@ -145,7 +145,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
         description: 'Smooth cold brew coffee concentrate',
         price: 32.0,
         imageUrl:
-            'https://via.placeholder.com/300x300/8B4513/FFFFFF?text=Cold+Brew',
+            'https://via.placeholder.com/300x300/A89A6A/FFFFFF?text=Cold+Brew',
         origin: 'Guatemala',
         categories: ['Cold Brew'],
         rating: 4.4,

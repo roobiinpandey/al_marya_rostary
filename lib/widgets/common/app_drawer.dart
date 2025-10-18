@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
+import '../../core/theme/app_theme.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -15,8 +16,8 @@ class AppDrawer extends StatelessWidget {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFF8B4513), // primaryBrown
-              Color(0xFFD2691E), // primaryLightBrown
+              Color(0xFFA89A6A), // Almaryah olive gold
+              Color(0xFFCBBE8C), // Almaryah light gold
             ],
           ),
         ),
@@ -165,7 +166,7 @@ class AppDrawer extends StatelessWidget {
             child: Icon(
               Icons.person_outline,
               size: 50,
-              color: Color(0xFF8B4513),
+              color: Color(0xFFA89A6A), // Almaryah olive gold
             ),
           ),
           const SizedBox(height: 16),
@@ -185,7 +186,7 @@ class AppDrawer extends StatelessWidget {
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.white,
-              foregroundColor: const Color(0xFF8B4513),
+              foregroundColor: const Color(0xFFA89A6A), // Almaryah olive gold
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
               ),
@@ -335,10 +336,16 @@ class AppDrawer extends StatelessWidget {
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: const Color(0xFF8B4513).withValues(alpha: 0.1),
+          color: const Color(
+            0xFFA89A6A,
+          ).withValues(alpha: 0.1), // Almaryah olive gold
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Icon(icon, color: const Color(0xFF8B4513), size: 24),
+        child: Icon(
+          icon,
+          color: const Color(0xFFA89A6A),
+          size: 24,
+        ), // Almaryah olive gold
       ),
       title: Text(
         title,
@@ -413,7 +420,7 @@ class AppDrawer extends StatelessWidget {
                     icon: const Icon(Icons.login),
                     label: const Text('Sign In'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF8B4513),
+                      backgroundColor: AppTheme.primaryBrown,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -424,7 +431,7 @@ class AppDrawer extends StatelessWidget {
               ],
               const SizedBox(height: 16),
               Text(
-                'Qahwat Al Emarat v1.0.0',
+                'AlMaryah Rostery v1.0.0',
                 style: TextStyle(
                   fontSize: 12,
                   color: const Color(0xFF8C8C8C).withValues(alpha: 0.6),
@@ -458,12 +465,29 @@ class AppDrawer extends StatelessWidget {
           Flexible(
             child: ElevatedButton(
               onPressed: () async {
-                Navigator.pop(context); // Close dialog
-                Navigator.pop(context); // Close drawer
+                // Get navigator before async operations
+                final navigator = Navigator.of(context);
+                final rootNavigator = Navigator.of(
+                  context,
+                  rootNavigator: true,
+                );
+
+                // Close dialog and drawer
+                navigator.pop(); // Close dialog
+                navigator.pop(); // Close drawer
+
+                // Wait a frame for UI to settle
+                await Future.delayed(const Duration(milliseconds: 100));
+
+                // Perform logout
                 await authProvider.logout();
+
+                // Wait for logout to complete fully
+                await Future.delayed(const Duration(milliseconds: 100));
+
+                // Navigate to login (use root navigator to clear everything)
                 if (context.mounted) {
-                  Navigator.pushNamedAndRemoveUntil(
-                    context,
+                  rootNavigator.pushNamedAndRemoveUntil(
                     '/login',
                     (route) => false,
                   );
@@ -493,12 +517,12 @@ class AppDrawer extends StatelessWidget {
   void _showAboutDialog(BuildContext context) {
     showAboutDialog(
       context: context,
-      applicationName: 'Qahwat Al Emarat',
+      applicationName: 'AlMaryah Rostery',
       applicationVersion: '1.0.0',
       applicationIcon: const Icon(
         Icons.coffee,
         size: 48,
-        color: Color(0xFF8B4513),
+        color: Color(0xFFA89A6A),
       ),
       children: const [
         Text('Premium Coffee Experience'),

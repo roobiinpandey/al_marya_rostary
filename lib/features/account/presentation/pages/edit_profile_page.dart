@@ -199,7 +199,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
               backgroundImage: _selectedImage != null
                   ? FileImage(_selectedImage!)
                   : const NetworkImage(
-                          'https://via.placeholder.com/120x120/8B4513/FFFFFF?text=User',
+                          'https://via.placeholder.com/120x120/A89A6A/FFFFFF?text=User',
                         )
                         as ImageProvider,
               child: _selectedImage == null

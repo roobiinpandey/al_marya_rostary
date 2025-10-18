@@ -31,7 +31,7 @@ class AuthProvider extends ChangeNotifier {
   bool get isAuthenticated =>
       _state == AuthState.authenticated && _user != null;
   bool get hasError => _state == AuthState.error;
-  bool get isGuest => _user?.isAnonymous ?? false;
+  bool get isGuest => _isGuestMode;
   bool get isInitialized => _isInitialized;
 
   Future<void> _initializeAuthState() async {
@@ -66,27 +66,17 @@ class AuthProvider extends ChangeNotifier {
     return password.length >= 6;
   }
 
+  bool _isGuestMode = false;
+
   Future<void> loginAsGuest() async {
     try {
       _setState(AuthState.loading);
       _clearError();
 
-      // Generate a random guest email to ensure uniqueness
-      final guestId = DateTime.now().millisecondsSinceEpoch.toString();
-      final email = 'guest_$guestId@temp.com';
-      const password = 'GuestPass123!';
-
-      final response = await _authRepository.register(
-        name: 'Guest User',
-        email: email,
-        password: password,
-        confirmPassword: password,
-      );
-
-      _user = response.user;
-      _refreshToken = response.refreshToken;
-      _startSessionTimer();
-      _setState(AuthState.authenticated);
+      // Set guest mode flag - no account creation
+      _isGuestMode = true;
+      _user = null;
+      _setState(AuthState.unauthenticated);
     } catch (e) {
       _handleAuthError(e);
     }
@@ -160,19 +150,40 @@ class AuthProvider extends ChangeNotifier {
 
   Future<void> logout() async {
     try {
+      // First set loading state
       _setState(AuthState.loading);
-      await _authRepository.logout();
-      _clearAuthState();
+
+      // Cancel any active timers
+      _sessionTimer?.cancel();
+      _sessionTimer = null;
+
+      // Clear local state first
+      _user = null;
+      _refreshToken = null;
+      _isGuestMode = false;
+      _lastAuthTime = null;
+      _errorMessage = null;
+
+      // Then call repository logout (this might fail but we continue anyway)
+      try {
+        await _authRepository.logout();
+      } catch (e) {
+        debugPrint('Repository logout error (continuing anyway): $e');
+      }
+
+      // Finally set unauthenticated state
+      _setState(AuthState.unauthenticated);
     } catch (e) {
-      _clearAuthState();
+      // Even if there's an error, clear the auth state
+      _user = null;
+      _refreshToken = null;
+      _isGuestMode = false;
+      _lastAuthTime = null;
+      _sessionTimer?.cancel();
+      _sessionTimer = null;
+      _setState(AuthState.unauthenticated);
       debugPrint('Logout error: $e');
     }
-  }
-
-  void _clearAuthState() {
-    _user = null;
-    _refreshToken = null;
-    _setState(AuthState.unauthenticated);
   }
 
   Future<void> forgotPassword(String email) async {

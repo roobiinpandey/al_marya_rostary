@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/cart_provider.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/constants/app_constants.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 
 /// CartPage displays the user's selected coffee products for purchase
 class CartPage extends StatelessWidget {
@@ -378,26 +379,38 @@ class CartPage extends StatelessWidget {
               // Checkout Button
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).pushNamed('/checkout');
+                child: Consumer<AuthProvider>(
+                  builder: (context, authProvider, child) {
+                    return ElevatedButton(
+                      onPressed: () {
+                        // Route based on authentication status
+                        if (authProvider.isAuthenticated &&
+                            !authProvider.isGuest) {
+                          // Authenticated user → regular checkout
+                          Navigator.of(context).pushNamed('/checkout');
+                        } else {
+                          // Guest or unauthenticated → guest checkout
+                          Navigator.of(context).pushNamed('/guest-checkout');
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryBrown,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(12)),
+                        ),
+                        elevation: 2,
+                      ),
+                      child: Text(
+                        'Proceed to Checkout',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    );
                   },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryBrown,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(12)),
-                    ),
-                    elevation: 2,
-                  ),
-                  child: Text(
-                    'Proceed to Checkout',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
                 ),
               ),
 

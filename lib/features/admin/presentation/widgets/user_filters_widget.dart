@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/admin_user_provider.dart';
+import '../../../../core/theme/app_theme.dart';
 
 class UserFiltersWidget extends StatefulWidget {
   const UserFiltersWidget({Key? key}) : super(key: key);
@@ -151,7 +152,7 @@ class _UserFiltersWidgetState extends State<UserFiltersWidget> {
                     icon: const Icon(Icons.search),
                     label: const Text('Search'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.brown[600],
+                      backgroundColor: AppTheme.primaryBrown,
                       foregroundColor: Colors.white,
                     ),
                   ),

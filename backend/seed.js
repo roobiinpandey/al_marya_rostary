@@ -13,7 +13,7 @@ const sampleCategories = [
       en: 'Traditional hot coffee beverages',
       ar: 'مشروبات القهوة الساخنة التقليدية'
     },
-    color: '#8B4513',
+    color: '#A89A6A',
     displayOrder: 1
   },
   {

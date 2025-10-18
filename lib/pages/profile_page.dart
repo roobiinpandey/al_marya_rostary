@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import '../core/theme/app_theme.dart';
 import '../features/auth/presentation/providers/auth_provider.dart';
 
 class ProfilePage extends StatelessWidget {
@@ -33,7 +34,7 @@ class _ProfilePageWrapper extends StatelessWidget {
             'Profile',
             style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
           ),
-          backgroundColor: const Color(0xFF8B4513),
+          backgroundColor: AppTheme.primaryBrown,
           foregroundColor: Colors.white,
         ),
         body: Center(
@@ -129,7 +130,7 @@ class _ProfilePageContentState extends State<_ProfilePageContent> {
           'Profile',
           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
-        backgroundColor: const Color(0xFF8B4513), // primaryBrown
+        backgroundColor: AppTheme.primaryBrown, // primaryBrown
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
@@ -151,7 +152,7 @@ class _ProfilePageContentState extends State<_ProfilePageContent> {
           // Handle loading state
           if (!authProvider.isInitialized) {
             return const Center(
-              child: CircularProgressIndicator(color: Color(0xFF8B4513)),
+              child: CircularProgressIndicator(color: AppTheme.primaryBrown),
             );
           }
 
@@ -217,10 +218,14 @@ class _ProfilePageContentState extends State<_ProfilePageContent> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  Navigator.pushNamed(context, '/login');
+                  // Replace entire stack with login page for clean navigation
+                  Navigator.of(
+                    context,
+                    rootNavigator: true,
+                  ).pushNamedAndRemoveUntil('/login', (route) => false);
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF8B4513),
+                  backgroundColor: AppTheme.primaryBrown,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
@@ -260,7 +265,7 @@ class _ProfilePageContentState extends State<_ProfilePageContent> {
             children: [
               CircleAvatar(
                 radius: 50,
-                backgroundColor: const Color(0xFF8B4513).withValues(alpha: 0.1),
+                backgroundColor: AppTheme.primaryBrown.withValues(alpha: 0.1),
                 backgroundImage: _selectedImage != null
                     ? FileImage(_selectedImage!)
                     : (user.avatar?.isNotEmpty == true
@@ -270,7 +275,7 @@ class _ProfilePageContentState extends State<_ProfilePageContent> {
                     ? const Icon(
                         Icons.person,
                         size: 50,
-                        color: Color(0xFF8B4513),
+                        color: AppTheme.primaryBrown,
                       )
                     : null,
               ),
@@ -315,7 +320,7 @@ class _ProfilePageContentState extends State<_ProfilePageContent> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: const Color(0xFF8B4513).withValues(alpha: 0.1),
+                color: AppTheme.primaryBrown.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
@@ -323,7 +328,7 @@ class _ProfilePageContentState extends State<_ProfilePageContent> {
                 style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF8B4513),
+                  color: AppTheme.primaryBrown,
                 ),
               ),
             ),
@@ -540,7 +545,7 @@ class _ProfilePageContentState extends State<_ProfilePageContent> {
         labelText: label,
         prefixIcon: Icon(
           icon,
-          color: enabled ? const Color(0xFF8B4513) : const Color(0xFF8C8C8C),
+          color: enabled ? AppTheme.primaryBrown : const Color(0xFF8C8C8C),
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -548,7 +553,7 @@ class _ProfilePageContentState extends State<_ProfilePageContent> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF8B4513)),
+          borderSide: const BorderSide(color: AppTheme.primaryBrown),
         ),
         disabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -570,10 +575,10 @@ class _ProfilePageContentState extends State<_ProfilePageContent> {
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: const Color(0xFF8B4513).withValues(alpha: 0.1),
+          color: AppTheme.primaryBrown.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Icon(icon, color: const Color(0xFF8B4513), size: 20),
+        child: Icon(icon, color: AppTheme.primaryBrown, size: 20),
       ),
       title: Text(
         title,
@@ -603,14 +608,10 @@ class _ProfilePageContentState extends State<_ProfilePageContent> {
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: (textColor ?? const Color(0xFF8B4513)).withValues(alpha: 0.1),
+          color: (textColor ?? AppTheme.primaryBrown).withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Icon(
-          icon,
-          color: textColor ?? const Color(0xFF8B4513),
-          size: 20,
-        ),
+        child: Icon(icon, color: textColor ?? AppTheme.primaryBrown, size: 20),
       ),
       title: Text(
         title,
@@ -642,8 +643,8 @@ class _ProfilePageContentState extends State<_ProfilePageContent> {
               });
             },
             style: OutlinedButton.styleFrom(
-              foregroundColor: const Color(0xFF8B4513),
-              side: const BorderSide(color: Color(0xFF8B4513)),
+              foregroundColor: AppTheme.primaryBrown,
+              side: const BorderSide(color: AppTheme.primaryBrown),
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -660,7 +661,7 @@ class _ProfilePageContentState extends State<_ProfilePageContent> {
           child: ElevatedButton(
             onPressed: _isLoading ? null : _saveProfile,
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF8B4513),
+              backgroundColor: AppTheme.primaryBrown,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
@@ -785,14 +786,23 @@ class _ProfilePageContentState extends State<_ProfilePageContent> {
           ),
           ElevatedButton(
             onPressed: () async {
-              Navigator.pop(context); // Close dialog
+              // Get navigator before async operations
+              final navigator = Navigator.of(context, rootNavigator: true);
+
+              navigator.pop(); // Close dialog
+
+              // Wait a frame for UI to settle
+              await Future.delayed(const Duration(milliseconds: 100));
+
+              // Perform logout
               await authProvider.logout();
+
+              // Wait for logout to complete fully
+              await Future.delayed(const Duration(milliseconds: 100));
+
+              // Navigate to login
               if (context.mounted) {
-                Navigator.pushNamedAndRemoveUntil(
-                  context,
-                  '/login',
-                  (route) => false,
-                );
+                navigator.pushNamedAndRemoveUntil('/login', (route) => false);
               }
             },
             style: ElevatedButton.styleFrom(

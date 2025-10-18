@@ -19,7 +19,7 @@ class AdminSidebar extends StatelessWidget {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha:0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(2, 0),
           ),
@@ -63,7 +63,9 @@ class AdminSidebar extends StatelessWidget {
                         Text(
                           'Qahwat Al Emarat',
                           style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: Colors.white.withValues(alpha:0.8)),
+                              ?.copyWith(
+                                color: Colors.white.withValues(alpha: 0.8),
+                              ),
                         ),
                       ],
                     ),
@@ -217,18 +219,37 @@ class AdminSidebar extends StatelessWidget {
                   IconButton(
                     icon: const Icon(Icons.logout, size: 20),
                     onPressed: () async {
+                      // Get navigator before async operations
+                      final navigator = Navigator.of(
+                        context,
+                        rootNavigator: true,
+                      );
+                      final messenger = ScaffoldMessenger.of(context);
+
                       final authProvider = Provider.of<AuthProvider>(
                         context,
                         listen: false,
                       );
+
+                      // Wait a frame for UI to settle
+                      await Future.delayed(const Duration(milliseconds: 100));
+
+                      // Perform logout
                       await authProvider.logout();
+
+                      // Wait for logout to complete fully
+                      await Future.delayed(const Duration(milliseconds: 100));
+
                       if (context.mounted) {
-                        Navigator.of(
-                          context,
-                        ).pushNamedAndRemoveUntil('/login', (route) => false);
-                        ScaffoldMessenger.of(context).showSnackBar(
+                        navigator.pushNamedAndRemoveUntil(
+                          '/login',
+                          (route) => false,
+                        );
+
+                        messenger.showSnackBar(
                           const SnackBar(
                             content: Text('Signed out successfully'),
+                            duration: Duration(seconds: 2),
                           ),
                         );
                       }
@@ -255,7 +276,9 @@ class AdminSidebar extends StatelessWidget {
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        color: isSelected ? AppTheme.primaryLightBrown.withValues(alpha:0.1) : null,
+        color: isSelected
+            ? AppTheme.primaryLightBrown.withValues(alpha: 0.1)
+            : null,
         child: Row(
           children: [
             Icon(

@@ -3,7 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-import 'core/theme/app_theme.dart';
+import 'core/theme/almaryah_theme.dart';
 import 'utils/app_router.dart';
 import 'features/cart/presentation/providers/cart_provider.dart';
 import 'features/admin/presentation/providers/admin_provider.dart';
@@ -14,6 +14,7 @@ import 'data/datasources/firebase_auth_service.dart';
 import 'features/coffee/presentation/providers/coffee_provider.dart';
 import 'features/splash/presentation/pages/splash_page.dart';
 import 'core/providers/language_provider.dart';
+import 'providers/location_provider.dart';
 import 'l10n/app_localizations.dart';
 
 void main() async {
@@ -48,6 +49,9 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (context) => AdminProvider()),
         ChangeNotifierProvider(create: (context) => AdminUserProvider()),
         ChangeNotifierProvider(create: (context) => CoffeeProvider()),
+        ChangeNotifierProvider(
+          create: (context) => LocationProvider()..initialize(),
+        ),
       ],
       child: Consumer<LanguageProvider>(
         builder: (context, languageProvider, child) {
@@ -58,8 +62,10 @@ class MyApp extends StatelessWidget {
           }
 
           return MaterialApp(
-            title: 'Al Marya Rostery',
-            theme: AppTheme.lightTheme,
+            title: 'ALMARYAH ROSTERY',
+            theme: AlmaryahTheme.light,
+            darkTheme: AlmaryahTheme.dark,
+            themeMode: ThemeMode.system,
             locale: languageProvider.locale,
             localizationsDelegates: [
               AppLocalizations.delegate,

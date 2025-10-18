@@ -4,8 +4,14 @@ import '../../../../core/theme/app_theme.dart';
 /// OrderTrackingPage displays real-time order tracking information
 class OrderTrackingPage extends StatefulWidget {
   final String orderNumber;
+  final Map<String, dynamic>?
+  orderData; // Optional order data with customer info
 
-  const OrderTrackingPage({super.key, required this.orderNumber});
+  const OrderTrackingPage({
+    super.key,
+    required this.orderNumber,
+    this.orderData,
+  });
 
   @override
   State<OrderTrackingPage> createState() => _OrderTrackingPageState();
@@ -324,6 +330,24 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
   }
 
   Widget _buildDeliveryDetails() {
+    // Extract delivery info from orderData structure
+    final shippingAddress =
+        widget.orderData?['shippingAddress'] as Map<String, dynamic>?;
+
+    final customerName = shippingAddress?['name'] as String? ?? 'John Doe';
+    final address =
+        shippingAddress?['address'] as String? ?? '123 Sheikh Zayed Road';
+    final city = shippingAddress?['city'] as String? ?? 'Dubai Marina';
+    final emirate = shippingAddress?['emirate'] as String? ?? 'Dubai';
+    final phone = shippingAddress?['phone'] as String? ?? '+971 50 123 4567';
+
+    // Format city display
+    final fullCity = emirate.isNotEmpty ? '$city, $emirate' : city;
+
+    final deliveryInstructions =
+        widget.orderData?['deliveryInstructions'] as String? ??
+        'Please call when you arrive.';
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -353,13 +377,13 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'John Doe',
-                        style: TextStyle(fontWeight: FontWeight.w600),
+                      Text(
+                        customerName,
+                        style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
-                      const Text('123 Sheikh Zayed Road'),
-                      const Text('Dubai Marina, Dubai'),
-                      const Text('+971 50 123 4567'),
+                      Text(address),
+                      Text(fullCity),
+                      Text(phone),
                     ],
                   ),
                 ),
@@ -385,7 +409,7 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
                         style: TextStyle(fontWeight: FontWeight.w600),
                       ),
                       Text(
-                        'Please call when you arrive. Building entrance is from the back.',
+                        deliveryInstructions,
                         style: TextStyle(color: AppTheme.textMedium),
                       ),
                     ],

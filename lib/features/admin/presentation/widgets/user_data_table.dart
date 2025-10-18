@@ -4,6 +4,7 @@ import '../providers/admin_user_provider.dart';
 import '../../data/models/admin_user_model.dart';
 import '../dialogs/user_edit_dialog.dart';
 import '../dialogs/user_delete_dialog.dart';
+import '../../../../core/theme/app_theme.dart';
 
 class UserDataTable extends StatelessWidget {
   const UserDataTable({Key? key}) : super(key: key);
@@ -90,7 +91,9 @@ class UserDataTable extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 20,
-                backgroundColor: Colors.brown[100],
+                backgroundColor: AppTheme.primaryLightBrown.withValues(
+                  alpha: 0.3,
+                ),
                 backgroundImage: user.avatar != null
                     ? NetworkImage(user.avatar!)
                     : null,
@@ -98,7 +101,7 @@ class UserDataTable extends StatelessWidget {
                     ? Text(
                         user.name.isNotEmpty ? user.name[0].toUpperCase() : '?',
                         style: TextStyle(
-                          color: Colors.brown[600],
+                          color: AppTheme.primaryBrown,
                           fontWeight: FontWeight.bold,
                         ),
                       )

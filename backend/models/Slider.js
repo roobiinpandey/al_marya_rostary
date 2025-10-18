@@ -29,7 +29,7 @@ const sliderSchema = new mongoose.Schema({
   },
   backgroundColor: {
     type: String,
-    default: '#8B4513' // Default coffee brown
+    default: '#A89A6A' // Default coffee brown
   },
   textColor: {
     type: String,

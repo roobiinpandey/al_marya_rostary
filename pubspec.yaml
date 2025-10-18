@@ -1,5 +1,5 @@
 name: qahwat_al_emarat
-description: Al Marya Rostery - Premium Coffee App
+description: ALMARYAH ROSTERY - Premium Coffee Experience
 
 publish_to: 'none'
 version: 1.0.0+1
@@ -36,6 +36,11 @@ dependencies:
   cached_network_image: ^3.4.1
   image_picker: ^1.1.2
   
+  # Location Services
+  geolocator: ^13.0.2
+  geocoding: ^3.0.0
+  permission_handler: ^11.3.1
+  
   # Firebase
   firebase_core: ^3.6.0
   firebase_auth: ^5.3.1
@@ -65,16 +70,43 @@ flutter:
     - assets/images/products/
     - assets/icons/
 
+  # fonts:
+    # Uncomment when font files are added to assets/fonts/
+    # - family: PlayfairDisplay
+    #   fonts:
+    #     - asset: assets/fonts/PlayfairDisplay-Regular.ttf
+    #     - asset: assets/fonts/PlayfairDisplay-Medium.ttf
+    #       weight: 500
+    #     - asset: assets/fonts/PlayfairDisplay-SemiBold.ttf
+    #       weight: 600
+    #     - asset: assets/fonts/PlayfairDisplay-Bold.ttf
+    #       weight: 700
+    # - family: Lato
+    #   fonts:
+    #     - asset: assets/fonts/Lato-Regular.ttf
+    #     - asset: assets/fonts/Lato-Medium.ttf
+    #       weight: 500
+    #     - asset: assets/fonts/Lato-SemiBold.ttf
+    #       weight: 600
+    #     - asset: assets/fonts/Lato-Bold.ttf
+    #       weight: 700
+
 flutter_launcher_icons:
   android: "launcher_icon"
-  ios: true
   image_path: "assets/images/common/logo.png"
   min_sdk_android: 21
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/images/common/logo.png"
+  remove_alpha_ios: true
+  ios:
+    generate: true
+    image_path: "assets/images/common/logo.png"
+    background_color: "#FFFFFF"
   web:
     generate: true
     image_path: "assets/images/common/logo.png"
-    background_color: "#8B4513"
-    theme_color: "#8B4513"
+    background_color: "#FFFFFF"
+    theme_color: "#A89A6A"
   windows:
     generate: true
     image_path: "assets/images/common/logo.png"

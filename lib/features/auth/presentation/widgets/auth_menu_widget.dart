@@ -85,16 +85,35 @@ class AuthMenuWidget extends StatelessWidget {
               ),
             ),
             onTap: () async {
+              // Get navigator before async operations
+              final navigator = Navigator.of(context, rootNavigator: true);
+              final messenger = ScaffoldMessenger.of(context);
+
+              // Call callback first
               onActionPerformed?.call();
+
+              // Wait a frame for UI to settle
+              await Future.delayed(const Duration(milliseconds: 100));
+
+              // Perform logout
               await authProvider.logout();
+
+              // Wait for logout to complete fully
+              await Future.delayed(const Duration(milliseconds: 100));
+
+              // Navigate to login (use root navigator to clear everything)
               if (context.mounted) {
-                Navigator.of(
-                  context,
-                ).pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
-                ScaffoldMessenger.of(context).showSnackBar(
+                navigator.pushNamedAndRemoveUntil(
+                  AppRoutes.login,
+                  (route) => false,
+                );
+
+                // Show success message
+                messenger.showSnackBar(
                   const SnackBar(
                     content: Text('Signed out successfully'),
                     backgroundColor: AppTheme.primaryBrown,
+                    duration: Duration(seconds: 2),
                   ),
                 );
               }
@@ -129,7 +148,11 @@ class AuthMenuWidget extends StatelessWidget {
             ),
             onTap: () {
               onActionPerformed?.call();
-              Navigator.pushNamed(context, AppRoutes.login);
+              // Replace entire stack with login page for clean navigation
+              Navigator.of(
+                context,
+                rootNavigator: true,
+              ).pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
             },
           ),
           // Sign Up option
@@ -144,7 +167,11 @@ class AuthMenuWidget extends StatelessWidget {
             ),
             onTap: () {
               onActionPerformed?.call();
-              Navigator.pushNamed(context, AppRoutes.register);
+              // Replace entire stack with register page for clean navigation
+              Navigator.of(
+                context,
+                rootNavigator: true,
+              ).pushNamedAndRemoveUntil(AppRoutes.register, (route) => false);
             },
           ),
         ],
@@ -201,18 +228,36 @@ class AuthMenuWidget extends StatelessWidget {
         }
         break;
       case 'logout':
+        // Wait a frame for UI to settle
+        await Future.delayed(const Duration(milliseconds: 100));
+
+        // Perform logout
         await authProvider.logout();
+
+        // Wait for logout to complete fully
+        await Future.delayed(const Duration(milliseconds: 100));
+
+        // Navigate to login
         if (context.mounted) {
           Navigator.of(
             context,
+            rootNavigator: true,
           ).pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
         }
         break;
       case 'signin':
-        Navigator.of(context).pushNamed(AppRoutes.login);
+        // Replace entire stack with login page for clean navigation
+        Navigator.of(
+          context,
+          rootNavigator: true,
+        ).pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
         break;
       case 'signup':
-        Navigator.of(context).pushNamed(AppRoutes.register);
+        // Replace entire stack with register page for clean navigation
+        Navigator.of(
+          context,
+          rootNavigator: true,
+        ).pushNamedAndRemoveUntil(AppRoutes.register, (route) => false);
         break;
     }
   }

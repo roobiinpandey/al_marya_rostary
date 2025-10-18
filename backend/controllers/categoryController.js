@@ -115,7 +115,7 @@ const createCategory = async (req, res) => {
       },
       image: req.body.image,
       icon: req.body.icon,
-      color: req.body.color || '#8B4513',
+      color: req.body.color || '#A89A6A',
       isActive: req.body.isActive !== undefined ? req.body.isActive : true,
       displayOrder: req.body.displayOrder || 0,
       parentCategory: req.body.parentCategory || null

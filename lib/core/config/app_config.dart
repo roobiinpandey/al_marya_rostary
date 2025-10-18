@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
+import '../constants/app_constants.dart';
 
 class AppConfig {
   static const String appName = 'Al Marya Rostery';
   static const String appVersion = '1.0.0';
 
-  // API Configuration
-  static const String baseUrl = 'https://***REMOVED***.onrender.com';
-  static const String apiUrl = '$baseUrl/api';
+  // API Configuration - Uses AppConstants for environment-aware URLs
+  static String get baseUrl => AppConstants.baseUrl;
+  static String get apiUrl => '$baseUrl/api';
   static const Duration apiTimeout = Duration(seconds: 30);
 
   // Colors
-  static const Color primaryColor = Color(0xFF8B4513);
+  static const Color primaryColor = Color(0xFFA89A6A);
   static const Color secondaryColor = Color(0xFFD2691E);
   static const Color accentColor = Color(0xFFF4A460);
   static const Color backgroundColor = Color(0xFFFFF8DC);

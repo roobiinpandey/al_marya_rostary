@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import '../core/theme/app_theme.dart';
 
 class OrdersPage extends StatefulWidget {
   const OrdersPage({super.key});
@@ -41,7 +42,7 @@ class _OrdersPageState extends State<OrdersPage>
               quantity: 2,
               price: 25.00,
               imageUrl:
-                  'https://via.placeholder.com/100x100/8B4513/FFFFFF?text=Qahwa',
+                  'https://via.placeholder.com/100x100/A89A6A/FFFFFF?text=Qahwa',
             ),
             OrderItem(
               id: '2',
@@ -49,7 +50,7 @@ class _OrdersPageState extends State<OrdersPage>
               quantity: 1,
               price: 15.00,
               imageUrl:
-                  'https://via.placeholder.com/100x100/8B4513/FFFFFF?text=Dates',
+                  'https://via.placeholder.com/100x100/A89A6A/FFFFFF?text=Dates',
             ),
           ],
           status: OrderStatus.delivered,
@@ -68,7 +69,7 @@ class _OrdersPageState extends State<OrdersPage>
               quantity: 1,
               price: 18.00,
               imageUrl:
-                  'https://via.placeholder.com/100x100/8B4513/FFFFFF?text=Cold+Brew',
+                  'https://via.placeholder.com/100x100/A89A6A/FFFFFF?text=Cold+Brew',
             ),
           ],
           status: OrderStatus.inProgress,
@@ -87,7 +88,7 @@ class _OrdersPageState extends State<OrdersPage>
               quantity: 3,
               price: 22.00,
               imageUrl:
-                  'https://via.placeholder.com/100x100/8B4513/FFFFFF?text=Mocha',
+                  'https://via.placeholder.com/100x100/A89A6A/FFFFFF?text=Mocha',
             ),
           ],
           status: OrderStatus.pending,
@@ -106,7 +107,7 @@ class _OrdersPageState extends State<OrdersPage>
               quantity: 1,
               price: 20.00,
               imageUrl:
-                  'https://via.placeholder.com/100x100/8B4513/FFFFFF?text=Turkish',
+                  'https://via.placeholder.com/100x100/A89A6A/FFFFFF?text=Turkish',
             ),
           ],
           status: OrderStatus.cancelled,
@@ -154,7 +155,7 @@ class _OrdersPageState extends State<OrdersPage>
           'Order History',
           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
-        backgroundColor: const Color(0xFF8B4513), // primaryBrown
+        backgroundColor: AppTheme.primaryBrown, // primaryBrown
         foregroundColor: Colors.white,
         elevation: 0,
         bottom: TabBar(
@@ -176,7 +177,7 @@ class _OrdersPageState extends State<OrdersPage>
       backgroundColor: const Color(0xFFF5F5F5), // backgroundLight
       body: _isLoading
           ? const Center(
-              child: CircularProgressIndicator(color: Color(0xFF8B4513)),
+              child: CircularProgressIndicator(color: AppTheme.primaryBrown),
             )
           : TabBarView(
               controller: _tabController,
@@ -262,7 +263,7 @@ class _OrdersPageState extends State<OrdersPage>
               Navigator.pushNamed(context, '/coffee');
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF8B4513),
+              backgroundColor: AppTheme.primaryBrown,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -329,7 +330,7 @@ class _OrdersPageState extends State<OrdersPage>
                     '+${order.items.length - 2} more items',
                     style: const TextStyle(
                       fontSize: 12,
-                      color: Color(0xFF8B4513),
+                      color: AppTheme.primaryBrown,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -356,7 +357,7 @@ class _OrdersPageState extends State<OrdersPage>
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF8B4513), // primaryBrown
+                          color: AppTheme.primaryBrown, // primaryBrown
                         ),
                       ),
                     ],
@@ -411,7 +412,7 @@ class _OrdersPageState extends State<OrdersPage>
                 color: const Color(0xFFF0F0F0),
                 child: const Icon(
                   Icons.coffee,
-                  color: Color(0xFF8B4513),
+                  color: AppTheme.primaryBrown,
                   size: 20,
                 ),
               ),
@@ -421,7 +422,7 @@ class _OrdersPageState extends State<OrdersPage>
                 color: const Color(0xFFF0F0F0),
                 child: const Icon(
                   Icons.coffee,
-                  color: Color(0xFF8B4513),
+                  color: AppTheme.primaryBrown,
                   size: 20,
                 ),
               ),
@@ -471,25 +472,25 @@ class _OrdersPageState extends State<OrdersPage>
 
     switch (status) {
       case OrderStatus.pending:
-        backgroundColor = Colors.orange.withValues(alpha:0.1);
+        backgroundColor = Colors.orange.withValues(alpha: 0.1);
         textColor = Colors.orange;
         label = 'Pending';
         icon = Icons.pending;
         break;
       case OrderStatus.inProgress:
-        backgroundColor = Colors.blue.withValues(alpha:0.1);
+        backgroundColor = Colors.blue.withValues(alpha: 0.1);
         textColor = Colors.blue;
         label = 'In Progress';
         icon = Icons.hourglass_empty;
         break;
       case OrderStatus.delivered:
-        backgroundColor = Colors.green.withValues(alpha:0.1);
+        backgroundColor = Colors.green.withValues(alpha: 0.1);
         textColor = Colors.green;
         label = 'Delivered';
         icon = Icons.check_circle;
         break;
       case OrderStatus.cancelled:
-        backgroundColor = Colors.red.withValues(alpha:0.1);
+        backgroundColor = Colors.red.withValues(alpha: 0.1);
         textColor = Colors.red;
         label = 'Cancelled';
         icon = Icons.cancel;
@@ -661,7 +662,7 @@ class _OrdersPageState extends State<OrdersPage>
                             _trackOrder(order);
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF8B4513),
+                            backgroundColor: AppTheme.primaryBrown,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
@@ -686,7 +687,7 @@ class _OrdersPageState extends State<OrdersPage>
                             _reorder(order);
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF8B4513),
+                            backgroundColor: AppTheme.primaryBrown,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
@@ -788,7 +789,7 @@ class _OrdersPageState extends State<OrdersPage>
                 fontSize: isTotal ? 16 : 14,
                 fontWeight: isTotal ? FontWeight.bold : FontWeight.w500,
                 color: isTotal
-                    ? const Color(0xFF8B4513)
+                    ? AppTheme.primaryBrown
                     : const Color(0xFF2E2E2E),
               ),
             ),
@@ -819,13 +820,13 @@ class _OrdersPageState extends State<OrdersPage>
                 width: 50,
                 height: 50,
                 color: const Color(0xFFF0F0F0),
-                child: const Icon(Icons.coffee, color: Color(0xFF8B4513)),
+                child: const Icon(Icons.coffee, color: AppTheme.primaryBrown),
               ),
               errorWidget: (context, url, error) => Container(
                 width: 50,
                 height: 50,
                 color: const Color(0xFFF0F0F0),
-                child: const Icon(Icons.coffee, color: Color(0xFF8B4513)),
+                child: const Icon(Icons.coffee, color: AppTheme.primaryBrown),
               ),
             ),
           ),
@@ -864,7 +865,7 @@ class _OrdersPageState extends State<OrdersPage>
             style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: Color(0xFF8B4513),
+              color: AppTheme.primaryBrown,
             ),
           ),
         ],
@@ -877,7 +878,7 @@ class _OrdersPageState extends State<OrdersPage>
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Tracking order #${order.id}...'),
-        backgroundColor: const Color(0xFF8B4513),
+        backgroundColor: AppTheme.primaryBrown,
       ),
     );
   }
@@ -907,7 +908,7 @@ class _OrdersPageState extends State<OrdersPage>
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF8B4513),
+                backgroundColor: AppTheme.primaryBrown,
                 foregroundColor: Colors.white,
               ),
               child: const Text('Add to Cart', overflow: TextOverflow.ellipsis),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../core/providers/language_provider.dart';
 import '../core/utils/i18n_utils.dart';
+import '../core/theme/app_theme.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -31,7 +32,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 color: Colors.white,
               ),
             ),
-            backgroundColor: const Color(0xFF8B4513), // primaryBrown
+            backgroundColor: AppTheme.primaryBrown, // primaryBrown
             foregroundColor: Colors.white,
             elevation: 0,
           ),
@@ -71,12 +72,12 @@ class _SettingsPageState extends State<SettingsPage> {
                     secondary: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF8B4513).withValues(alpha: 0.1),
+                        color: AppTheme.primaryBrown.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: const Icon(
                         Icons.notifications,
-                        color: Color(0xFF8B4513),
+                        color: AppTheme.primaryBrown,
                       ),
                     ),
                     title: const Text('Enable Notifications'),
@@ -96,10 +97,13 @@ class _SettingsPageState extends State<SettingsPage> {
                     secondary: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF8B4513).withValues(alpha: 0.1),
+                        color: AppTheme.primaryBrown.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Icon(Icons.email, color: Color(0xFF8B4513)),
+                      child: const Icon(
+                        Icons.email,
+                        color: AppTheme.primaryBrown,
+                      ),
                     ),
                     title: const Text('Email Notifications'),
                     subtitle: const Text('Order updates and promotions'),
@@ -116,12 +120,12 @@ class _SettingsPageState extends State<SettingsPage> {
                     secondary: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF8B4513).withValues(alpha: 0.1),
+                        color: AppTheme.primaryBrown.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: const Icon(
                         Icons.push_pin,
-                        color: Color(0xFF8B4513),
+                        color: AppTheme.primaryBrown,
                       ),
                     ),
                     title: const Text('Push Notifications'),
@@ -145,12 +149,12 @@ class _SettingsPageState extends State<SettingsPage> {
                     secondary: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF8B4513).withValues(alpha: 0.1),
+                        color: AppTheme.primaryBrown.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Icon(
                         _darkModeEnabled ? Icons.dark_mode : Icons.light_mode,
-                        color: const Color(0xFF8B4513),
+                        color: AppTheme.primaryBrown,
                       ),
                     ),
                     title: const Text('Dark Mode'),
@@ -183,7 +187,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           ),
                           child: const Icon(
                             Icons.text_fields,
-                            color: Color(0xFF8B4513),
+                            color: AppTheme.primaryBrown,
                           ),
                         ),
                         const SizedBox(width: 16),
@@ -214,7 +218,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                       min: 12.0,
                                       max: 20.0,
                                       divisions: 4,
-                                      activeColor: const Color(0xFF8B4513),
+                                      activeColor: AppTheme.primaryBrown,
                                       onChanged: (double value) {
                                         setState(() {
                                           _fontSize = value;
@@ -251,7 +255,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 // Language & Region Section
                 _buildSectionCard(context.l10n.language, [
                   ListTile(
-                    leading: Icon(Icons.language, color: Color(0xFF8B4513)),
+                    leading: Icon(Icons.language, color: AppTheme.primaryBrown),
                     title: Text(context.l10n.selectLanguage),
                     trailing: DropdownButton<String>(
                       value: languageProvider.locale.languageCode,
@@ -277,12 +281,12 @@ class _SettingsPageState extends State<SettingsPage> {
                     leading: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF8B4513).withValues(alpha: 0.1),
+                        color: AppTheme.primaryBrown.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Icon(
                         Icons.attach_money,
-                        color: const Color(0xFF8B4513),
+                        color: AppTheme.primaryBrown,
                       ),
                     ),
                     title: Text(
@@ -298,14 +302,14 @@ class _SettingsPageState extends State<SettingsPage> {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF8B4513).withValues(alpha: 0.1),
+                        color: AppTheme.primaryBrown.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
                         'AED',
                         style: TextStyle(
                           fontWeight: FontWeight.w500,
-                          color: Color(0xFF8B4513),
+                          color: AppTheme.primaryBrown,
                         ),
                       ),
                     ),
@@ -320,12 +324,12 @@ class _SettingsPageState extends State<SettingsPage> {
                     secondary: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF8B4513).withValues(alpha: 0.1),
+                        color: AppTheme.primaryBrown.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: const Icon(
                         Icons.volume_up,
-                        color: Color(0xFF8B4513),
+                        color: AppTheme.primaryBrown,
                       ),
                     ),
                     title: const Text('Sound Effects'),
@@ -391,7 +395,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       _saveSettings();
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF8B4513),
+                      backgroundColor: AppTheme.primaryBrown,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
@@ -453,10 +457,10 @@ class _SettingsPageState extends State<SettingsPage> {
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: const Color(0xFF8B4513).withValues(alpha: 0.1),
+          color: AppTheme.primaryBrown.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Icon(icon, color: const Color(0xFF8B4513)),
+        child: Icon(icon, color: AppTheme.primaryBrown),
       ),
       title: Text(
         title,
@@ -582,7 +586,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF8B4513),
+                backgroundColor: AppTheme.primaryBrown,
                 foregroundColor: Colors.white,
               ),
               child: const Text('Send', overflow: TextOverflow.ellipsis),
@@ -601,7 +605,7 @@ class _SettingsPageState extends State<SettingsPage> {
       applicationIcon: const Icon(
         Icons.coffee,
         size: 48,
-        color: Color(0xFF8B4513),
+        color: AppTheme.primaryBrown,
       ),
       children: const [
         Text('Premium Coffee Experience'),

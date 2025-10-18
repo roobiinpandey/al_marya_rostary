@@ -192,10 +192,12 @@ class _SplashPageState extends State<SplashPage>
                         children: [
                           // Main brand name
                           Text(
-                            'Al Marya Rostery',
+                            'ALMARYAH ROSTERY',
                             style: Theme.of(context).textTheme.displayMedium
                                 ?.copyWith(
-                                  color: AppTheme.primaryBrown,
+                                  color: const Color(
+                                    0xFF2C2C2C,
+                                  ), // Darker charcoal
                                   fontWeight: FontWeight.w800,
                                   letterSpacing: 1.5,
                                   height: 1.2,
@@ -208,9 +210,9 @@ class _SplashPageState extends State<SplashPage>
                             'المارية روستري',
                             style: Theme.of(context).textTheme.headlineSmall
                                 ?.copyWith(
-                                  color: AppTheme.primaryBrown.withValues(
-                                    alpha: 0.7,
-                                  ),
+                                  color: const Color(
+                                    0xFF1A1A1A,
+                                  ), // Very dark gray
                                   fontWeight: FontWeight.w600,
                                   letterSpacing: 2.0,
                                 ),
@@ -222,7 +224,9 @@ class _SplashPageState extends State<SplashPage>
                             'Premium Coffee Experience',
                             style: Theme.of(context).textTheme.titleMedium
                                 ?.copyWith(
-                                  color: AppTheme.textMedium,
+                                  color: const Color(
+                                    0xFF4A4A4A,
+                                  ), // Darker medium gray
                                   letterSpacing: 0.8,
                                   fontWeight: FontWeight.w500,
                                 ),

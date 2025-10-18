@@ -101,7 +101,7 @@ abstract class AppLocalizations {
   /// The name of the application
   ///
   /// In en, this message translates to:
-  /// **'Al Marya Rostery'**
+  /// **'ALMARYAH ROSTERY'**
   String get appName;
 
   /// Welcome message

@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../data/models/admin_user_model.dart';
 import '../../data/models/user_statistics_model.dart';
+import '../../../../core/constants/app_constants.dart';
 
 class AdminUserProvider with ChangeNotifier {
   List<AdminUser> _users = [];
@@ -28,8 +29,8 @@ class AdminUserProvider with ChangeNotifier {
   String get selectedRole => _selectedRole;
   String get selectedStatus => _selectedStatus;
 
-  // Base URL - You should configure this properly
-  static const String baseUrl = 'http://localhost:5001/api/admin';
+  // Base URL - Uses AppConstants for environment configuration
+  String get baseUrl => '${AppConstants.baseUrl}/api/admin';
 
   void _setLoading(bool loading) {
     _isLoading = loading;

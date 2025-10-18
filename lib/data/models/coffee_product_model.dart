@@ -52,6 +52,30 @@ class CoffeeProductModel extends CoffeeProduct {
     this.reviewCount = 0,
   });
 
+  /// Helper method to safely parse MongoDB ObjectId
+  static String _parseId(Map<String, dynamic> json) {
+    // Priority 1: Use string 'id' field if available (backend adds this)
+    if (json['id'] is String && (json['id'] as String).isNotEmpty) {
+      return json['id'] as String;
+    }
+
+    // Priority 2: If _id is a string, use it directly
+    if (json['_id'] is String && (json['_id'] as String).isNotEmpty) {
+      return json['_id'] as String;
+    }
+
+    // Priority 3: If _id is an object (MongoDB ObjectId), convert it
+    if (json['_id'] is Map) {
+      // MongoDB might return _id as {buffer: {...}}
+      // In this case, the backend should have added 'id' field, so this shouldn't happen
+      // But we'll handle it gracefully by generating a placeholder
+      return 'temp_${DateTime.now().millisecondsSinceEpoch}';
+    }
+
+    // Fallback: Generate temporary ID
+    return 'temp_${DateTime.now().millisecondsSinceEpoch}';
+  }
+
   factory CoffeeProductModel.fromJson(Map<String, dynamic> json) {
     // Parse variants if they exist
     List<CoffeeVariant> variants = [];
@@ -102,7 +126,7 @@ class CoffeeProductModel extends CoffeeProduct {
     }
 
     return CoffeeProductModel(
-      id: json['_id'] ?? json['id'] ?? '',
+      id: _parseId(json),
       name: name,
       description: description,
       price: (json['price'] as num?)?.toDouble() ?? 0.0,

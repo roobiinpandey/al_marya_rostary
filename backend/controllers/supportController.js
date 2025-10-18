@@ -179,7 +179,7 @@ const createSupportTicket = async (req, res) => {
           subject: `Support Ticket Created - ${ticket.ticketNumber}`,
           html: `
             <div style="max-width: 600px; margin: 0 auto; padding: 20px; font-family: Arial, sans-serif;">
-              <h1 style="color: #8B4513;">Qahwat Al Emarat Support</h1>
+              <h1 style="color: #A89A6A;">Qahwat Al Emarat Support</h1>
               <h2>Support Ticket Created</h2>
               <p>Dear ${customerName},</p>
               <p>Your support ticket has been created successfully. Here are the details:</p>
@@ -358,7 +358,7 @@ const addTicketMessage = async (req, res) => {
             subject: `Update on Support Ticket ${ticket.ticketNumber}`,
             html: `
               <div style="max-width: 600px; margin: 0 auto; padding: 20px; font-family: Arial, sans-serif;">
-                <h1 style="color: #8B4513;">Qahwat Al Emarat Support</h1>
+                <h1 style="color: #A89A6A;">Qahwat Al Emarat Support</h1>
                 <h2>Ticket Update</h2>
                 <p>Dear ${customer.customer.name},</p>
                 <p>There's a new update on your support ticket <strong>${ticket.ticketNumber}</strong>:</p>
@@ -499,7 +499,7 @@ const resolveSupportTicket = async (req, res) => {
           subject: `Support Ticket Resolved - ${ticket.ticketNumber}`,
           html: `
             <div style="max-width: 600px; margin: 0 auto; padding: 20px; font-family: Arial, sans-serif;">
-              <h1 style="color: #8B4513;">Qahwat Al Emarat Support</h1>
+              <h1 style="color: #A89A6A;">Qahwat Al Emarat Support</h1>
               <h2>Ticket Resolved</h2>
               <p>Dear ${customerName},</p>
               <p>Your support ticket <strong>${ticket.ticketNumber}</strong> has been resolved.</p>

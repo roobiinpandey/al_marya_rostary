@@ -35,7 +35,7 @@ class _WishlistPageState extends State<WishlistPage> {
           description: 'Traditional cardamom coffee',
           price: 25.00,
           imageUrl:
-              'https://via.placeholder.com/300x300/8B4513/FFFFFF?text=Emirati+Qahwa',
+              'https://via.placeholder.com/300x300/A89A6A/FFFFFF?text=Emirati+Qahwa',
           categories: ['Traditional'],
           rating: 4.8,
           origin: 'UAE',
@@ -48,7 +48,7 @@ class _WishlistPageState extends State<WishlistPage> {
           description: 'Smooth and refreshing cold coffee',
           price: 18.00,
           imageUrl:
-              'https://via.placeholder.com/300x300/8B4513/FFFFFF?text=Cold+Brew',
+              'https://via.placeholder.com/300x300/A89A6A/FFFFFF?text=Cold+Brew',
           categories: ['Cold Drinks'],
           rating: 4.5,
           origin: 'Colombia',
@@ -61,7 +61,7 @@ class _WishlistPageState extends State<WishlistPage> {
           description: 'Rich chocolate and coffee blend',
           price: 22.00,
           imageUrl:
-              'https://via.placeholder.com/300x300/8B4513/FFFFFF?text=Arabic+Mocha',
+              'https://via.placeholder.com/300x300/A89A6A/FFFFFF?text=Arabic+Mocha',
           categories: ['Specialty'],
           rating: 4.7,
           origin: 'Yemen',

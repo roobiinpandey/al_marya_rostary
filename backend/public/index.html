@@ -92,36 +92,51 @@
                 <p>Business Portal</p>
             </div>
             <nav class="sidebar-menu">
+                <!-- Main Dashboard -->
                 <button class="menu-item active" onclick="showSection('dashboard')">
                     <i class="fas fa-chart-line"></i> Dashboard
                 </button>
+                
+                <!-- Product Management -->
                 <button class="menu-item" onclick="showSection('products')">
                     <i class="fas fa-coffee"></i> Products
                 </button>
                 <button class="menu-item" onclick="showSection('categories')">
                     <i class="fas fa-tags"></i> Categories
                 </button>
+                
+                <!-- Content Management -->
+                <button class="menu-item" onclick="showSection('sliders')">
+                    <i class="fas fa-images"></i> Banners
+                </button>
+                
+                <!-- Order & Customer Management -->
                 <button class="menu-item" onclick="showSection('orders')">
                     <i class="fas fa-shopping-cart"></i> Orders
                 </button>
                 <button class="menu-item" onclick="showSection('users')">
                     <i class="fas fa-users"></i> Users
                 </button>
-                <button class="menu-item" onclick="showSection('sliders')">
-                    <i class="fas fa-images"></i> Hero Banners
-                </button>
+                
+                <!-- Integration & System -->
                 <button class="menu-item" onclick="showSection('firebase')">
-                    <i class="fas fa-sync"></i> Firebase Management
+                    <i class="fas fa-sync"></i> Firebase Sync
                 </button>
+                
+                <!-- Analytics & Reports -->
                 <button class="menu-item" onclick="showSection('analytics')">
                     <i class="fas fa-chart-pie"></i> Analytics
                 </button>
                 <button class="menu-item" onclick="showSection('reports')">
                     <i class="fas fa-file-alt"></i> Reports
                 </button>
+                
+                <!-- Settings -->
                 <button class="menu-item" onclick="showSection('settings')">
                     <i class="fas fa-cog"></i> Settings
                 </button>
+                
+                <!-- Logout -->
                 <button class="menu-item" onclick="logout()" style="margin-top: 2rem; background: rgba(255,255,255,0.1);">
                     <i class="fas fa-sign-out-alt"></i> Logout
                 </button>
@@ -431,12 +446,12 @@
 
             <section id="sliders" class="content-section">
                 <div class="content-header">
-                    <h2><i class="fas fa-images"></i> Hero Banners</h2>
+                    <h2><i class="fas fa-images"></i> Banners</h2>
                 </div>
                 <div class="section-card">
                     <div class="section-content">
                         <div id="slidersTable">
-                            <!-- Sliders table will be loaded here -->
+                            <!-- Banners table will be loaded here -->
                         </div>
                     </div>
                 </div>
@@ -461,9 +476,10 @@
     <script src="js/admin.js"></script>
     <script src="js/dashboard.js"></script>
     <script src="js/products.js"></script>
+    <script src="js/categories.js"></script>
+    <script src="js/sliders.js"></script>
     <script src="js/orders.js"></script>
     <script src="js/users.js"></script>
-    <script src="js/categories.js"></script>
     <script src="js/firebase.js"></script>
     
     <!-- Show dev credentials only in development -->
