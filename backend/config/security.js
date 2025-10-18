@@ -45,7 +45,7 @@ const securityMiddleware = (app) => {
       directives: {
         defaultSrc: ["'self'"],
         styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://cdn.jsdelivr.net"],
-        styleAttr: ["'unsafe-inline'"],
+        styleSrcAttr: ["'unsafe-inline'"],
         scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-hashes'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com", "https://accounts.google.com"],
         scriptSrcAttr: ["'self'", "'unsafe-inline'", "'unsafe-hashes'"],
         imgSrc: ["'self'", "data:", "https:", "blob:"],
