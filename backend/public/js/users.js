@@ -1,6 +1,6 @@
 /* Users Management Module */
 
-let currentView = 'local'; // 'local' or 'firebase'
+let currentView = 'firebase'; // 'local' or 'firebase' - DEFAULT TO FIREBASE USERS
 
 async function loadUsers() {
     try {
@@ -74,10 +74,10 @@ function renderLocalUsersTable(users) {
 
     const tableHTML = `
         <div style="margin-bottom: 20px;">
-            <button class="btn view-switch-btn active" onclick="switchView('local')">
+            <button class="btn view-switch-btn" onclick="switchView('local')">
                 <i class="fas fa-database"></i> Local Users
             </button>
-            <button class="btn view-switch-btn" onclick="switchView('firebase')">
+            <button class="btn view-switch-btn active" onclick="switchView('firebase')">
                 <i class="fab fa-google"></i> Firebase Users
             </button>
         </div>
