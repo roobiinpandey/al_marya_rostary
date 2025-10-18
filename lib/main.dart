@@ -8,6 +8,7 @@ import 'utils/app_router.dart';
 import 'features/cart/presentation/providers/cart_provider.dart';
 import 'features/admin/presentation/providers/admin_provider.dart';
 import 'features/admin/presentation/providers/admin_user_provider.dart';
+import 'features/admin/presentation/providers/firebase_user_provider.dart';
 import 'features/auth/presentation/providers/auth_provider.dart';
 import 'data/repositories/firebase_auth_repository_impl.dart';
 import 'data/datasources/firebase_auth_service.dart';
@@ -48,6 +49,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (context) => CartProvider()),
         ChangeNotifierProvider(create: (context) => AdminProvider()),
         ChangeNotifierProvider(create: (context) => AdminUserProvider()),
+        ChangeNotifierProvider(create: (context) => FirebaseUserProvider()),
         ChangeNotifierProvider(create: (context) => CoffeeProvider()),
         ChangeNotifierProvider(
           create: (context) => LocationProvider()..initialize(),
