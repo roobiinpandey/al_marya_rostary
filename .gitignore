@@ -112,6 +112,16 @@ backend/.env
 backend/.env.local
 backend/production-env-values.txt
 
+# CRITICAL: Never commit credentials or secrets
+backend/COMPLETE_ENV_VARIABLES.txt
+backend/FIREBASE_SECRET_KEY.md
+backend/service-account-key.json
+backend/firebase-service-account.json
+**/service-account*.json
+**/*credentials*.txt
+**/*secrets*.txt
+**/*private-key*.json
+
 # Firebase related
 .firebase/
 firebase-debug.log*
