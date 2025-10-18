@@ -86,16 +86,13 @@ router.get('/conversion-funnel', getConversionFunnel);
 router.get('/product/:productId', productIdValidation, getProductPerformance);
 
 // Protected routes (require authentication)
-router.use(protect);
+router.post('/track', protect, trackEventValidation, trackUserEvent);
+router.get('/user/activity', protect, getUserActivity);
+router.get('/user/journey', protect, getUserJourney);
 
-router.post('/track', trackEventValidation, trackUserEvent);
-router.get('/user/activity', getUserActivity);
-router.get('/user/journey', getUserJourney);
-
-// Admin routes
-router.use('/admin', adminAuth);
-router.get('/admin/dashboard', getDashboardOverview);
-router.get('/admin/users', getUserAnalyticsReport);
-router.get('/admin/products', getProductAnalyticsReport);
+// Admin routes (require authentication + admin role)
+router.get('/admin/dashboard', protect, adminAuth, getDashboardOverview);
+router.get('/admin/users', protect, adminAuth, getUserAnalyticsReport);
+router.get('/admin/products', protect, adminAuth, getProductAnalyticsReport);
 
 module.exports = router;
