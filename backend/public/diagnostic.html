@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Users Diagnostic</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .step { margin: 20px 0; padding: 15px; border: 2px solid #ddd; border-radius: 8px; }
+        .success { border-color: #28a745; background: #d4edda; }
+        .error { border-color: #dc3545; background: #f8d7da; }
+        .warning { border-color: #ffc107; background: #fff3cd; }
+        .loading { border-color: #007bff; background: #d1ecf1; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 5px; overflow-x: auto; }
+        button { padding: 10px 20px; margin: 5px; border: none; border-radius: 5px; cursor: pointer; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-danger { background: #dc3545; color: white; }
+        #output { max-height: 400px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Firebase Users Diagnostic Tool</h1>
+        <p>This will help us understand exactly what's happening with your Firebase users loading issue.</p>
+        
+        <div id="step1" class="step loading">
+            <h3>Step 1: Check API Connection</h3>
+            <p>Testing if backend API is reachable...</p>
+            <div id="step1-result">Running...</div>
+        </div>
+
+        <div id="step2" class="step">
+            <h3>Step 2: Test Admin Login</h3>
+            <button class="btn-primary" onclick="testLogin()">Test Login (admin/almarya2024)</button>
+            <div id="step2-result"></div>
+        </div>
+
+        <div id="step3" class="step">
+            <h3>Step 3: Test Firebase Users API</h3>
+            <button class="btn-primary" onclick="testFirebaseUsers()" disabled id="testFirebaseBtn">Test Firebase Users API</button>
+            <div id="step3-result"></div>
+        </div>
+
+        <div id="step4" class="step">
+            <h3>Step 4: Test Frontend JavaScript</h3>
+            <button class="btn-primary" onclick="testFrontend()" disabled id="testFrontendBtn">Test Frontend Code</button>
+            <div id="step4-result"></div>
+        </div>
+
+        <div id="step5" class="step">
+            <h3>Step 5: Check Current View Setting</h3>
+            <button class="btn-primary" onclick="checkCurrentView()">Check What View is Active</button>
+            <div id="step5-result"></div>
+        </div>
+
+        <div id="output" class="step">
+            <h3>📊 Diagnostic Output</h3>
+            <pre id="diagnostic-log"></pre>
+        </div>
+
+        <div class="step">
+            <h3>🚀 Quick Fix Buttons</h3>
+            <button class="btn-success" onclick="forceFirebaseView()">Force Load Firebase Users</button>
+            <button class="btn-danger" onclick="clearCache()">Clear Browser Cache</button>
+            <button class="btn-primary" onclick="goToMainAdmin()">Go to Main Admin Panel</button>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:5001';
+        let authToken = null;
+        let diagnosticLog = '';
+
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            diagnosticLog += `[${timestamp}] ${message}\n`;
+            document.getElementById('diagnostic-log').textContent = diagnosticLog;
+            console.log(message);
+        }
+
+        function updateStep(stepId, status, message) {
+            const step = document.getElementById(stepId);
+            step.className = `step ${status}`;
+            document.getElementById(`${stepId}-result`).innerHTML = message;
+        }
+
+        // Step 1: Check API Connection
+        async function checkAPIConnection() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/health`);
+                const data = await response.json();
+                
+                if (data.status === 'healthy') {
+                    updateStep('step1', 'success', '✅ Backend API is healthy and reachable');
+                    log('✅ API Connection: SUCCESS');
+                    return true;
+                } else {
+                    throw new Error('API not healthy');
+                }
+            } catch (error) {
+                updateStep('step1', 'error', `❌ Cannot reach backend API: ${error.message}`);
+                log(`❌ API Connection: FAILED - ${error.message}`);
+                return false;
+            }
+        }
+
+        // Step 2: Test Login
+        async function testLogin() {
+            try {
+                log('🔐 Testing admin login...');
+                const response = await fetch(`${API_BASE_URL}/api/auth/admin-login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: 'admin', password: 'almarya2024' })
+                });
+
+                const data = await response.json();
+                
+                if (data.success && data.data.token) {
+                    authToken = data.data.token;
+                    updateStep('step2', 'success', `✅ Login successful! Token: ${authToken.substring(0, 30)}...`);
+                    document.getElementById('testFirebaseBtn').disabled = false;
+                    log('✅ Admin Login: SUCCESS');
+                } else {
+                    throw new Error(data.message || 'Login failed');
+                }
+            } catch (error) {
+                updateStep('step2', 'error', `❌ Login failed: ${error.message}`);
+                log(`❌ Admin Login: FAILED - ${error.message}`);
+            }
+        }
+
+        // Step 3: Test Firebase Users API
+        async function testFirebaseUsers() {
+            if (!authToken) {
+                updateStep('step3', 'error', '❌ No auth token available');
+                return;
+            }
+
+            try {
+                log('🔥 Testing Firebase Users API...');
+                const response = await fetch(`${API_BASE_URL}/api/admin/firebase-users?limit=100`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                const data = await response.json();
+                
+                if (data.success && data.data.users) {
+                    const userCount = data.data.users.length;
+                    updateStep('step3', 'success', `✅ Firebase API working! Found ${userCount} users`);
+                    document.getElementById('testFrontendBtn').disabled = false;
+                    log(`✅ Firebase API: SUCCESS - ${userCount} users found`);
+                    
+                    // Show first user as example
+                    if (userCount > 0) {
+                        const firstUser = data.data.users[0];
+                        log(`📝 Sample user: ${firstUser.email || 'No email'} (${firstUser.uid})`);
+                    }
+                } else {
+                    throw new Error(data.message || 'API returned no users');
+                }
+            } catch (error) {
+                updateStep('step3', 'error', `❌ Firebase API failed: ${error.message}`);
+                log(`❌ Firebase API: FAILED - ${error.message}`);
+            }
+        }
+
+        // Step 4: Test Frontend JavaScript
+        async function testFrontend() {
+            try {
+                log('🖥️ Testing frontend JavaScript...');
+                
+                // Check if main admin functions exist
+                const checks = [];
+                
+                if (typeof window.loadUsers === 'function') {
+                    checks.push('✅ loadUsers function exists');
+                } else {
+                    checks.push('❌ loadUsers function missing');
+                }
+                
+                if (typeof window.loadFirebaseUsers === 'function') {
+                    checks.push('✅ loadFirebaseUsers function exists');
+                } else {
+                    checks.push('❌ loadFirebaseUsers function missing');
+                }
+                
+                if (typeof window.currentView !== 'undefined') {
+                    checks.push(`✅ currentView variable: ${window.currentView}`);
+                } else {
+                    checks.push('❌ currentView variable missing');
+                }
+
+                updateStep('step4', 'warning', checks.join('<br>'));
+                log('🖥️ Frontend Check: ' + checks.join(', '));
+                
+            } catch (error) {
+                updateStep('step4', 'error', `❌ Frontend test failed: ${error.message}`);
+                log(`❌ Frontend Test: FAILED - ${error.message}`);
+            }
+        }
+
+        // Step 5: Check Current View
+        function checkCurrentView() {
+            try {
+                if (typeof window.currentView !== 'undefined') {
+                    updateStep('step5', 'success', `Current view setting: <strong>${window.currentView}</strong>`);
+                    log(`📋 Current View: ${window.currentView}`);
+                } else {
+                    updateStep('step5', 'warning', 'currentView variable not found - you might not be on the main admin page');
+                    log('📋 Current View: NOT FOUND (not on admin page?)');
+                }
+            } catch (error) {
+                updateStep('step5', 'error', `Error checking view: ${error.message}`);
+                log(`❌ Check View: FAILED - ${error.message}`);
+            }
+        }
+
+        // Quick Fix Functions
+        async function forceFirebaseView() {
+            try {
+                log('🚀 Forcing Firebase users to load...');
+                
+                if (!authToken) {
+                    alert('Please run login test first!');
+                    return;
+                }
+
+                const response = await fetch(`${API_BASE_URL}/api/admin/firebase-users?limit=100`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                const data = await response.json();
+                
+                if (data.success && data.data.users) {
+                    const users = data.data.users;
+                    log(`🎉 SUCCESS! Loaded ${users.length} Firebase users`);
+                    
+                    // Display users in a simple table
+                    let tableHTML = '<h4>Firebase Users:</h4><table border="1" style="width:100%; border-collapse: collapse;"><tr><th>Email</th><th>Display Name</th><th>Provider</th></tr>';
+                    users.slice(0, 10).forEach(user => {
+                        const providers = user.providerData?.map(p => p.providerId).join(', ') || 'Unknown';
+                        tableHTML += `<tr><td>${user.email || 'No email'}</td><td>${user.displayName || 'No name'}</td><td>${providers}</td></tr>`;
+                    });
+                    tableHTML += '</table>';
+                    
+                    if (users.length > 10) {
+                        tableHTML += `<p><strong>... and ${users.length - 10} more users</strong></p>`;
+                    }
+                    
+                    document.getElementById('output').innerHTML = '<h3>🎉 Firebase Users Loaded Successfully!</h3>' + tableHTML;
+                    
+                } else {
+                    alert('Failed to load Firebase users: ' + (data.message || 'Unknown error'));
+                }
+                
+            } catch (error) {
+                alert('Error: ' + error.message);
+                log(`❌ Force Load: FAILED - ${error.message}`);
+            }
+        }
+
+        function clearCache() {
+            localStorage.clear();
+            sessionStorage.clear();
+            log('🗑️ Browser cache cleared');
+            alert('Cache cleared! Please refresh the page.');
+        }
+
+        function goToMainAdmin() {
+            window.location.href = '/';
+        }
+
+        // Auto-start diagnostics
+        window.addEventListener('DOMContentLoaded', async () => {
+            log('🔍 Starting automatic diagnostics...');
+            const apiOK = await checkAPIConnection();
+            if (apiOK) {
+                log('✅ Ready for manual testing');
+            }
+        });
+    </script>
+</body>
+</html>
