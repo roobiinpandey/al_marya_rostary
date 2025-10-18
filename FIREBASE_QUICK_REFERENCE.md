@@ -8,11 +8,13 @@ Status: "Deploy succeeded" ✅
 
 ### 2️⃣ **Login to Admin Panel**
 URL: https://al-marya-rostary.onrender.com  
-Go to: **Users** tab
+Go to: **Users & Firebase** tab (unified section)
 
 ### 3️⃣ **Click "Firebase Users" Button**
-Location: Top of Users section  
+Location: Top of Users & Firebase section  
 You should see: All Firebase Authentication users
+
+> **NOTE:** Firebase Sync is now integrated into the Users section - no separate menu item needed!
 
 ---
 
@@ -124,7 +126,7 @@ POST /api/admin/firebase-users/:firebaseUid/revoke-tokens
 ## 🔍 TESTING CHECKLIST
 
 - [ ] Login to admin panel
-- [ ] Click "Users" tab
+- [ ] Click "Users & Firebase" tab (unified section)
 - [ ] Click "Firebase Users" button
 - [ ] Verify users displayed
 - [ ] Click "View Details" on a user
@@ -133,6 +135,8 @@ POST /api/admin/firebase-users/:firebaseUid/revoke-tokens
 - [ ] Switch back to "Local Users" view
 - [ ] Verify sync status shows correctly
 - [ ] Test "Sync All to Local" button
+
+> **✅ IMPROVED:** No more confusion with separate "Firebase Sync" section - everything is unified!
 
 ---
 
