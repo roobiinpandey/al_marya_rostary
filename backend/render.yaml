@@ -48,8 +48,7 @@ services:
       # IMPORTANT: Set these in Render Dashboard (DO NOT commit to Git):
       # 
       # REQUIRED Database Configuration:
-      # MONGODB_URI=***REMOVED***qahwat_prod_user:SECURE_PASSWORD@***REMOVED***.ph5cazq.mongodb.net/qahwat_al_emarat?retryWrites=true&w=majority&ssl=true
-    # MONGODB_URI=***REMOVED***your_mongodb_uri_here
+      # MONGODB_URI=***REMOVED***YOUR_USERNAME:YOUR_PASSWORD@YOUR_CLUSTER.mongodb.net/YOUR_DATABASE?retryWrites=true&w=majority
       #
       # REQUIRED Security Configuration:
       # JWT_SECRET=<64_CHAR_SECRET_FROM_GENERATOR>
