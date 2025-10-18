@@ -58,17 +58,33 @@ class ProfilePage extends StatelessWidget {
               leading: const Icon(Icons.logout),
               title: const Text('Logout'),
               onTap: () async {
+                // Get navigator before async operations
+                final navigator = Navigator.of(context, rootNavigator: true);
+                final messenger = ScaffoldMessenger.of(context);
+
                 final authProvider = Provider.of<AuthProvider>(
                   context,
                   listen: false,
                 );
+
+                // Wait a frame for UI to settle
+                await Future.delayed(const Duration(milliseconds: 100));
+
+                // Perform logout
                 await authProvider.logout();
+
+                // Wait for logout to complete fully
+                await Future.delayed(const Duration(milliseconds: 100));
+
+                // Navigate to login
                 if (context.mounted) {
-                  Navigator.of(
-                    context,
-                  ).pushNamedAndRemoveUntil('/login', (route) => false);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Signed out successfully')),
+                  navigator.pushNamedAndRemoveUntil('/login', (route) => false);
+
+                  messenger.showSnackBar(
+                    const SnackBar(
+                      content: Text('Signed out successfully'),
+                      duration: Duration(seconds: 2),
+                    ),
                   );
                 }
               },

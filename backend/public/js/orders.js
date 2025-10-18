@@ -11,18 +11,35 @@ async function loadOrders() {
         const data = await response.json();
 
         if (data.success) {
-            renderOrdersTable(data.data);
-            updateOrderStats(data.stats);
+            // Handle different response structures
+            const ordersData = data.data?.orders || data.data || [];
+            const ordersArray = Array.isArray(ordersData) ? ordersData : [];
+            
+            renderOrdersTable(ordersArray);
+            
+            if (data.stats) {
+                updateOrderStats(data.stats);
+            }
         }
     } catch (error) {
-        console.error('Error loading orders:', error);
-        showErrorById('ordersTable', 'Failed to load orders');
+        const logger = window.adminUtils?.logger || console;
+        logger.error('Error loading orders:', error);
+        showErrorById('ordersTable', 'Failed to load orders. Please try again.');
     }
 }
 
 function renderOrdersTable(orders) {
-    if (!orders || orders.length === 0) {
-        document.getElementById('ordersTable').innerHTML = '<p class="text-center">No orders found.</p>';
+    // Ensure orders is an array
+    const ordersArray = Array.isArray(orders) ? orders : [];
+    
+    if (ordersArray.length === 0) {
+        document.getElementById('ordersTable').innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-shopping-cart"></i>
+                <h3>No Orders Yet</h3>
+                <p>Orders will appear here when customers place them</p>
+            </div>
+        `;
         return;
     }
 
@@ -40,7 +57,7 @@ function renderOrdersTable(orders) {
                 </tr>
             </thead>
             <tbody>
-                ${orders.map(order => `
+                ${ordersArray.map(order => `
                     <tr>
                         <td>#${order._id?.slice(-8) || 'N/A'}</td>
                         <td>

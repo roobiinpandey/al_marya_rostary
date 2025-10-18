@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/app_theme.dart';
 
 /// OrdersPage displays the user's order history
 class OrdersPage extends StatelessWidget {
@@ -9,9 +10,7 @@ class OrdersPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Order History'),
-      ),
+      appBar: AppBar(title: const Text('Order History')),
       body: orders.isEmpty
           ? const Center(child: Text('No orders found.'))
           : ListView.builder(
@@ -19,11 +18,19 @@ class OrdersPage extends StatelessWidget {
               itemBuilder: (context, index) {
                 final order = orders[index];
                 return Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   child: ListTile(
-                    leading: const Icon(Icons.receipt_long, color: Colors.brown),
+                    leading: const Icon(
+                      Icons.receipt_long,
+                      color: AppTheme.primaryBrown,
+                    ),
                     title: Text('Order #${order.id}'),
-                    subtitle: Text('Total: \u20AC${order.total.toStringAsFixed(2)}'),
+                    subtitle: Text(
+                      'Total: \u20AC${order.total.toStringAsFixed(2)}',
+                    ),
                     trailing: Text(order.status),
                     onTap: () {
                       // TODO: Show order details

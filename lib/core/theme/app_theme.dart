@@ -1,30 +1,47 @@
 import 'package:flutter/material.dart';
 
-/// AppTheme provides the main theme data for Qahwat Al Emarat
+/// AppTheme provides backward compatibility while using Almaryah brand colors
 class AppTheme {
-  // Color Palette
-  static const Color primaryBrown = Color(0xFF8B4513);
-  static const Color primaryLightBrown = Color(0xFFD2B48C);
-  static const Color accentAmber = Color(0xFFFFD700);
-  static const Color accentBrown = Color(0xFFCD853F); // New accent brown color
-  static const Color secondaryBrown = Color(0xFFA0522D); // New secondary brown color
-  static const Color backgroundCream = Color(0xFFFFFBF7);
+  // Almaryah Brand Color Palette (Olive Gold Theme)
+  static const Color primaryBrown = Color(
+    0xFFA89A6A,
+  ); // Changed: Olive Gold (was Saddle Brown)
+  static const Color primaryLightBrown = Color(
+    0xFFCBBE8C,
+  ); // Changed: Light Gold (was Tan)
+  static const Color accentAmber = Color(
+    0xFFCBBE8C,
+  ); // Changed: Light Gold (was Gold)
+  static const Color accentBrown = Color(
+    0xFFA89A6A,
+  ); // Changed: Olive Gold (was Peru)
+  static const Color secondaryBrown = Color(
+    0xFFA89A6A,
+  ); // Changed: Olive Gold (was Sienna)
+  static const Color backgroundCream = Color(
+    0xFFEDE9E1,
+  ); // Changed: Warm Beige (was Light Cream)
   static const Color surfaceWhite = Color(0xFFFFFFFF);
-  static const Color textDark = Color(0xFF2D1810);
-  static const Color textMedium = Color(0xFF5D4E37);
-  static const Color textLight = Color(0xFF8B7355);
+  static const Color textDark = Color(
+    0xFF2C2C2C,
+  ); // Changed: Dark Charcoal (was Brown)
+  static const Color textMedium = Color(
+    0xFF6E6E6E,
+  ); // Changed: Muted Gray (was Brown)
+  static const Color textLight = Color(
+    0xFF8B7355,
+  ); // Kept similar for compatibility
 
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
-      primaryColor: primaryBrown,
-      scaffoldBackgroundColor: backgroundCream,
-
+      primaryColor: primaryBrown, // Now Olive Gold
+      scaffoldBackgroundColor: backgroundCream, // Now Warm Beige
       // Color Scheme
       colorScheme: const ColorScheme.light(
-        primary: primaryBrown,
-        secondary: accentAmber,
+        primary: primaryBrown, // Olive Gold
+        secondary: primaryLightBrown, // Light Gold
         surface: surfaceWhite,
         onPrimary: Colors.white,
         onSecondary: textDark,

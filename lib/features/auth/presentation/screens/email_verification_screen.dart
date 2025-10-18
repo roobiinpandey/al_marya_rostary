@@ -297,10 +297,21 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
 
   Future<void> _signOut() async {
     final authProvider = context.read<AuthProvider>();
+
+    // Wait a frame for UI to settle
+    await Future.delayed(const Duration(milliseconds: 100));
+
+    // Perform logout
     await authProvider.logout();
 
+    // Wait for logout to complete fully
+    await Future.delayed(const Duration(milliseconds: 100));
+
     if (mounted) {
-      Navigator.pushReplacementNamed(context, AppRoutes.login);
+      Navigator.of(
+        context,
+        rootNavigator: true,
+      ).pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
     }
   }
 }

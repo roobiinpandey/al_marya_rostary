@@ -1,13 +1,13 @@
-/// App-wide constants for Qahwat Al Emarat
+/// App-wide constants for ALMARYAH ROSTERY
 class AppConstants {
   // API Endpoints - Environment Configuration
   // Set _useProduction to true for production Render.com backend (connects to MongoDB Atlas)
   // Set _useProduction to false for local development backend
   static const bool _useProduction =
-      false; // Change to false for local development
+      true; // Change to false for local development
 
   static String get baseUrl => _useProduction
-      ? 'https://***REMOVED***.onrender.com' // Production Render.com backend (connects to MongoDB Atlas)
+      ? 'https://al-marya-rostary.onrender.com' // Production Render.com backend (connects to MongoDB Atlas)
       : 'http://localhost:5001'; // Local development backend
 
   // Environment info for debugging
@@ -23,7 +23,7 @@ class AppConstants {
   static const String authEndpoint = '/api/auth';
 
   // App Info
-  static const String appName = 'Al Marya Rostery';
+  static const String appName = 'ALMARYAH ROSTERY';
   static const String appVersion = '1.0.0';
 
   // Currency

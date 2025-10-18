@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../cart/presentation/providers/cart_provider.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 import 'order_tracking_page.dart';
 
 /// OrderConfirmationPage displays successful order confirmation
@@ -466,6 +467,7 @@ class OrderConfirmationPage extends StatelessWidget {
                 MaterialPageRoute(
                   builder: (context) => OrderTrackingPage(
                     orderNumber: orderData['orderNumber'] as String,
+                    orderData: orderData, // Pass the full order data
                   ),
                 ),
               );
@@ -512,6 +514,82 @@ class OrderConfirmationPage extends StatelessWidget {
               ),
             ),
           ),
+        ),
+
+        // Create Account Button (for guest users)
+        Consumer<AuthProvider>(
+          builder: (context, authProvider, child) {
+            if (authProvider.isGuest && !authProvider.isAuthenticated) {
+              return Column(
+                children: [
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryLightBrown.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: AppTheme.primaryBrown.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        const Icon(
+                          Icons.account_circle_outlined,
+                          size: 48,
+                          color: AppTheme.primaryBrown,
+                        ),
+                        const SizedBox(height: 12),
+                        const Text(
+                          'Create an account to track your order!',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.primaryBrown,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Save your details for faster checkout next time',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: AppTheme.textMedium,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              Navigator.of(context).pushNamed('/register');
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.primaryBrown,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: const Text(
+                              'Create Account',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            }
+            return const SizedBox.shrink();
+          },
         ),
       ],
     );

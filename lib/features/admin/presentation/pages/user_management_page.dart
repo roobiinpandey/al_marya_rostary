@@ -4,6 +4,7 @@ import '../providers/admin_user_provider.dart';
 import '../widgets/user_data_table.dart';
 import '../widgets/user_filters_widget.dart';
 import '../widgets/user_stats_cards.dart';
+import '../../../../core/theme/app_theme.dart';
 
 class UserManagementPage extends StatefulWidget {
   const UserManagementPage({Key? key}) : super(key: key);
@@ -28,7 +29,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('User Management'),
-        backgroundColor: Colors.brown[600],
+        backgroundColor: AppTheme.primaryBrown,
         foregroundColor: Colors.white,
         elevation: 0,
       ),
@@ -152,11 +153,11 @@ class _UserManagementPageState extends State<UserManagementPage> {
                       onPressed: () => provider.goToPage(pageNumber),
                       style: TextButton.styleFrom(
                         backgroundColor: pageNumber == provider.currentPage
-                            ? Colors.brown[600]
+                            ? AppTheme.primaryBrown
                             : Colors.transparent,
                         foregroundColor: pageNumber == provider.currentPage
                             ? Colors.white
-                            : Colors.brown[600],
+                            : AppTheme.primaryBrown,
                         minimumSize: const Size(40, 40),
                       ),
                       child: Text(pageNumber.toString()),

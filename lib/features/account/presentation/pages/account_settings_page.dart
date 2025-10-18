@@ -333,7 +333,7 @@ class _AccountSettingsPageState extends State<AccountSettingsPage> {
                     child: Column(
                       children: [
                         Text(
-                          'Qahwat Al Emarat',
+                          'ALMARYAH ROSTERY',
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(color: AppTheme.textLight),
                         ),

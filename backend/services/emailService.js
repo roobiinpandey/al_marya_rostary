@@ -198,13 +198,13 @@ class EmailService {
     const html = `
       <div style="max-width: 600px; margin: 0 auto; padding: 20px; font-family: Arial, sans-serif;">
         <div style="text-align: center; margin-bottom: 30px;">
-          <h1 style="color: #8B4513;">Qahwat Al Emarat</h1>
+          <h1 style="color: #A89A6A;">Qahwat Al Emarat</h1>
         </div>
         <h2 style="color: #333;">Email Verification Required</h2>
         <p>Dear ${name},</p>
         <p>Thank you for creating an account with Qahwat Al Emarat! Please verify your email address by clicking the button below:</p>
         <div style="text-align: center; margin: 30px 0;">
-          <a href="${verificationUrl}" style="background: #8B4513; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
+          <a href="${verificationUrl}" style="background: #A89A6A; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
             Verify Email Address
           </a>
         </div>
@@ -241,7 +241,7 @@ class EmailService {
     const html = `
       <div style="max-width: 600px; margin: 0 auto; padding: 20px; font-family: Arial, sans-serif;">
         <div style="text-align: center; margin-bottom: 30px;">
-          <h1 style="color: #8B4513;">Qahwat Al Emarat</h1>
+          <h1 style="color: #A89A6A;">Qahwat Al Emarat</h1>
         </div>
         <h2 style="color: #333;">Password Reset Request</h2>
         <p>Dear ${name},</p>
@@ -297,7 +297,7 @@ class EmailService {
     const html = `
       <div style="max-width: 600px; margin: 0 auto; padding: 20px; font-family: Arial, sans-serif;">
         <div style="text-align: center; margin-bottom: 30px;">
-          <h1 style="color: #8B4513;">Qahwat Al Emarat</h1>
+          <h1 style="color: #A89A6A;">Qahwat Al Emarat</h1>
         </div>
         <h2 style="color: #333;">Order Confirmation</h2>
         <p>Dear ${name},</p>

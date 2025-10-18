@@ -36,7 +36,7 @@ const categorySchema = new mongoose.Schema({
   },
   color: {
     type: String,
-    default: '#8B4513' // Default coffee brown color
+    default: '#A89A6A' // Default coffee brown color
   },
   isActive: {
     type: Boolean,
