@@ -39,10 +39,12 @@ async function loadFirebaseUsers() {
 
         if (data.success) {
             renderFirebaseUsersTable(data.data.users);
+        } else {
+            showErrorById('usersTable', data.message || 'Failed to load Firebase users');
         }
     } catch (error) {
         console.error('Error loading Firebase users:', error);
-        showErrorById('usersTable', 'Failed to load Firebase users');
+        showErrorById('usersTable', 'Failed to load Firebase users: ' + error.message);
     }
 }
 
