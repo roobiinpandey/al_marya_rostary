@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Users - Simple View</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .header { background: #007bff; color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        .login-form { background: #e9ecef; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .users-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .users-table th, .users-table td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        .users-table th { background: #f8f9fa; font-weight: bold; }
+        .users-table tr:nth-child(even) { background: #f9f9f9; }
+        .btn { padding: 10px 20px; margin: 5px; border: none; border-radius: 5px; cursor: pointer; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .status { padding: 10px; border-radius: 5px; margin: 10px 0; }
+        .success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .error { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .loading { background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; }
+        #loadingSpinner { display: none; }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔥 Firebase Users - Direct View</h1>
+            <p>This page loads Firebase users directly without any admin panel complexity</p>
+        </div>
+
+        <div class="login-form">
+            <h3>Step 1: Login</h3>
+            <input type="text" id="username" placeholder="Username" value="admin" style="padding: 10px; margin: 5px; width: 200px;">
+            <input type="password" id="password" placeholder="Password" value="almarya2024" style="padding: 10px; margin: 5px; width: 200px;">
+            <button class="btn btn-primary" onclick="login()">Login</button>
+            <div id="loginStatus"></div>
+        </div>
+
+        <div>
+            <h3>Step 2: Load Firebase Users</h3>
+            <button class="btn btn-success" onclick="loadFirebaseUsers()" id="loadBtn" disabled>Load Firebase Users</button>
+            <button class="btn btn-primary" onclick="refreshUsers()" id="refreshBtn" disabled>Refresh</button>
+            <div id="loadStatus"></div>
+        </div>
+
+        <div id="loadingSpinner">
+            <div class="spinner"></div>
+            <p style="text-align: center;">Loading Firebase users...</p>
+        </div>
+
+        <div id="usersContainer"></div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:5001';
+        let authToken = null;
+
+        function showStatus(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        function showLoading() {
+            document.getElementById('loadingSpinner').style.display = 'block';
+            document.getElementById('usersContainer').innerHTML = '';
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingSpinner').style.display = 'none';
+        }
+
+        async function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                showStatus('loginStatus', 'Logging in...', 'loading');
+                
+                const response = await fetch(`${API_BASE_URL}/api/auth/admin-login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+                
+                if (data.success && data.data.token) {
+                    authToken = data.data.token;
+                    showStatus('loginStatus', '✅ Login successful!', 'success');
+                    document.getElementById('loadBtn').disabled = false;
+                    document.getElementById('refreshBtn').disabled = false;
+                } else {
+                    throw new Error(data.message || 'Login failed');
+                }
+            } catch (error) {
+                showStatus('loginStatus', `❌ Login failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function loadFirebaseUsers() {
+            if (!authToken) {
+                showStatus('loadStatus', '❌ Please login first', 'error');
+                return;
+            }
+
+            try {
+                showLoading();
+                showStatus('loadStatus', 'Loading Firebase users...', 'loading');
+                
+                const response = await fetch(`${API_BASE_URL}/api/admin/firebase-users?limit=100`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                const data = await response.json();
+                hideLoading();
+                
+                if (data.success && data.data.users) {
+                    const users = data.data.users;
+                    showStatus('loadStatus', `✅ Successfully loaded ${users.length} Firebase users`, 'success');
+                    displayUsers(users);
+                } else {
+                    throw new Error(data.message || 'Failed to load users');
+                }
+            } catch (error) {
+                hideLoading();
+                showStatus('loadStatus', `❌ Failed to load Firebase users: ${error.message}`, 'error');
+            }
+        }
+
+        function displayUsers(users) {
+            if (!users || users.length === 0) {
+                document.getElementById('usersContainer').innerHTML = '<div class="status error">No Firebase users found</div>';
+                return;
+            }
+
+            let html = `
+                <h3>🔥 Firebase Users (${users.length} total)</h3>
+                <table class="users-table">
+                    <thead>
+                        <tr>
+                            <th>Email</th>
+                            <th>Display Name</th>
+                            <th>UID</th>
+                            <th>Provider</th>
+                            <th>Email Verified</th>
+                            <th>Disabled</th>
+                            <th>Last Sign In</th>
+                            <th>Local Sync</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            users.forEach(user => {
+                const providers = user.providerData?.map(p => {
+                    if (p.providerId === 'password') return 'Email';
+                    if (p.providerId === 'google.com') return 'Google';
+                    if (p.providerId === 'phone') return 'Phone';
+                    return p.providerId;
+                }).join(', ') || 'Unknown';
+
+                const lastSignIn = user.metadata?.lastSignInTime ? 
+                    new Date(user.metadata.lastSignInTime).toLocaleDateString() : 'Never';
+
+                const syncStatus = user.syncStatus?.isLinked ? '✅ Linked' : '⚠️ Not Synced';
+
+                html += `
+                    <tr>
+                        <td>${user.email || 'No email'}</td>
+                        <td>${user.displayName || 'No name'}</td>
+                        <td style="font-family: monospace; font-size: 12px;">${user.uid}</td>
+                        <td>${providers}</td>
+                        <td>${user.emailVerified ? '✅ Yes' : '❌ No'}</td>
+                        <td>${user.disabled ? '❌ Yes' : '✅ No'}</td>
+                        <td>${lastSignIn}</td>
+                        <td>${syncStatus}</td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                    </tbody>
+                </table>
+            `;
+
+            document.getElementById('usersContainer').innerHTML = html;
+        }
+
+        function refreshUsers() {
+            loadFirebaseUsers();
+        }
+
+        // Auto-focus username field
+        window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('username').focus();
+        });
+    </script>
+</body>
+</html>
