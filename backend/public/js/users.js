@@ -4,17 +4,16 @@ let currentView = 'firebase'; // 'local' or 'firebase' - DEFAULT TO FIREBASE USE
 
 async function loadUsers() {
     try {
+        console.log('🔍 loadUsers() called, currentView:', currentView);
         showLoading('usersTable');
         
-        // Load users based on current view
-        if (currentView === 'firebase') {
-            await loadFirebaseUsers();
-        } else {
-            await loadLocalUsers();
-        }
+        // FORCE FIREBASE USERS - NO CONDITIONS
+        console.log('🔥 Forcing Firebase users to load...');
+        await loadFirebaseUsers();
+        
     } catch (error) {
-        console.error('Error loading users:', error);
-        showErrorById('usersTable', 'Failed to load users');
+        console.error('❌ Error in loadUsers:', error);
+        showErrorById('usersTable', 'Failed to load users: ' + error.message);
     }
 }
 
@@ -34,16 +33,28 @@ async function loadLocalUsers() {
 
 async function loadFirebaseUsers() {
     try {
-        const response = await authenticatedFetch(`${API_BASE_URL}/api/admin/firebase-users?limit=100`);
+        console.log('🔥 loadFirebaseUsers() called');
+        console.log('🌐 API_BASE_URL:', typeof API_BASE_URL !== 'undefined' ? API_BASE_URL : 'UNDEFINED');
+        console.log('🔐 authenticatedFetch available:', typeof authenticatedFetch === 'function');
+        
+        const url = `${API_BASE_URL}/api/admin/firebase-users?limit=100`;
+        console.log('📡 Making request to:', url);
+        
+        const response = await authenticatedFetch(url);
+        console.log('📥 Response received, status:', response.status);
+        
         const data = await response.json();
+        console.log('📊 Data parsed:', data.success, 'Users count:', data.data?.users?.length);
 
         if (data.success) {
+            console.log('✅ Success! Rendering Firebase users table...');
             renderFirebaseUsersTable(data.data.users);
         } else {
+            console.log('❌ API returned error:', data.message);
             showErrorById('usersTable', data.message || 'Failed to load Firebase users');
         }
     } catch (error) {
-        console.error('Error loading Firebase users:', error);
+        console.error('❌ Error loading Firebase users:', error);
         showErrorById('usersTable', 'Failed to load Firebase users: ' + error.message);
     }
 }
