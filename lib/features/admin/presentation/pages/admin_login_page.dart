@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../features/auth/presentation/data/services/auth_service.dart';
@@ -17,6 +18,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   final _authService = AuthService();
+  final _storage = const FlutterSecureStorage();
   bool _isLoading = false;
   bool _obscurePassword = true;
 
@@ -39,9 +41,14 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
       );
 
       if (response['success'] == true) {
+        // Store the auth token securely
+        final token = response['token'];
+        if (token != null) {
+          await _storage.write(key: 'auth_token', value: token);
+          debugPrint('✅ Admin token stored successfully');
+        }
+        
         if (mounted) {
-          // Store the token (you might want to use a secure storage solution)
-          // For now, we'll just navigate to the dashboard
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (_) => const AdminDashboardPage()),
           );
