@@ -9,12 +9,7 @@ import '../constants/app_constants.dart';
 /// Handles Google, Facebook, and Apple Sign In
 class OAuthService {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn(
-    scopes: [
-      'email',
-      'profile',
-    ],
-  );
+  final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email', 'profile']);
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
   /// Sign in with Google
@@ -22,10 +17,10 @@ class OAuthService {
   Future<Map<String, dynamic>> signInWithGoogle() async {
     try {
       print('🔵 Starting Google Sign In...');
-      
+
       // Trigger Google Sign In flow
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      
+
       if (googleUser == null) {
         return {
           'success': false,
@@ -36,7 +31,7 @@ class OAuthService {
       print('✅ Google account selected: ${googleUser.email}');
 
       // Get auth details
-      final GoogleSignInAuthentication googleAuth = 
+      final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
 
       // Create Firebase credential
@@ -46,8 +41,8 @@ class OAuthService {
       );
 
       // Sign in to Firebase
-      final UserCredential userCredential = 
-          await _firebaseAuth.signInWithCredential(credential);
+      final UserCredential userCredential = await _firebaseAuth
+          .signInWithCredential(credential);
 
       print('✅ Firebase authentication successful');
 
@@ -63,25 +58,18 @@ class OAuthService {
       // Send to backend
       final response = await http.post(
         Uri.parse('${AppConstants.baseUrl}/auth/google'),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: json.encode({
-          'idToken': idToken,
-        }),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'idToken': idToken}),
       );
 
       print('📡 Backend response: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        
+
         if (data['success'] == true) {
           // Save token
-          await _secureStorage.write(
-            key: 'auth_token',
-            value: data['token'],
-          );
+          await _secureStorage.write(key: 'auth_token', value: data['token']);
 
           print('✅ Google login successful: ${data['user']['email']}');
           print('👤 User ID: ${data['user']['id']}');
@@ -98,13 +86,9 @@ class OAuthService {
       // Parse error message
       final errorData = json.decode(response.body);
       throw Exception(errorData['message'] ?? 'Backend authentication failed');
-
     } on FirebaseAuthException catch (e) {
       print('❌ Firebase auth error: ${e.code} - ${e.message}');
-      return {
-        'success': false,
-        'message': _getFirebaseErrorMessage(e.code),
-      };
+      return {'success': false, 'message': _getFirebaseErrorMessage(e.code)};
     } catch (e) {
       print('❌ Google sign in error: $e');
       return {
@@ -120,15 +104,16 @@ class OAuthService {
   Future<Map<String, dynamic>> signInWithFacebook() async {
     try {
       print('📘 Facebook Sign In not yet implemented');
-      
+
       // Placeholder for Facebook authentication
       // You need to add flutter_facebook_auth package to use this
-      
+
       return {
         'success': false,
-        'message': 'Facebook login is not yet configured. Please use Google or email login.',
+        'message':
+            'Facebook login is not yet configured. Please use Google or email login.',
       };
-      
+
       // Uncomment when flutter_facebook_auth is added:
       /*
       print('📘 Starting Facebook Sign In...');
@@ -189,7 +174,6 @@ class OAuthService {
       final errorData = json.decode(response.body);
       throw Exception(errorData['message'] ?? 'Backend authentication failed');
       */
-      
     } catch (e) {
       print('❌ Facebook sign in error: $e');
       return {
@@ -204,12 +188,12 @@ class OAuthService {
   Future<Map<String, dynamic>> signInWithApple() async {
     try {
       print('🍎 Apple Sign In not yet implemented');
-      
+
       return {
         'success': false,
-        'message': 'Apple login is not yet configured. Please use Google or email login.',
+        'message':
+            'Apple login is not yet configured. Please use Google or email login.',
       };
-      
     } catch (e) {
       print('❌ Apple sign in error: $e');
       return {
