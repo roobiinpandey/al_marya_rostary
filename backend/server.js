@@ -12,6 +12,8 @@ const { connectDB } = require('./config/database');
 const { securityMiddleware, additionalSecurityHeaders, securityErrorHandler } = require('./config/security');
 const { performanceMiddleware, createCacheMiddleware, optimizeJsonResponse } = require('./config/performance');
 const { monitoring } = require('./config/monitoring');
+// ⚡ NEW: Import performance monitoring
+const { performanceMonitoring, startPerformanceReporting } = require('./middleware/performanceMonitoring');
 
 const app = express();
 
@@ -19,6 +21,9 @@ console.log('🚀 Starting Al Marya Rostery Server...');
 
 // Initialize monitoring system
 monitoring.initializeMiddleware(app);
+
+// ⚡ NEW: Add performance monitoring middleware (MUST BE FIRST to track all requests)
+app.use(performanceMonitoring);
 
 // Security middleware (must be first)
 securityMiddleware(app);
@@ -100,6 +105,46 @@ app.use('/api/auto-sync', require('./routes/autoSync'));
 // Public settings route (no auth required)
 const { getPublicSettings } = require('./controllers/settingsController');
 app.get('/api/settings/public', getPublicSettings);
+
+// ⚡ NEW: Performance metrics endpoint (admin only)
+const { getPerformanceMetrics } = require('./middleware/performanceMonitoring');
+const { cacheManager } = require('./utils/cacheManager');
+app.get('/api/admin/performance', (req, res) => {
+  try {
+    const metrics = getPerformanceMetrics();
+    res.json({
+      success: true,
+      data: metrics
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get performance metrics',
+      error: error.message
+    });
+  }
+});
+
+// ⚡ NEW: Cache stats endpoint (admin only)
+app.get('/api/admin/cache-stats', (req, res) => {
+  try {
+    const stats = cacheManager.getStats();
+    const memory = cacheManager.getMemoryInfo();
+    res.json({
+      success: true,
+      data: {
+        stats,
+        memory
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get cache stats',
+      error: error.message
+    });
+  }
+});
 
 // Admin panel route (serve index.html for consistency)
 app.get('/admin', (req, res) => {
@@ -188,6 +233,9 @@ const startServer = async () => {
     // Start periodic health checks
     monitoring.startPeriodicHealthChecks();
     
+    // ⚡ NEW: Start performance reporting (every 5 minutes)
+    startPerformanceReporting();
+    
     // Start the server
     const server = app.listen(PORT, () => {
       console.log(`🎉 Al Marya Rostery Server Started Successfully!`);
@@ -198,6 +246,8 @@ const startServer = async () => {
       console.log(`⚡ Performance optimizations: ENABLED`);
       console.log(`🛡️ Security middleware: ENABLED`);
       console.log(`📈 Monitoring: ENABLED`);
+      console.log(`📊 Performance tracking: ENABLED`);
+      console.log(`💾 In-memory cache: ENABLED`);
     });
 
     // Handle server errors

@@ -8,31 +8,40 @@ const connectDB = async () => {
     console.log('🔌 Connecting to MongoDB...');
     
     const connectionOptions = {
-      // Performance optimizations
-      maxPoolSize: 10, // Maintain up to 10 socket connections
-      serverSelectionTimeoutMS: 5000, // Keep trying to send operations for 5 seconds
-      socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
-      // Disable mongoose buffering for better error handling
-      // Note: bufferMaxEntries and bufferCommands are mongoose options, not MongoDB driver options
+      // ⚡ OPTIMIZED CONNECTION POOLING
+      maxPoolSize: 50, // Increased from 10 to 50 for better concurrent request handling
+      minPoolSize: 10, // Maintain minimum 10 connections to avoid cold starts
+      maxIdleTimeMS: 30000, // Close idle connections after 30 seconds
       
-      // Connection compression for better performance
+      // ⚡ OPTIMIZED TIMEOUT SETTINGS
+      serverSelectionTimeoutMS: 5000, // 5 seconds for server selection
+      socketTimeoutMS: 30000, // Reduced from 45s to 30s for faster failure detection
+      connectTimeoutMS: 10000, // 10 seconds for initial connection
+      
+      // ⚡ CONNECTION COMPRESSION for better performance
       compressors: ['zlib'],
       zlibCompressionLevel: 6,
       
-      // Read preferences for better performance
+      // ⚡ READ PREFERENCES for better load distribution
       readPreference: 'secondaryPreferred',
       
-      // Write concern for consistency vs performance balance
+      // ⚡ WRITE CONCERN - balanced for performance and consistency
       w: 'majority',
-      journal: true, // Journal acknowledgment (updated from deprecated 'j' option)
+      journal: true,
+      wtimeoutMS: 5000, // Write timeout of 5 seconds
       
-      // Connection retry settings
+      // ⚡ CONNECTION RETRY SETTINGS
       retryWrites: true,
       retryReads: true,
+      maxStalenessSeconds: 90, // Use data up to 90 seconds old from secondaries
       
-      // SSL/TLS settings for security
+      // 🔒 SSL/TLS settings for security
       ssl: true,
-      authSource: 'admin'
+      authSource: 'admin',
+      
+      // ⚡ CONNECTION MANAGEMENT
+      heartbeatFrequencyMS: 10000, // Check server health every 10 seconds
+      minHeartbeatFrequencyMS: 5000 // Minimum 5 seconds between heartbeats
     };
 
     // Configure mongoose settings for better performance
