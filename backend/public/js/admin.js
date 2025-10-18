@@ -174,14 +174,20 @@ async function handleLogin(event) {
             authToken = data.data.token;
             currentUser = data.data.user;
             
+            // Validate token format before storing
+            if (!isValidToken(authToken)) {
+                throw new Error('Invalid token format received from server');
+            }
+            
             localStorage.setItem('adminToken', authToken);
             localStorage.setItem('adminUser', JSON.stringify(currentUser));
             
             document.getElementById('loginSuccess').style.display = 'block';
             
+            // Wait a bit longer to ensure token is fully stored and propagated
             setTimeout(() => {
                 showAdminPanel();
-            }, 1000);
+            }, 1500);
         } else {
             throw new Error('Invalid credentials');
         }
@@ -236,6 +242,10 @@ async function authenticatedFetch(url, options = {}) {
     
     if (authToken && isValidToken(authToken)) {
         defaultHeaders['Authorization'] = `Bearer ${authToken}`;
+    } else {
+        const logger = window.adminUtils?.logger || console;
+        logger.error('No valid auth token available for request');
+        throw new Error('No authentication token available');
     }
     
     const config = {
@@ -251,9 +261,25 @@ async function authenticatedFetch(url, options = {}) {
         const logger = window.adminUtils?.logger || console;
         
         if (response.status === 401) {
-            logger.warn(`Authentication failed for ${url} - redirecting to login`);
-            logout();
-            throw new Error('Authentication expired - please login again');
+            // Log the failure but check if this is a persistent issue
+            logger.warn(`Authentication failed for ${url} (401)`);
+            logger.warn(`Token being used: ${authToken ? authToken.substring(0, 30) + '...' : 'none'}`);
+            
+            // Try to parse the error response
+            let errorMessage = 'Authentication expired - please login again';
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.message || errorMessage;
+            } catch (e) {
+                // Ignore JSON parse errors
+            }
+            
+            // Only logout if this seems like a real auth failure
+            // Give backend a chance if it's just starting up
+            if (!url.includes('/health')) {
+                logout();
+            }
+            throw new Error(errorMessage);
         }
         
         if (!response.ok) {
@@ -285,6 +311,17 @@ async function initializeAdmin() {
     initProductionFeatures();
     
     const logger = window.adminUtils?.logger || console;
+    
+    // Verify we have a valid token before proceeding
+    if (!authToken || !isValidToken(authToken)) {
+        logger.error('No valid token found during initialization');
+        hideGlobalLoading();
+        logout();
+        return;
+    }
+    
+    logger.log('Initializing with token:', authToken.substring(0, 20) + '...');
+    
     try {
         const healthCheck = await fetch(`${API_BASE_URL}/health`);
         if (!healthCheck.ok) {
@@ -292,12 +329,19 @@ async function initializeAdmin() {
         }
     } catch (error) {
         logger.warn('Backend connectivity check failed:', error.message);
-        showErrorById('dashboardStats', 'Backend server unavailable - please start the server');
+        showErrorById('dashboardStats', 'Backend server unavailable - please check connection');
         hideGlobalLoading();
         return;
     }
     
-    loadDashboardData();
+    // Load dashboard data - but don't let failures cause immediate logout
+    try {
+        await loadDashboardData();
+    } catch (error) {
+        logger.warn('Dashboard data load failed:', error.message);
+        // Don't throw - let user stay logged in even if dashboard fails
+    }
+    
     loadCategories();
     initializeCharts();
     hideGlobalLoading();
