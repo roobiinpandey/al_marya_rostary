@@ -13,6 +13,18 @@ const {
   getUserActivity,
   exportUsers
 } = require('../controllers/userController');
+const {
+  getAllFirebaseUsers,
+  getFirebaseUser,
+  updateFirebaseUser,
+  deleteFirebaseUser,
+  toggleFirebaseUserStatus,
+  createFirebaseUser,
+  setCustomClaims,
+  revokeRefreshTokens,
+  syncFirebaseUserToLocal,
+  getFirebaseUserStats
+} = require('../controllers/firebaseAdminController');
 const { getAuditLogs, getAuditStats, cleanupOldLogs } = require('../utils/auditLogger');
 const { protect } = require('../middleware/auth');
 const adminAuth = require('../middleware/adminAuth');
@@ -20,6 +32,18 @@ const adminAuth = require('../middleware/adminAuth');
 // Apply authentication and admin authorization to ALL admin routes
 router.use(protect);
 router.use(adminAuth);
+
+// Firebase user management routes (NEW)
+router.get('/firebase-users', getAllFirebaseUsers);
+router.get('/firebase-users/stats', getFirebaseUserStats);
+router.post('/firebase-users', createFirebaseUser);
+router.get('/firebase-users/:uid', getFirebaseUser);
+router.put('/firebase-users/:uid', updateFirebaseUser);
+router.delete('/firebase-users/:uid', deleteFirebaseUser);
+router.post('/firebase-users/:uid/toggle-active', toggleFirebaseUserStatus);
+router.post('/firebase-users/:uid/custom-claims', setCustomClaims);
+router.post('/firebase-users/:uid/revoke-tokens', revokeRefreshTokens);
+router.post('/firebase-users/:uid/sync-to-local', syncFirebaseUserToLocal);
 
 // User management routes
 router.get('/users', getUsers);
