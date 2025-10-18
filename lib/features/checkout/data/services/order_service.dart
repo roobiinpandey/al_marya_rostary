@@ -15,7 +15,9 @@ class OrderService {
   Future<void> loadAuthToken() async {
     try {
       _cachedAuthToken = await _storage.read(key: 'auth_token');
-      debugPrint('🔑 Order Service - Auth token loaded: ${_cachedAuthToken != null ? "YES" : "NO"}');
+      debugPrint(
+        '🔑 Order Service - Auth token loaded: ${_cachedAuthToken != null ? "YES" : "NO"}',
+      );
     } catch (e) {
       debugPrint('❌ Error loading auth token: $e');
       _cachedAuthToken = null;
@@ -52,14 +54,18 @@ class OrderService {
       debugPrint('💳 Payment method: $paymentMethod');
 
       final orderData = {
-        'items': items.map((item) => {
-          'productId': item['productId'] ?? item['id'],
-          'productName': item['name'],
-          'quantity': item['quantity'],
-          'price': item['price'],
-          'roastLevel': item['roastLevel'],
-          'grindSize': item['grindSize'],
-        }).toList(),
+        'items': items
+            .map(
+              (item) => {
+                'productId': item['productId'] ?? item['id'],
+                'productName': item['name'],
+                'quantity': item['quantity'],
+                'price': item['price'],
+                'roastLevel': item['roastLevel'],
+                'grindSize': item['grindSize'],
+              },
+            )
+            .toList(),
         'shippingAddress': {
           'fullName': shippingAddress['name'],
           'phone': shippingAddress['phone'],
@@ -78,7 +84,7 @@ class OrderService {
       };
 
       debugPrint('📤 Sending order to: $baseUrl/orders');
-      
+
       final response = await http.post(
         Uri.parse('$baseUrl/orders'),
         headers: _getHeaders(),
@@ -90,9 +96,11 @@ class OrderService {
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         final data = json.decode(response.body);
-        
+
         if (data['success'] == true) {
-          debugPrint('✅ Order created successfully: ${data['order']['orderNumber']}');
+          debugPrint(
+            '✅ Order created successfully: ${data['order']['orderNumber']}',
+          );
           return {
             'success': true,
             'order': data['order'],
@@ -131,7 +139,7 @@ class OrderService {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        
+
         if (data['success'] == true) {
           final orders = (data['orders'] as List).cast<Map<String, dynamic>>();
           debugPrint('✅ Loaded ${orders.length} orders');
@@ -166,7 +174,7 @@ class OrderService {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        
+
         if (data['success'] == true) {
           debugPrint('✅ Order details loaded');
           return data['order'];
@@ -225,21 +233,25 @@ class OrderService {
   }) async {
     try {
       debugPrint('📦 Creating guest order');
-      
+
       final orderData = {
         'guestInfo': {
           'email': guestEmail,
           'name': guestName,
           'phone': guestPhone,
         },
-        'items': items.map((item) => {
-          'productId': item['productId'] ?? item['id'],
-          'productName': item['name'],
-          'quantity': item['quantity'],
-          'price': item['price'],
-          'roastLevel': item['roastLevel'],
-          'grindSize': item['grindSize'],
-        }).toList(),
+        'items': items
+            .map(
+              (item) => {
+                'productId': item['productId'] ?? item['id'],
+                'productName': item['name'],
+                'quantity': item['quantity'],
+                'price': item['price'],
+                'roastLevel': item['roastLevel'],
+                'grindSize': item['grindSize'],
+              },
+            )
+            .toList(),
         'shippingAddress': {
           'fullName': shippingAddress['name'],
           'phone': shippingAddress['phone'],
@@ -264,7 +276,7 @@ class OrderService {
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         final data = json.decode(response.body);
-        
+
         if (data['success'] == true) {
           debugPrint('✅ Guest order created: ${data['order']['orderNumber']}');
           return {
