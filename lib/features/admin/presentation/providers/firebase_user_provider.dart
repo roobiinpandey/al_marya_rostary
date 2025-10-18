@@ -61,10 +61,7 @@ class FirebaseUserProvider with ChangeNotifier {
   }
 
   /// Fetch Firebase users - SINGLE SOURCE OF TRUTH
-  Future<void> fetchFirebaseUsers({
-    int page = 1,
-    int limit = 20,
-  }) async {
+  Future<void> fetchFirebaseUsers({int page = 1, int limit = 20}) async {
     _setLoading(true);
     _setError(null);
 
@@ -79,8 +76,9 @@ class FirebaseUserProvider with ChangeNotifier {
         'limit': limit.toString(),
       };
 
-      final uri = Uri.parse('$baseUrl/firebase-users')
-          .replace(queryParameters: queryParams);
+      final uri = Uri.parse(
+        '$baseUrl/firebase-users',
+      ).replace(queryParameters: queryParams);
 
       debugPrint('🔥 Fetching Firebase users from: $uri');
       final response = await http.get(uri, headers: _getHeaders());
@@ -90,7 +88,7 @@ class FirebaseUserProvider with ChangeNotifier {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        
+
         if (data['success'] == true) {
           _firebaseUsers = (data['users'] as List)
               .map((userJson) => FirebaseUserModel.fromJson(userJson))
@@ -98,7 +96,7 @@ class FirebaseUserProvider with ChangeNotifier {
           _currentPage = data['currentPage'] ?? 1;
           _totalPages = data['totalPages'] ?? 1;
           _totalUsers = data['totalUsers'] ?? 0;
-          
+
           debugPrint('✅ Loaded ${_firebaseUsers.length} Firebase users');
         } else {
           _setError(data['message'] ?? 'Failed to fetch Firebase users');
