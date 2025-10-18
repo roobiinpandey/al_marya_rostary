@@ -122,10 +122,10 @@ class AdminSidebar extends StatelessWidget {
                 ),
                 _buildNavItem(
                   context,
-                  'User Management',
+                  'Firebase Users',
                   Icons.people,
                   onTap: () {
-                    Navigator.pushNamed(context, '/admin/users');
+                    Navigator.pushNamed(context, '/admin/firebase-users');
                   },
                 ),
                 const Divider(height: 1),

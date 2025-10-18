@@ -23,6 +23,7 @@ import '../features/checkout/presentation/pages/order_tracking_page.dart';
 import '../features/admin/presentation/pages/admin_dashboard_page.dart';
 import '../features/admin/presentation/pages/admin_orders_page.dart';
 import '../features/admin/presentation/pages/user_management_page.dart';
+import '../features/admin/presentation/pages/firebase_users_page.dart';
 import '../features/search/presentation/pages/search_results_page.dart';
 import '../features/account/presentation/pages/account_settings_page.dart';
 import '../features/account/presentation/pages/edit_profile_page.dart';
@@ -189,6 +190,12 @@ class AppRouter {
       case '/admin/users':
         return _buildRoute(
           const EmailVerificationGuard(child: UserManagementPage()),
+          settings: settings,
+        );
+
+      case '/admin/firebase-users':
+        return _buildRoute(
+          const EmailVerificationGuard(child: FirebaseUsersPage()),
           settings: settings,
         );
 
