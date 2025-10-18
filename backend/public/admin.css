@@ -1140,3 +1140,162 @@ h1 {
         text-align: center;
     }
 }
+
+/* View Switch Buttons */
+.view-switch-btn {
+    margin-right: 10px;
+    padding: 8px 16px;
+    border: 2px solid var(--primary-brown);
+    background: white;
+    color: var(--primary-brown);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.view-switch-btn:hover {
+    background: var(--light-brown);
+}
+
+.view-switch-btn.active {
+    background: var(--primary-brown);
+    color: white;
+}
+
+.view-switch-btn i {
+    margin-right: 5px;
+}
+
+/* Modal Overlay */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.modal-content {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    max-width: 600px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.modal-header {
+    padding: 20px;
+    border-bottom: 1px solid var(--border-light);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h2 {
+    margin: 0;
+    color: var(--primary-brown);
+}
+
+.modal-header i {
+    margin-right: 10px;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 28px;
+    color: var(--medium-text);
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+    background: var(--light-brown);
+    color: var(--primary-brown);
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.modal-body h3 {
+    color: var(--primary-brown);
+    margin-top: 0;
+    margin-bottom: 15px;
+    border-bottom: 2px solid var(--light-brown);
+    padding-bottom: 10px;
+}
+
+.modal-body p {
+    margin: 10px 0;
+    line-height: 1.6;
+}
+
+.modal-body pre {
+    background: var(--bg-light);
+    padding: 10px;
+    border-radius: 4px;
+    overflow-x: auto;
+    font-size: 12px;
+}
+
+/* Firebase User Status Icons */
+.data-table td i.fa-check-circle {
+    color: var(--success-color);
+}
+
+.data-table td i.fa-times-circle {
+    color: var(--error-color);
+}
+
+.data-table td i.fa-link {
+    color: var(--info);
+}
+
+/* Status Badge Variants */
+.status-badge.status-info {
+    background: var(--info);
+    color: white;
+}
+
+.status-badge.status-warning {
+    background: var(--warning);
+    color: white;
+}
