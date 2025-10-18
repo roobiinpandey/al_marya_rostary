@@ -217,4 +217,16 @@ orderSchema.statics.findRecent = function(limit = 10) {
     .populate('items.coffee', 'name price');
 };
 
+// ⚡ PERFORMANCE OPTIMIZED INDEXES
+orderSchema.index({ user: 1, createdAt: -1 }); // User's order history (most common query)
+orderSchema.index({ orderNumber: 1 }, { unique: true }); // Order lookup by number
+orderSchema.index({ status: 1, paymentStatus: 1 }); // Admin filtering by status
+orderSchema.index({ createdAt: -1 }); // Recent orders sorting
+orderSchema.index({ 'guestInfo.email': 1 }); // Guest order lookup
+orderSchema.index({ status: 1, createdAt: -1 }); // Status-based timeline queries
+orderSchema.index({ user: 1, status: 1 }); // User's orders by status
+
+// Compound index for admin dashboard queries
+orderSchema.index({ status: 1, paymentStatus: 1, createdAt: -1 });
+
 module.exports = mongoose.model('Order', orderSchema);
