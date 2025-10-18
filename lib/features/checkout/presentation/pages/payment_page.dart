@@ -594,7 +594,7 @@ class _PaymentPageState extends State<PaymentPage> {
     try {
       // Initialize order service
       final orderService = OrderService();
-      
+
       // Prepare order items
       final items = (widget.orderData['items'] as List).map((item) {
         return {
@@ -609,8 +609,9 @@ class _PaymentPageState extends State<PaymentPage> {
       }).toList();
 
       // Get delivery info
-      final deliveryInfo = widget.orderData['delivery'] as Map<String, dynamic>?;
-      
+      final deliveryInfo =
+          widget.orderData['delivery'] as Map<String, dynamic>?;
+
       // Determine payment status
       String paymentStatus = 'pending';
       if (_selectedPaymentMethod == 'card') {
@@ -638,9 +639,9 @@ class _PaymentPageState extends State<PaymentPage> {
         paymentStatus: paymentStatus,
         totalAmount: finalTotal,
         deliveryInfo: deliveryInfo,
-        specialInstructions: _cashNoteController.text.isNotEmpty 
-          ? _cashNoteController.text 
-          : null,
+        specialInstructions: _cashNoteController.text.isNotEmpty
+            ? _cashNoteController.text
+            : null,
       );
 
       if (result['success'] == true) {
@@ -652,11 +653,13 @@ class _PaymentPageState extends State<PaymentPage> {
         // Prepare order data for confirmation page
         final orderData = result['order'];
         orderData['paymentMethod'] = _selectedPaymentMethod;
-        
+
         if (_selectedPaymentMethod == 'card') {
           orderData['cardLast4'] = _cardNumberController.text
-            .replaceAll(' ', '')
-            .substring(_cardNumberController.text.replaceAll(' ', '').length - 4);
+              .replaceAll(' ', '')
+              .substring(
+                _cardNumberController.text.replaceAll(' ', '').length - 4,
+              );
         }
 
         if (mounted) {
@@ -671,7 +674,7 @@ class _PaymentPageState extends State<PaymentPage> {
       }
     } catch (e) {
       debugPrint('❌ Payment processing error: $e');
-      
+
       if (mounted) {
         setState(() {
           _isProcessing = false;
