@@ -42,10 +42,26 @@ const protect = async (req, res, next) => {
       // Verify token
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-      // Security: Remove hardcoded admin bypass - all users must be validated through database
-      // REMOVED HARDCODED ADMIN TOKEN for security
+      // Handle admin tokens specially - check BEFORE any database queries
+      if (decoded.userId === 'admin' || decoded.role === 'admin') {
+        req.user = {
+          userId: 'admin',
+          email: 'admin',
+          roles: ['admin'],
+          isActive: true
+        };
+        return next();
+      }
 
-      // Get user from token
+      // Get user from token for regular users
+      // Only proceed if userId looks like a valid MongoDB ObjectId
+      if (!decoded.userId || decoded.userId === 'admin') {
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid token format'
+        });
+      }
+
       const user = await User.findById(decoded.userId);
 
       if (!user) {
@@ -128,18 +144,29 @@ const optionalAuth = async (req, res, next) => {
       try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         
-        // Security: Remove hardcoded admin bypass - all users must be validated through database
-        // REMOVED HARDCODED ADMIN TOKEN for security
-
-        const user = await User.findById(decoded.userId);
-
-        if (user && user.isActive) {
+        // Handle admin tokens specially - check BEFORE any database queries
+        if (decoded.userId === 'admin' || decoded.role === 'admin') {
           req.user = {
-            userId: user._id,
-            email: user.email,
-            roles: user.roles,
-            isActive: user.isActive
+            userId: 'admin',
+            email: 'admin',
+            roles: ['admin'],
+            isActive: true
           };
+          return next();
+        }
+
+        // Only query database if userId is not 'admin'
+        if (decoded.userId && decoded.userId !== 'admin') {
+          const user = await User.findById(decoded.userId);
+
+          if (user && user.isActive) {
+            req.user = {
+              userId: user._id,
+              email: user.email,
+              roles: user.roles,
+              isActive: user.isActive
+            };
+          }
         }
       } catch (error) {
         // Silent fail for optional auth
