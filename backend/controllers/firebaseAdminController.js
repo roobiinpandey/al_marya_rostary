@@ -15,89 +15,93 @@ const { logAdminAction } = require('../utils/auditLogger');
  */
 exports.getAllFirebaseUsers = async (req, res) => {
   try {
-    const { page = 1, limit = 50, search = '' } = req.query;
+    const { limit = 100, search = '' } = req.query;
     const auth = admin.auth();
     
-    // Get all Firebase users
-    const firebaseUsers = [];
-    let pageToken;
-    let totalFetched = 0;
-    const maxResults = parseInt(limit) * parseInt(page);
+    // Optimized: Fetch only the requested limit of users
+    const maxLimit = Math.min(parseInt(limit), 1000); // Cap at 1000
     
-    do {
-      const listUsersResult = await auth.listUsers(1000, pageToken);
-      
-      for (const user of listUsersResult.users) {
-        // Apply search filter if provided
-        if (search) {
-          const searchLower = search.toLowerCase();
-          const matchesSearch = 
-            (user.email && user.email.toLowerCase().includes(searchLower)) ||
-            (user.displayName && user.displayName.toLowerCase().includes(searchLower)) ||
-            (user.phoneNumber && user.phoneNumber.includes(search));
-          
-          if (!matchesSearch) continue;
-        }
-        
-        firebaseUsers.push(user);
-        totalFetched++;
-        
-        // Stop if we've fetched enough for pagination
-        if (totalFetched >= maxResults) break;
+    console.log(`📥 Fetching Firebase users (limit: ${maxLimit})${search ? ` with search: "${search}"` : ''}`);
+    
+    // Fetch users from Firebase
+    const listUsersResult = await auth.listUsers(maxLimit);
+    let firebaseUsers = listUsersResult.users;
+    
+    // Apply search filter if provided
+    if (search) {
+      const searchLower = search.toLowerCase();
+      firebaseUsers = firebaseUsers.filter(user => {
+        return (user.email && user.email.toLowerCase().includes(searchLower)) ||
+               (user.displayName && user.displayName.toLowerCase().includes(searchLower)) ||
+               (user.phoneNumber && user.phoneNumber.includes(search));
+      });
+      console.log(`🔍 Search filtered: ${firebaseUsers.length} users match "${search}"`);
+    }
+
+    console.log(`👥 Processing ${firebaseUsers.length} Firebase users...`);
+
+    // Batch fetch local users for better performance
+    const firebaseEmails = firebaseUsers.map(u => u.email).filter(Boolean);
+    const firebaseUids = firebaseUsers.map(u => u.uid);
+    
+    const localUsers = await User.find({
+      $or: [
+        { firebaseUid: { $in: firebaseUids } },
+        { email: { $in: firebaseEmails } }
+      ]
+    }).select('_id firebaseUid email firebaseSyncStatus lastFirebaseSync firebaseSyncError roles isActive').lean();
+
+    // Create a lookup map for faster matching
+    const localUserMap = new Map();
+    localUsers.forEach(user => {
+      if (user.firebaseUid) {
+        localUserMap.set(user.firebaseUid, user);
       }
-      
-      pageToken = listUsersResult.pageToken;
-    } while (pageToken && totalFetched < maxResults);
+      if (user.email) {
+        localUserMap.set(user.email, user);
+      }
+    });
 
-    // Paginate results
-    const startIndex = (parseInt(page) - 1) * parseInt(limit);
-    const paginatedUsers = firebaseUsers.slice(startIndex, startIndex + parseInt(limit));
+    // Enrich Firebase users with local data
+    const enrichedUsers = firebaseUsers.map((firebaseUser) => {
+      const localUser = localUserMap.get(firebaseUser.uid) || localUserMap.get(firebaseUser.email);
 
-    // Enrich with local database sync status
-    const enrichedUsers = await Promise.all(
-      paginatedUsers.map(async (firebaseUser) => {
-        const localUser = await User.findOne({
-          $or: [
-            { firebaseUid: firebaseUser.uid },
-            { email: firebaseUser.email }
-          ]
-        }).select('_id firebaseUid firebaseSyncStatus lastFirebaseSync firebaseSyncError roles isActive');
+      return {
+        // Firebase data
+        uid: firebaseUser.uid,
+        email: firebaseUser.email,
+        displayName: firebaseUser.displayName,
+        phoneNumber: firebaseUser.phoneNumber,
+        photoURL: firebaseUser.photoURL,
+        emailVerified: firebaseUser.emailVerified,
+        disabled: firebaseUser.disabled,
+        metadata: {
+          creationTime: firebaseUser.metadata.creationTime,
+          lastSignInTime: firebaseUser.metadata.lastSignInTime,
+          lastRefreshTime: firebaseUser.metadata.lastRefreshTime
+        },
+        providerData: firebaseUser.providerData.map(p => ({
+          providerId: p.providerId,
+          uid: p.uid,
+          displayName: p.displayName,
+          email: p.email
+        })),
+        customClaims: firebaseUser.customClaims || {},
+        
+        // Local database sync status
+        syncStatus: {
+          isLinked: !!localUser,
+          localUserId: localUser?._id || null,
+          syncStatus: localUser?.firebaseSyncStatus || 'not-synced',
+          lastSync: localUser?.lastFirebaseSync || null,
+          syncError: localUser?.firebaseSyncError || null,
+          localRoles: localUser?.roles || [],
+          localIsActive: localUser?.isActive || false
+        }
+      };
+    });
 
-        return {
-          // Firebase data
-          uid: firebaseUser.uid,
-          email: firebaseUser.email,
-          displayName: firebaseUser.displayName,
-          phoneNumber: firebaseUser.phoneNumber,
-          photoURL: firebaseUser.photoURL,
-          emailVerified: firebaseUser.emailVerified,
-          disabled: firebaseUser.disabled,
-          metadata: {
-            creationTime: firebaseUser.metadata.creationTime,
-            lastSignInTime: firebaseUser.metadata.lastSignInTime,
-            lastRefreshTime: firebaseUser.metadata.lastRefreshTime
-          },
-          providerData: firebaseUser.providerData.map(p => ({
-            providerId: p.providerId,
-            uid: p.uid,
-            displayName: p.displayName,
-            email: p.email
-          })),
-          customClaims: firebaseUser.customClaims || {},
-          
-          // Local database sync status
-          syncStatus: {
-            isLinked: !!localUser,
-            localUserId: localUser?._id || null,
-            syncStatus: localUser?.firebaseSyncStatus || 'not-synced',
-            lastSync: localUser?.lastFirebaseSync || null,
-            syncError: localUser?.firebaseSyncError || null,
-            localRoles: localUser?.roles || [],
-            localIsActive: localUser?.isActive || false
-          }
-        };
-      })
-    );
+    console.log(`✅ Returning ${enrichedUsers.length} Firebase users (${localUsers.length} linked to local DB)`);
 
     res.json({
       success: true,
@@ -105,10 +109,14 @@ exports.getAllFirebaseUsers = async (req, res) => {
       data: {
         users: enrichedUsers,
         pagination: {
-          page: parseInt(page),
-          limit: parseInt(limit),
-          total: firebaseUsers.length,
-          hasMore: firebaseUsers.length === maxResults && pageToken
+          total: enrichedUsers.length,
+          limit: maxLimit,
+          hasMore: listUsersResult.pageToken ? true : false
+        },
+        stats: {
+          totalFetched: enrichedUsers.length,
+          linkedToLocal: localUsers.length,
+          notLinked: enrichedUsers.length - localUsers.length
         }
       }
     });
