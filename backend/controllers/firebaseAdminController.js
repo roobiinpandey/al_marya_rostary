@@ -2,6 +2,12 @@ const admin = require('firebase-admin');
 const User = require('../models/User');
 const firebaseUserSyncService = require('../services/firebaseUserSyncService');
 const { logAdminAction } = require('../utils/auditLogger');
+// ⚡ NEW: Import cache manager
+const { 
+  cacheFirebaseUser, 
+  getCachedFirebaseUser,
+  CACHE_TTL 
+} = require('../utils/cacheManager');
 
 /**
  * Firebase Admin Controller
@@ -40,7 +46,7 @@ exports.getAllFirebaseUsers = async (req, res) => {
 
     console.log(`👥 Processing ${firebaseUsers.length} Firebase users...`);
 
-    // Batch fetch local users for better performance
+    // ⚡ OPTIMIZED: Batch fetch local users for better performance
     const firebaseEmails = firebaseUsers.map(u => u.email).filter(Boolean);
     const firebaseUids = firebaseUsers.map(u => u.uid);
     
@@ -49,7 +55,9 @@ exports.getAllFirebaseUsers = async (req, res) => {
         { firebaseUid: { $in: firebaseUids } },
         { email: { $in: firebaseEmails } }
       ]
-    }).select('_id firebaseUid email firebaseSyncStatus lastFirebaseSync firebaseSyncError roles isActive').lean();
+    })
+    .select('_id firebaseUid email firebaseSyncStatus lastFirebaseSync firebaseSyncError roles isActive')
+    .lean(); // ⚡ Returns plain JS objects for 10-20% performance gain
 
     // Create a lookup map for faster matching
     const localUserMap = new Map();
@@ -139,39 +147,61 @@ exports.getAllFirebaseUsers = async (req, res) => {
 exports.getFirebaseUser = async (req, res) => {
   try {
     const { uid } = req.params;
+    
+    // ⚡ NEW: Try to get from cache first
+    const cached = getCachedFirebaseUser(uid);
+    if (cached) {
+      console.log(`💾 Cache HIT: Firebase user ${uid}`);
+      return res.json({
+        success: true,
+        message: 'Firebase user retrieved from cache',
+        data: cached,
+        cached: true
+      });
+    }
+    
     const auth = admin.auth();
     
     // Get Firebase user
     const firebaseUser = await auth.getUser(uid);
     
-    // Get linked local user if exists
+    // ⚡ OPTIMIZED: Get linked local user with .lean() and specific fields
     const localUser = await User.findOne({
       $or: [
         { firebaseUid: uid },
         { email: firebaseUser.email }
       ]
-    }).select('-password');
+    })
+    .select('-password -__v')
+    .lean();
 
+    const responseData = {
+      firebase: {
+        uid: firebaseUser.uid,
+        email: firebaseUser.email,
+        displayName: firebaseUser.displayName,
+        phoneNumber: firebaseUser.phoneNumber,
+        photoURL: firebaseUser.photoURL,
+        emailVerified: firebaseUser.emailVerified,
+        disabled: firebaseUser.disabled,
+        metadata: firebaseUser.metadata,
+        providerData: firebaseUser.providerData,
+        customClaims: firebaseUser.customClaims || {},
+        tokensValidAfterTime: firebaseUser.tokensValidAfterTime
+      },
+      local: localUser || null,
+      isLinked: !!localUser
+    };
+    
+    // ⚡ NEW: Cache the result for 2 minutes
+    cacheFirebaseUser(uid, responseData);
+    console.log(`💾 Cache SET: Firebase user ${uid}`);
+    
     res.json({
       success: true,
       message: 'Firebase user retrieved successfully',
-      data: {
-        firebase: {
-          uid: firebaseUser.uid,
-          email: firebaseUser.email,
-          displayName: firebaseUser.displayName,
-          phoneNumber: firebaseUser.phoneNumber,
-          photoURL: firebaseUser.photoURL,
-          emailVerified: firebaseUser.emailVerified,
-          disabled: firebaseUser.disabled,
-          metadata: firebaseUser.metadata,
-          providerData: firebaseUser.providerData,
-          customClaims: firebaseUser.customClaims || {},
-          tokensValidAfterTime: firebaseUser.tokensValidAfterTime
-        },
-        local: localUser || null,
-        isLinked: !!localUser
-      }
+      data: responseData,
+      cached: false
     });
 
   } catch (error) {
