@@ -18,7 +18,10 @@ class _FirebaseUsersPageState extends State<FirebaseUsersPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final provider = Provider.of<FirebaseUserProvider>(context, listen: false);
+      final provider = Provider.of<FirebaseUserProvider>(
+        context,
+        listen: false,
+      );
       provider.fetchFirebaseUsers();
     });
   }
@@ -34,7 +37,10 @@ class _FirebaseUsersPageState extends State<FirebaseUsersPage> {
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
-              Provider.of<FirebaseUserProvider>(context, listen: false).refresh();
+              Provider.of<FirebaseUserProvider>(
+                context,
+                listen: false,
+              ).refresh();
             },
             tooltip: 'Refresh',
           ),
@@ -141,14 +147,17 @@ class _FirebaseUsersPageState extends State<FirebaseUsersPage> {
     FirebaseUserProvider provider,
   ) {
     final dateFormat = DateFormat('MMM dd, yyyy HH:mm');
-    
+
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: ExpansionTile(
         leading: CircleAvatar(
           backgroundColor: user.isActive ? Colors.green : Colors.red,
           child: Text(
-            (user.displayName?.substring(0, 1) ?? user.email?.substring(0, 1) ?? '?').toUpperCase(),
+            (user.displayName?.substring(0, 1) ??
+                    user.email?.substring(0, 1) ??
+                    '?')
+                .toUpperCase(),
             style: const TextStyle(color: Colors.white),
           ),
         ),
@@ -205,15 +214,15 @@ class _FirebaseUsersPageState extends State<FirebaseUsersPage> {
                 _buildDetailRow('Role', user.role.toUpperCase()),
                 _buildDetailRow(
                   'Created',
-                  user.creationTime.isNotEmpty 
-                    ? dateFormat.format(DateTime.parse(user.creationTime))
-                    : 'N/A',
+                  user.creationTime.isNotEmpty
+                      ? dateFormat.format(DateTime.parse(user.creationTime))
+                      : 'N/A',
                 ),
                 _buildDetailRow(
                   'Last Sign In',
                   user.lastSignInTime.isNotEmpty
-                    ? dateFormat.format(DateTime.parse(user.lastSignInTime))
-                    : 'Never',
+                      ? dateFormat.format(DateTime.parse(user.lastSignInTime))
+                      : 'Never',
                 ),
                 const SizedBox(height: 16),
                 Row(
@@ -230,7 +239,8 @@ class _FirebaseUsersPageState extends State<FirebaseUsersPage> {
                           color: user.isActive ? Colors.red : Colors.green,
                         ),
                       ),
-                      onPressed: () => _toggleUserStatus(context, user, provider),
+                      onPressed: () =>
+                          _toggleUserStatus(context, user, provider),
                     ),
                     const SizedBox(width: 8),
                     TextButton.icon(
@@ -267,9 +277,7 @@ class _FirebaseUsersPageState extends State<FirebaseUsersPage> {
               ),
             ),
           ),
-          Expanded(
-            child: Text(value),
-          ),
+          Expanded(child: Text(value)),
         ],
       ),
     );
@@ -375,7 +383,9 @@ class _FirebaseUsersPageState extends State<FirebaseUsersPage> {
           Row(
             children: [
               IconButton(
-                onPressed: provider.currentPage > 1 ? provider.previousPage : null,
+                onPressed: provider.currentPage > 1
+                    ? provider.previousPage
+                    : null,
                 icon: const Icon(Icons.chevron_left),
               ),
               Text('${provider.currentPage}'),

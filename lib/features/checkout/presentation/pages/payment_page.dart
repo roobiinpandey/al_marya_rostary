@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/constants/app_constants.dart';
+import '../../../cart/presentation/providers/cart_provider.dart';
+import '../../data/services/order_service.dart';
 import 'order_confirmation_page.dart';
 
 /// PaymentPage handles payment processing for orders
@@ -588,34 +591,106 @@ class _PaymentPageState extends State<PaymentPage> {
       _isProcessing = true;
     });
 
-    // Simulate payment processing
-    await Future.delayed(const Duration(seconds: 2));
+    try {
+      // Initialize order service
+      final orderService = OrderService();
+      
+      // Prepare order items
+      final items = (widget.orderData['items'] as List).map((item) {
+        return {
+          'productId': item.id,
+          'id': item.id,
+          'name': item.product.name,
+          'quantity': item.quantity,
+          'price': item.product.price,
+          'roastLevel': item.roastLevel ?? 'Medium',
+          'grindSize': item.grindSize ?? 'Whole Bean',
+        };
+      }).toList();
 
-    // Create order data with payment info
-    final orderData = Map<String, dynamic>.from(widget.orderData);
-    orderData['paymentMethod'] = _selectedPaymentMethod;
-    orderData['orderNumber'] = _generateOrderNumber();
-    orderData['status'] = 'confirmed';
-    orderData['createdAt'] = DateTime.now().toIso8601String();
+      // Get delivery info
+      final deliveryInfo = widget.orderData['delivery'] as Map<String, dynamic>?;
+      
+      // Determine payment status
+      String paymentStatus = 'pending';
+      if (_selectedPaymentMethod == 'card') {
+        // In production, integrate with payment gateway
+        paymentStatus = 'paid'; // Simulated for now
+      } else if (_selectedPaymentMethod == 'cash') {
+        paymentStatus = 'pending'; // Payment on delivery
+      }
 
-    if (_selectedPaymentMethod == 'card') {
-      orderData['cardLast4'] = _cardNumberController.text.substring(
-        _cardNumberController.text.length - 4,
+      // Calculate final total with COD fee
+      final total = widget.orderData['total'] as double;
+      final finalTotal = _selectedPaymentMethod == 'cash' ? total + 5 : total;
+
+      debugPrint('💳 Processing payment: $_selectedPaymentMethod');
+      debugPrint('💰 Final total: AED $finalTotal');
+
+      // Simulate payment processing (2 seconds)
+      await Future.delayed(const Duration(seconds: 2));
+
+      // Create order in backend
+      final result = await orderService.createOrder(
+        items: items,
+        shippingAddress: widget.orderData['shippingAddress'],
+        paymentMethod: _selectedPaymentMethod,
+        paymentStatus: paymentStatus,
+        totalAmount: finalTotal,
+        deliveryInfo: deliveryInfo,
+        specialInstructions: _cashNoteController.text.isNotEmpty 
+          ? _cashNoteController.text 
+          : null,
       );
-    }
 
-    if (mounted) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) => OrderConfirmationPage(orderData: orderData),
-        ),
-      );
-    }
-  }
+      if (result['success'] == true) {
+        // Clear cart after successful order
+        if (mounted) {
+          Provider.of<CartProvider>(context, listen: false).clearCart();
+        }
 
-  String _generateOrderNumber() {
-    final now = DateTime.now();
-    return 'QAE${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}${now.millisecondsSinceEpoch.toString().substring(8)}';
+        // Prepare order data for confirmation page
+        final orderData = result['order'];
+        orderData['paymentMethod'] = _selectedPaymentMethod;
+        
+        if (_selectedPaymentMethod == 'card') {
+          orderData['cardLast4'] = _cardNumberController.text
+            .replaceAll(' ', '')
+            .substring(_cardNumberController.text.replaceAll(' ', '').length - 4);
+        }
+
+        if (mounted) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => OrderConfirmationPage(orderData: orderData),
+            ),
+          );
+        }
+      } else {
+        throw Exception('Order creation failed');
+      }
+    } catch (e) {
+      debugPrint('❌ Payment processing error: $e');
+      
+      if (mounted) {
+        setState(() {
+          _isProcessing = false;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Payment failed: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
+            action: SnackBarAction(
+              label: 'Retry',
+              textColor: Colors.white,
+              onPressed: _processPayment,
+            ),
+          ),
+        );
+      }
+    }
   }
 
   @override
