@@ -6,6 +6,7 @@ class AppUser {
   final DateTime? createdAt;
   final DateTime? lastSignInTime;
   final Map<String, dynamic>? preferences;
+  final bool isAnonymous; // Flag for guest users
 
   const AppUser({
     required this.id,
@@ -15,6 +16,7 @@ class AppUser {
     this.createdAt,
     this.lastSignInTime,
     this.preferences,
+    this.isAnonymous = false, // Default to false for regular users
   });
 
   // Convert Realtime Database JSON to User object
@@ -33,6 +35,7 @@ class AppUser {
       preferences: json['preferences'] != null
           ? Map<String, dynamic>.from(json['preferences'])
           : null,
+      isAnonymous: json['isAnonymous'] ?? false, // Get guest flag from JSON
     );
   }
 
@@ -49,6 +52,7 @@ class AppUser {
           lastSignInTime?.millisecondsSinceEpoch ??
           DateTime.now().millisecondsSinceEpoch,
       'preferences': preferences,
+      'isAnonymous': isAnonymous, // Include guest flag in JSON
     };
   }
 
@@ -61,6 +65,7 @@ class AppUser {
     DateTime? createdAt,
     DateTime? lastSignInTime,
     Map<String, dynamic>? preferences,
+    bool? isAnonymous,
   }) {
     return AppUser(
       id: id ?? this.id,
@@ -70,6 +75,7 @@ class AppUser {
       createdAt: createdAt ?? this.createdAt,
       lastSignInTime: lastSignInTime ?? this.lastSignInTime,
       preferences: preferences ?? this.preferences,
+      isAnonymous: isAnonymous ?? this.isAnonymous,
     );
   }
 }

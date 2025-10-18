@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../../core/theme/app_theme.dart';
+import '../../../../../core/theme/theme_extensions.dart';
 
 /// Category navigation widget with expandable categories
 class CategoryNavigation extends StatefulWidget {
@@ -79,7 +79,7 @@ class _CategoryNavigationState extends State<CategoryNavigation> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: AppTheme.surfaceWhite,
+      color: Colors.transparent, // Let outer container set the background
       child: Column(
         children: [
           // Categories Section
@@ -90,7 +90,7 @@ class _CategoryNavigationState extends State<CategoryNavigation> {
 
           // Divider
           Divider(
-            color: AppTheme.primaryLightBrown.withValues(alpha:0.3),
+            color: Colors.black.withValues(alpha: 0.3), // Black divider
             height: 1,
           ),
 
@@ -100,7 +100,7 @@ class _CategoryNavigationState extends State<CategoryNavigation> {
 
           // Divider
           Divider(
-            color: AppTheme.primaryLightBrown.withValues(alpha:0.3),
+            color: Colors.black.withValues(alpha: 0.3), // Black divider
             height: 1,
           ),
 
@@ -123,12 +123,12 @@ class _CategoryNavigationState extends State<CategoryNavigation> {
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
       child: Row(
         children: [
-          Icon(icon, size: 20, color: AppTheme.primaryBrown),
+          Icon(icon, size: 20, color: Colors.black), // Black icon
           const SizedBox(width: 8),
           Text(
             title,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: AppTheme.primaryBrown,
+              color: Colors.black, // Black text
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -143,17 +143,17 @@ class _CategoryNavigationState extends State<CategoryNavigation> {
     return Column(
       children: [
         ListTile(
-          leading: Icon(category.icon, color: AppTheme.primaryBrown),
+          leading: Icon(category.icon, color: Colors.black), // Black icon
           title: Text(
             category.title,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: AppTheme.textDark,
+              color: Colors.black, // Black text
               fontWeight: FontWeight.w500,
             ),
           ),
           trailing: Icon(
             isExpanded ? Icons.expand_less : Icons.expand_more,
-            color: AppTheme.primaryBrown,
+            color: Colors.black, // Black icon
           ),
           onTap: () {
             setState(() {
@@ -181,7 +181,7 @@ class _CategoryNavigationState extends State<CategoryNavigation> {
         title: Text(
           subcategory,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: AppTheme.textMedium,
+            color: Colors.black.withValues(alpha: 0.7), // Black text
             fontWeight: FontWeight.w400,
           ),
         ),
@@ -190,7 +190,7 @@ class _CategoryNavigationState extends State<CategoryNavigation> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Exploring $subcategory'),
-              backgroundColor: AppTheme.primaryBrown,
+              backgroundColor: const Color(0xFFA89A6A),
             ),
           );
         },
@@ -203,11 +203,11 @@ class _CategoryNavigationState extends State<CategoryNavigation> {
 
   Widget _buildSectionItem(BuildContext context, SectionItem section) {
     return ListTile(
-      leading: Icon(section.icon, color: AppTheme.accentAmber),
+      leading: Icon(section.icon, color: Colors.black), // Black icon
       title: Text(
         section.title,
         style: Theme.of(context).textTheme.titleMedium?.copyWith(
-          color: AppTheme.textDark,
+          color: Colors.black, // Black text
           fontWeight: FontWeight.w500,
         ),
       ),
@@ -216,7 +216,7 @@ class _CategoryNavigationState extends State<CategoryNavigation> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Viewing ${section.title}'),
-            backgroundColor: AppTheme.primaryBrown,
+            backgroundColor: context.colors.primary,
           ),
         );
       },
@@ -227,11 +227,11 @@ class _CategoryNavigationState extends State<CategoryNavigation> {
 
   Widget _buildQuickActionItem(BuildContext context, QuickActionItem action) {
     return ListTile(
-      leading: Icon(action.icon, color: AppTheme.primaryBrown),
+      leading: Icon(action.icon, color: Colors.black), // Black icon
       title: Text(
         action.title,
         style: Theme.of(context).textTheme.titleMedium?.copyWith(
-          color: AppTheme.textDark,
+          color: Colors.black, // Black text
           fontWeight: FontWeight.w500,
         ),
       ),
@@ -240,7 +240,7 @@ class _CategoryNavigationState extends State<CategoryNavigation> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Opening ${action.title}'),
-            backgroundColor: AppTheme.primaryBrown,
+            backgroundColor: context.colors.primary,
           ),
         );
       },

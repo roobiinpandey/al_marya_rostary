@@ -24,7 +24,7 @@ class EmailVerificationGuard extends StatelessWidget {
           return child;
         }
 
-        // If guest user, allow access
+        // If guest mode (browsing without account), allow access
         if (authProvider.isGuest) {
           return child;
         }

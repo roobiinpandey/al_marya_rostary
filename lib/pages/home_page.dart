@@ -9,7 +9,7 @@ import '../features/home/presentation/widgets/featured_products.dart';
 import '../features/coffee/presentation/widgets/coffee_list_widget.dart';
 import '../features/cart/presentation/providers/cart_provider.dart';
 import '../features/coffee/presentation/providers/coffee_provider.dart';
-import '../widgets/language_toggle_widget.dart';
+import '../providers/location_provider.dart';
 
 import 'cart_page.dart';
 
@@ -69,35 +69,120 @@ class HomePage extends StatelessWidget {
       foregroundColor: Colors.white,
       elevation: 2,
       shadowColor: AppTheme.primaryBrown.withValues(alpha: 0.3),
-      title: Row(
-        children: [
-          Image.asset(
-            'assets/images/common/logo.png',
-            height: 32,
-            width: 32,
-            fit: BoxFit.contain,
-          ),
-          const SizedBox(width: 8),
-          Flexible(
-            child: Text(
-              context.l10n.appName,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-                color: Colors.white,
-              ),
-              overflow: TextOverflow.ellipsis,
+      title: Consumer<LocationProvider>(
+        builder: (context, locationProvider, child) {
+          return GestureDetector(
+            onTap: () async {
+              if (locationProvider.hasError) {
+                // If there's an error, try to open settings
+                final hasPermission = await locationProvider.hasPermission();
+                if (!hasPermission) {
+                  // Show dialog to open settings
+                  if (context.mounted) {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('Location Permission Required'),
+                        content: const Text(
+                          'This app needs location permission to show delivery options. Please enable location in settings.',
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('Cancel'),
+                          ),
+                          TextButton(
+                            onPressed: () async {
+                              Navigator.pop(context);
+                              await locationProvider.openSettings();
+                            },
+                            child: const Text('Open Settings'),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                } else {
+                  // Permission granted but still error, try refresh
+                  locationProvider.refreshLocation();
+                }
+              } else {
+                // No error, just refresh location
+                locationProvider.refreshLocation();
+              }
+            },
+            child: Row(
+              children: [
+                Icon(
+                  locationProvider.hasError
+                      ? Icons.location_off
+                      : Icons.location_on,
+                  color: locationProvider.hasError
+                      ? Colors.orangeAccent
+                      : Colors.white,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Deliver to',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.white.withValues(alpha: 0.9),
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              locationProvider.getDisplayLocation(),
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                color: locationProvider.hasError
+                                    ? Colors.orangeAccent
+                                    : Colors.white,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (locationProvider.isLoading)
+                            const SizedBox(width: 4),
+                          if (locationProvider.isLoading)
+                            SizedBox(
+                              width: 12,
+                              height: 12,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white,
+                                ),
+                              ),
+                            ),
+                          if (locationProvider.hasError)
+                            const SizedBox(width: 4),
+                          if (locationProvider.hasError)
+                            const Icon(
+                              Icons.refresh,
+                              size: 14,
+                              color: Colors.orangeAccent,
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
+          );
+        },
       ),
       actions: [
-        const LanguageToggleWidget(
-          showLabel: false,
-          iconSize: 20,
-          iconColor: Colors.white,
-          padding: EdgeInsets.symmetric(horizontal: 4),
-        ),
         IconButton(
           onPressed: () {
             // TODO: Implement search functionality

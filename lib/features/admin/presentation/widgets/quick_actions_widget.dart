@@ -13,9 +13,9 @@ class QuickActionsWidget extends StatelessWidget {
         Text(
           'Quick Actions',
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: AppTheme.textDark,
-                fontWeight: FontWeight.bold,
-              ),
+            color: AppTheme.textDark,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         const SizedBox(height: 16),
         GridView.count(
@@ -46,20 +46,19 @@ class QuickActionsWidget extends StatelessWidget {
               onTap: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                      content: Text('Manage Inventory - Coming Soon')),
+                    content: Text('Manage Inventory - Coming Soon'),
+                  ),
                 );
               },
             ),
             _buildActionCard(
               context,
               icon: Icons.people,
-              title: 'View Customers',
-              subtitle: 'Customer management',
+              title: 'User Management',
+              subtitle: 'Manage all users',
               color: AppTheme.secondaryBrown,
               onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('View Customers - Coming Soon')),
-                );
+                Navigator.pushNamed(context, '/admin/users');
               },
             ),
             _buildActionCard(
@@ -71,7 +70,8 @@ class QuickActionsWidget extends StatelessWidget {
               onTap: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                      content: Text('Generate Report - Coming Soon')),
+                    content: Text('Generate Report - Coming Soon'),
+                  ),
                 );
               },
             ),
@@ -91,9 +91,7 @@ class QuickActionsWidget extends StatelessWidget {
   }) {
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
@@ -105,30 +103,26 @@ class QuickActionsWidget extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: color.withValues(alpha:0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(
-                  icon,
-                  color: color,
-                  size: 24,
-                ),
+                child: Icon(icon, color: color, size: 24),
               ),
               const SizedBox(height: 12),
               Text(
                 title,
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: AppTheme.textDark,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  color: AppTheme.textDark,
+                  fontWeight: FontWeight.bold,
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 4),
               Text(
                 subtitle,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppTheme.textLight,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: AppTheme.textLight),
                 textAlign: TextAlign.center,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
