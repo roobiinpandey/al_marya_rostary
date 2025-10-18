@@ -2,17 +2,14 @@ import 'package:flutter/material.dart';
 import '../../../../core/services/oauth_service.dart';
 
 /// Example widget showing how to add Google Sign In button to your login page
-/// 
+///
 /// Usage: Add this to your existing login_page.dart
 class GoogleSignInButton extends StatefulWidget {
   final VoidCallback? onSuccess;
   final Function(String)? onError;
 
-  const GoogleSignInButton({
-    Key? key,
-    this.onSuccess,
-    this.onError,
-  }) : super(key: key);
+  const GoogleSignInButton({Key? key, this.onSuccess, this.onError})
+    : super(key: key);
 
   @override
   State<GoogleSignInButton> createState() => _GoogleSignInButtonState();
@@ -63,7 +60,7 @@ class _GoogleSignInButtonState extends State<GoogleSignInButton> {
       }
     } catch (e) {
       setState(() => _isLoading = false);
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -85,21 +82,14 @@ class _GoogleSignInButtonState extends State<GoogleSignInButton> {
         style: OutlinedButton.styleFrom(
           backgroundColor: Colors.white,
           foregroundColor: Colors.black87,
-          side: BorderSide(
-            color: Colors.grey.shade300,
-            width: 1,
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          side: BorderSide(color: Colors.grey.shade300, width: 1),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
         icon: _isLoading
             ? const SizedBox(
                 width: 20,
                 height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                ),
+                child: CircularProgressIndicator(strokeWidth: 2),
               )
             : Image.asset(
                 'assets/icons/google_logo.png', // Add Google logo to assets
@@ -112,10 +102,7 @@ class _GoogleSignInButtonState extends State<GoogleSignInButton> {
               ),
         label: Text(
           _isLoading ? 'Signing in...' : 'Continue with Google',
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
         ),
       ),
     );
@@ -197,38 +184,29 @@ class _LoginPageWithOAuthState extends State<LoginPageWithOAuth> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 40),
-                
+
                 // Logo
-                Image.asset(
-                  'assets/images/common/logo.png',
-                  height: 100,
-                ),
-                
+                Image.asset('assets/images/common/logo.png', height: 100),
+
                 const SizedBox(height: 32),
-                
+
                 // Title
                 const Text(
                   'Welcome Back',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
                   textAlign: TextAlign.center,
                 ),
-                
+
                 const SizedBox(height: 8),
-                
+
                 Text(
                   'Sign in to continue',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey.shade600,
-                  ),
+                  style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
                   textAlign: TextAlign.center,
                 ),
-                
+
                 const SizedBox(height: 40),
-                
+
                 // Email Field
                 TextFormField(
                   controller: _emailController,
@@ -248,9 +226,9 @@ class _LoginPageWithOAuthState extends State<LoginPageWithOAuth> {
                     return null;
                   },
                 ),
-                
+
                 const SizedBox(height: 16),
-                
+
                 // Password Field
                 TextFormField(
                   controller: _passwordController,
@@ -267,9 +245,9 @@ class _LoginPageWithOAuthState extends State<LoginPageWithOAuth> {
                     return null;
                   },
                 ),
-                
+
                 const SizedBox(height: 24),
-                
+
                 // Email Login Button
                 SizedBox(
                   height: 50,
@@ -293,9 +271,9 @@ class _LoginPageWithOAuthState extends State<LoginPageWithOAuth> {
                           ),
                   ),
                 ),
-                
+
                 const SizedBox(height: 24),
-                
+
                 // Divider with "OR"
                 Row(
                   children: [
@@ -313,9 +291,9 @@ class _LoginPageWithOAuthState extends State<LoginPageWithOAuth> {
                     Expanded(child: Divider(color: Colors.grey.shade400)),
                   ],
                 ),
-                
+
                 const SizedBox(height: 24),
-                
+
                 // Google Sign In Button
                 GoogleSignInButton(
                   onSuccess: () {
@@ -325,9 +303,9 @@ class _LoginPageWithOAuthState extends State<LoginPageWithOAuth> {
                     // Optional: Additional error handling
                   },
                 ),
-                
+
                 const SizedBox(height: 24),
-                
+
                 // Register Link
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,

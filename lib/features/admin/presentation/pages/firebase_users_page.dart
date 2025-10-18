@@ -17,12 +17,14 @@ class _FirebaseUsersPageState extends State<FirebaseUsersPage> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       final provider = Provider.of<FirebaseUserProvider>(
         context,
         listen: false,
       );
-      provider.fetchFirebaseUsers();
+      // ✅ FIX: Load auth token first, then fetch users
+      await provider.loadAuthToken();
+      await provider.fetchFirebaseUsers();
     });
   }
 
