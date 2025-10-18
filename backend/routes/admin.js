@@ -14,13 +14,12 @@ const {
   exportUsers
 } = require('../controllers/userController');
 const { getAuditLogs, getAuditStats, cleanupOldLogs } = require('../utils/auditLogger');
+const { protect } = require('../middleware/auth');
+const adminAuth = require('../middleware/adminAuth');
 
-// Auth middleware removed for local development
-
-// Test route to verify no auth is applied
-router.get('/test', (req, res) => {
-  res.json({ success: true, message: 'Admin routes working without auth' });
-});
+// Apply authentication and admin authorization to ALL admin routes
+router.use(protect);
+router.use(adminAuth);
 
 // User management routes
 router.get('/users', getUsers);
