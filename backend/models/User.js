@@ -72,6 +72,16 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: null
   },
+  // OAuth Integration Fields
+  authProvider: {
+    type: String,
+    enum: ['email', 'google', 'facebook', 'apple'],
+    default: 'email'
+  },
+  providerId: {
+    type: String,  // Google/Facebook/Apple user ID
+    sparse: true
+  },
   isEmailVerified: {
     type: Boolean,
     default: false

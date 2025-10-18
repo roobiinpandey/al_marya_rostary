@@ -14,6 +14,7 @@ const {
   sendEmailVerification,
   verifyEmail
 } = require('../controllers/authController');
+const { googleAuth, facebookAuth, appleAuth } = require('../controllers/oauthController');
 const { protect } = require('../middleware/auth');
 
 const router = express.Router();
@@ -122,6 +123,11 @@ router.post('/refresh', refreshToken);
 router.post('/forgot-password', forgotPasswordValidation, forgotPassword);
 router.post('/reset-password', resetPasswordValidation, resetPassword);
 router.get('/verify-email/:token', verifyEmail);
+
+// OAuth routes
+router.post('/google', googleAuth);
+router.post('/facebook', facebookAuth);
+router.post('/apple', appleAuth);
 
 // Protected routes
 router.get('/me', protect, getMe);
