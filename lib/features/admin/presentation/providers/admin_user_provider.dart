@@ -17,7 +17,7 @@ class AdminUserProvider with ChangeNotifier {
   String _searchQuery = '';
   String _selectedRole = '';
   String _selectedStatus = '';
-  
+
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   String? _cachedAuthToken;
 
@@ -35,18 +35,20 @@ class AdminUserProvider with ChangeNotifier {
 
   // Base URL - Uses AppConstants for environment configuration
   String get baseUrl => '${AppConstants.baseUrl}/api/admin';
-  
+
   // Load auth token from secure storage
   Future<void> loadAuthToken() async {
     try {
       _cachedAuthToken = await _storage.read(key: 'auth_token');
-      debugPrint('🔑 Auth token loaded: ${_cachedAuthToken != null ? "YES" : "NO"}');
+      debugPrint(
+        '🔑 Auth token loaded: ${_cachedAuthToken != null ? "YES" : "NO"}',
+      );
     } catch (e) {
       debugPrint('❌ Error loading auth token: $e');
       _cachedAuthToken = null;
     }
   }
-  
+
   // Get headers with auth token
   Map<String, String> _getHeaders() {
     final headers = {'Content-Type': 'application/json'};
@@ -104,7 +106,7 @@ class AdminUserProvider with ChangeNotifier {
       final uri = Uri.parse(
         '$baseUrl/users',
       ).replace(queryParameters: queryParams);
-      
+
       debugPrint('🔍 Fetching users from: $uri');
       final response = await http.get(uri, headers: _getHeaders());
 
@@ -136,7 +138,7 @@ class AdminUserProvider with ChangeNotifier {
       if (_cachedAuthToken == null) {
         await loadAuthToken();
       }
-      
+
       debugPrint('🔍 Fetching user statistics from: $baseUrl/users/stats');
       final response = await http.get(
         Uri.parse('$baseUrl/users/stats'),
@@ -166,7 +168,7 @@ class AdminUserProvider with ChangeNotifier {
       if (_cachedAuthToken == null) {
         await loadAuthToken();
       }
-      
+
       final response = await http.put(
         Uri.parse('$baseUrl/users/$userId'),
         headers: _getHeaders(),
@@ -207,7 +209,7 @@ class AdminUserProvider with ChangeNotifier {
       if (_cachedAuthToken == null) {
         await loadAuthToken();
       }
-      
+
       final response = await http.delete(
         Uri.parse('$baseUrl/users/$userId'),
         headers: _getHeaders(),
@@ -243,7 +245,7 @@ class AdminUserProvider with ChangeNotifier {
       if (_cachedAuthToken == null) {
         await loadAuthToken();
       }
-      
+
       final response = await http.put(
         Uri.parse('$baseUrl/users/bulk'),
         headers: _getHeaders(),

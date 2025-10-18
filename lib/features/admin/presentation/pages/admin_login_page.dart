@@ -47,7 +47,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
           await _storage.write(key: 'auth_token', value: token);
           debugPrint('✅ Admin token stored successfully');
         }
-        
+
         if (mounted) {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (_) => const AdminDashboardPage()),
