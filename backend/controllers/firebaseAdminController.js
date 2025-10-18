@@ -99,7 +99,7 @@ exports.getAllFirebaseUsers = async (req, res) => {
         // Local database sync status
         syncStatus: {
           isLinked: !!localUser,
-          localUserId: localUser?._id || null,
+          localUserId: localUser?._id ? localUser._id.toString() : null, // ✅ FIX: Convert ObjectId to string
           syncStatus: localUser?.firebaseSyncStatus || 'not-synced',
           lastSync: localUser?.lastFirebaseSync || null,
           syncError: localUser?.firebaseSyncError || null,
