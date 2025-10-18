@@ -90,14 +90,31 @@ class FirebaseUserProvider with ChangeNotifier {
         final data = json.decode(response.body);
 
         if (data['success'] == true) {
-          _firebaseUsers = (data['users'] as List)
+          // ✅ FIX: Backend returns data in nested 'data' object
+          final responseData = data['data'] ?? data;
+          final usersList = responseData['users'] as List? ?? [];
+
+          _firebaseUsers = usersList
               .map((userJson) => FirebaseUserModel.fromJson(userJson))
               .toList();
-          _currentPage = data['currentPage'] ?? 1;
-          _totalPages = data['totalPages'] ?? 1;
-          _totalUsers = data['totalUsers'] ?? 0;
+
+          // Handle pagination
+          final pagination = responseData['pagination'];
+          if (pagination != null) {
+            _totalUsers = pagination['total'] ?? usersList.length;
+            _totalPages = (_totalUsers / limit).ceil();
+            _currentPage = page;
+          } else {
+            // Fallback if no pagination object
+            _totalUsers = usersList.length;
+            _totalPages = 1;
+            _currentPage = 1;
+          }
 
           debugPrint('✅ Loaded ${_firebaseUsers.length} Firebase users');
+          debugPrint(
+            '📊 Total: $_totalUsers, Pages: $_totalPages, Current: $_currentPage',
+          );
         } else {
           _setError(data['message'] ?? 'Failed to fetch Firebase users');
         }
