@@ -392,9 +392,6 @@ function showSection(sectionName) {
         case 'settings':
             loadSettings();
             break;
-        case 'firebase':
-            initializeFirebaseManagement();
-            break;
     }
 }
 
