@@ -107,7 +107,7 @@ MongoDB connection error: Authentication failed
 
 ```bash
 # Database (CRITICAL)
-MONGODB_URI=***REMOVED***qahwat_prod_user:PASSWORD@***REMOVED***.ph5cazq.mongodb.net/qahwat_al_emarat
+MONGODB_URI=***REMOVED***YOUR_USERNAME:YOUR_PASSWORD@YOUR_CLUSTER.mongodb.net/YOUR_DATABASE?retryWrites=true&w=majority
 
 # Security (CRITICAL)
 JWT_SECRET=<64-char-secret>

@@ -23,7 +23,7 @@ Copy these **18 environment variables** into your Render service:
 ```
 NODE_ENV=production
 PORT=10000
-MONGODB_URI=***REMOVED******REMOVED***:***REMOVED***@almaryarostery.2yel8zi.mongodb.net/al_marya_rostery?retryWrites=true&w=majority&appName=almaryarostery
+MONGODB_URI=***REMOVED***YOUR_USERNAME:YOUR_PASSWORD@YOUR_CLUSTER.mongodb.net/YOUR_DATABASE?retryWrites=true&w=majority
 ```
 
 #### **Authentication (4 variables)**  
