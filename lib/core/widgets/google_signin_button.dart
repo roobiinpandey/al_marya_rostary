@@ -122,7 +122,6 @@ class _LoginPageWithOAuthState extends State<LoginPageWithOAuth> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _oauthService = OAuthService();
   bool _isLoading = false;
 
   @override
@@ -141,35 +140,6 @@ class _LoginPageWithOAuthState extends State<LoginPageWithOAuth> {
     // ...
 
     setState(() => _isLoading = false);
-  }
-
-  Future<void> _handleGoogleSignIn() async {
-    setState(() => _isLoading = true);
-
-    final result = await _oauthService.signInWithGoogle();
-
-    setState(() => _isLoading = false);
-
-    if (result['success'] == true) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(result['message'] ?? 'Login successful!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        Navigator.pushReplacementNamed(context, '/home');
-      }
-    } else {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(result['message'] ?? 'Google login failed'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
   }
 
   @override

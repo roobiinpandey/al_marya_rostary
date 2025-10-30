@@ -331,8 +331,15 @@ async function performManualSync() {
 }
 
 async function refreshFirebaseStatus() {
-    showGlobalLoading('Refreshing Firebase status...');
-    await initializeFirebaseManagement();
+    try {
+        showGlobalLoading('Refreshing Firebase status...');
+        await initializeFirebaseManagement();
+    } catch (error) {
+        console.error('Error refreshing Firebase status:', error);
+        showToast('Failed to refresh Firebase status', 'error');
+    } finally {
+        hideGlobalLoading();
+    }
 }
 
 function clearSyncLogs() {

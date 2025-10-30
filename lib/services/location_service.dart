@@ -9,6 +9,7 @@ class LocationService {
   LocationService._internal();
 
   String? _cachedLocation;
+  Position? _cachedPosition;
   DateTime? _lastFetchTime;
   static const _cacheDuration = Duration(minutes: 30);
 
@@ -70,9 +71,60 @@ class LocationService {
 
     // Cache the result
     _cachedLocation = location;
+    _cachedPosition = position;
     _lastFetchTime = DateTime.now();
 
     return location;
+  }
+
+  /// Get current position (coordinates)
+  /// Returns Position object with latitude and longitude
+  Future<Position> getCurrentPosition() async {
+    // Return cached position if still valid
+    if (_cachedPosition != null &&
+        _lastFetchTime != null &&
+        DateTime.now().difference(_lastFetchTime!) < _cacheDuration) {
+      return _cachedPosition!;
+    }
+
+    // Check if location services are enabled
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      throw Exception(
+        'Location services are disabled. Please enable location in settings.',
+      );
+    }
+
+    // Check and request permission
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        throw Exception(
+          'Location permission denied. Please grant location access.',
+        );
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      throw Exception(
+        'Location permission permanently denied. Please enable in settings.',
+      );
+    }
+
+    // Get current position
+    Position position = await Geolocator.getCurrentPosition(
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.high,
+        timeLimit: Duration(seconds: 10),
+      ),
+    );
+
+    // Cache the result
+    _cachedPosition = position;
+    _lastFetchTime = DateTime.now();
+
+    return position;
   }
 
   /// Format placemark into readable location string
@@ -98,6 +150,7 @@ class LocationService {
   /// Clear cached location to force refresh
   void clearCache() {
     _cachedLocation = null;
+    _cachedPosition = null;
     _lastFetchTime = null;
   }
 

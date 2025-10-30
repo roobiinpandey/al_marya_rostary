@@ -103,10 +103,7 @@ class AdminSidebar extends StatelessWidget {
                   'Products',
                   Icons.inventory,
                   onTap: () {
-                    // TODO: Navigate to products page
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Products - Coming Soon')),
-                    );
+                    Navigator.pushNamed(context, '/admin/products');
                   },
                 ),
                 _buildNavItem(
@@ -114,10 +111,7 @@ class AdminSidebar extends StatelessWidget {
                   'Orders',
                   Icons.shopping_cart,
                   onTap: () {
-                    // TODO: Navigate to orders page
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Orders - Coming Soon')),
-                    );
+                    Navigator.pushNamed(context, '/admin/orders');
                   },
                 ),
                 _buildNavItem(
@@ -134,10 +128,7 @@ class AdminSidebar extends StatelessWidget {
                   'Analytics',
                   Icons.analytics,
                   onTap: () {
-                    // TODO: Navigate to analytics page
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Analytics - Coming Soon')),
-                    );
+                    Navigator.pushNamed(context, '/admin/analytics');
                   },
                 ),
                 _buildNavItem(
@@ -145,10 +136,7 @@ class AdminSidebar extends StatelessWidget {
                   'Reports',
                   Icons.description,
                   onTap: () {
-                    // TODO: Navigate to reports page
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Reports - Coming Soon')),
-                    );
+                    Navigator.pushNamed(context, '/admin/reports');
                   },
                 ),
                 const Divider(height: 1),
@@ -157,10 +145,7 @@ class AdminSidebar extends StatelessWidget {
                   'Settings',
                   Icons.settings,
                   onTap: () {
-                    // TODO: Navigate to settings page
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Settings - Coming Soon')),
-                    );
+                    Navigator.pushNamed(context, '/admin/settings');
                   },
                 ),
                 _buildNavItem(
@@ -168,10 +153,7 @@ class AdminSidebar extends StatelessWidget {
                   'Support',
                   Icons.help,
                   onTap: () {
-                    // TODO: Navigate to support page
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Support - Coming Soon')),
-                    );
+                    Navigator.pushNamed(context, '/help-support');
                   },
                 ),
               ],

@@ -16,6 +16,7 @@ import 'features/coffee/presentation/providers/coffee_provider.dart';
 import 'features/splash/presentation/pages/splash_page.dart';
 import 'core/providers/language_provider.dart';
 import 'providers/location_provider.dart';
+import 'providers/address_provider.dart';
 import 'l10n/app_localizations.dart';
 
 void main() async {
@@ -53,6 +54,9 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (context) => CoffeeProvider()),
         ChangeNotifierProvider(
           create: (context) => LocationProvider()..initialize(),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => AddressProvider()..initialize(),
         ),
       ],
       child: Consumer<LanguageProvider>(
