@@ -23,7 +23,8 @@ const {
   setCustomClaims,
   revokeRefreshTokens,
   syncFirebaseUserToLocal,
-  getFirebaseUserStats
+  getFirebaseUserStats,
+  sendPasswordResetEmail
 } = require('../controllers/firebaseAdminController');
 const { getAuditLogs, getAuditStats, cleanupOldLogs } = require('../utils/auditLogger');
 const { protect } = require('../middleware/auth');
@@ -43,6 +44,7 @@ router.delete('/firebase-users/:uid', deleteFirebaseUser);
 router.post('/firebase-users/:uid/toggle-active', toggleFirebaseUserStatus);
 router.post('/firebase-users/:uid/custom-claims', setCustomClaims);
 router.post('/firebase-users/:uid/revoke-tokens', revokeRefreshTokens);
+router.post('/firebase-users/:uid/reset-password', sendPasswordResetEmail);
 router.post('/firebase-users/:uid/sync-to-local', syncFirebaseUserToLocal);
 
 // User management routes

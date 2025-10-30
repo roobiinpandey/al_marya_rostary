@@ -18,6 +18,10 @@ Thumbs.db
 # Deployment configuration with sensitive data
 RENDER_DEPLOYMENT_SETUP.md
 
+# Firebase Data Connect generated files (not used)
+lib/dataconnect_generated/
+backend/src/dataconnect-generated/
+
 # IntelliJ related
 *.iml
 *.ipr
@@ -135,15 +139,48 @@ firestore-debug.log*
 ui-debug.log*
 
 # Firebase configuration files (contain API keys)
-ios/Runner/GoogleService-Info.plist
-android/app/google-services.json
-lib/firebase_options.dart
+# NOTE: These files are needed for the app to work, so we keep them
+# but make sure they only contain client-side API keys (which are safe to expose)
+# ios/Runner/GoogleService-Info.plist
+# android/app/google-services.json  
+# lib/firebase_options.dart
+
+# Keep Firebase files - they're needed and contain only client-safe keys
+# However, keep service account files secret
+**/firebase-adminsdk*.json
+**/serviceAccountKey.json
 
 # Symbolication related
 app.*.symbols
 
 # Obfuscation related
 app.*.map.json
+
+# Build artifacts and APKs (large files)
+*.apk
+*.aab
+*.ipa
+android/app/build/
+android/app/build.gradle.kts.backup*
+android/app/*.backup
+
+# Documentation files (keep them clean)
+*_temp.dart
+*.bak
+*.bak2
+
+# Test and debug files
+**/test-*.html
+**/test-*.js
+**/test-*.sh
+**/simple-*.html
+**/loading-test.html
+**/progressive-test.html
+
+# Temporary scripts
+*.tmp.sh
+**/diagnose-*.sh
+**/troubleshoot-*.sh
 
 # Exception to the rules
 !**/ios/**/default.mode1v3

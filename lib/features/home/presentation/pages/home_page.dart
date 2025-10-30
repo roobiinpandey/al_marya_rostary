@@ -7,7 +7,10 @@ import '../../../../core/theme/theme_extensions.dart';
 import '../widgets/hero_banner_carousel.dart';
 import '../widgets/quick_categories_widget.dart';
 import '../widgets/product_grid_widget.dart';
-import '../widgets/category_navigation.dart';
+import '../../../../widgets/common/app_drawer.dart'; // Import the proper AppDrawer
+import '../../../../providers/location_provider.dart';
+import '../widgets/location_picker_dialog.dart';
+import '../widgets/search_dialog.dart';
 
 /// HomePage displays featured coffee products and navigation
 class HomePage extends StatelessWidget {
@@ -17,29 +20,103 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: [
-            Icon(Icons.location_on, color: context.colors.secondary, size: 20),
-            const SizedBox(width: 4),
-            Text(
-              'Dubai, UAE',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.w500,
+        title: Consumer<LocationProvider>(
+          builder: (context, locationProvider, child) {
+            return GestureDetector(
+              onTap: () {
+                if (locationProvider.hasError) {
+                  // Show permission dialog
+                  _showLocationPermissionDialog(context, locationProvider);
+                } else {
+                  // Show location picker dialog
+                  _showLocationPickerDialog(context);
+                }
+              },
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.location_on,
+                    color: locationProvider.hasError
+                        ? Colors.orange
+                        : context.colors.secondary,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 4),
+                  if (locationProvider.isLoading)
+                    const SizedBox(
+                      width: 12,
+                      height: 12,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  else
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Deliver to',
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(color: Colors.white70, fontSize: 12),
+                          ),
+                          Row(
+                            children: [
+                              if (locationProvider.useManualLocation) ...[
+                                Icon(
+                                  locationProvider.getLocationTitle() == 'Home'
+                                      ? Icons.home
+                                      : locationProvider.getLocationTitle() ==
+                                            'Work'
+                                      ? Icons.business
+                                      : Icons.location_on,
+                                  size: 14,
+                                  color: Colors.white,
+                                ),
+                                const SizedBox(width: 4),
+                              ],
+                              Expanded(
+                                child: Text(
+                                  locationProvider.getDisplayLocation(),
+                                  style: Theme.of(context).textTheme.titleMedium
+                                      ?.copyWith(
+                                        color: locationProvider.hasError
+                                            ? Colors.orange
+                                            : Colors.white,
+                                        fontWeight: FontWeight.w500,
+                                        fontSize: 14,
+                                      ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  const SizedBox(width: 4),
+                  if (!locationProvider.isLoading)
+                    Icon(
+                      Icons.keyboard_arrow_down,
+                      size: 18,
+                      color: locationProvider.hasError
+                          ? Colors.orange
+                          : Colors.white70,
+                    ),
+                ],
               ),
-            ),
-          ],
+            );
+          },
         ),
         actions: [
           // Search button
           IconButton(
             icon: Icon(Icons.search, color: Colors.white),
-            onPressed: () {
-              // TODO: Implement search functionality
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Search coming soon!')),
-              );
-            },
+            onPressed: () => _showSearchDialog(context),
           ),
           // Cart button with badge
           Consumer<CartProvider>(
@@ -169,71 +246,8 @@ class HomePage extends StatelessWidget {
           ),
         ),
       ),
-      drawer: Drawer(
-        child: Container(
-          color: Colors.white, // White background
-          child: Column(
-            children: [
-              // Drawer Header
-              Container(
-                padding: const EdgeInsets.fromLTRB(24, 48, 24, 24),
-                decoration: const BoxDecoration(
-                  color: Color(0xFFA89A6A), // Hardcoded olive gold
-                  borderRadius: BorderRadius.only(
-                    bottomRight: Radius.circular(24),
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const CircleAvatar(
-                      radius: 32,
-                      backgroundColor: Color(0xFFCBBE8C), // Light gold
-                      child: Icon(
-                        Icons.person,
-                        size: 32,
-                        color: Color(0xFF2C2C2C), // Dark charcoal
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Welcome Back!',
-                      style: TextStyle(
-                        color: Colors.white, // White text on olive gold
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      'Explore our premium coffee collection',
-                      style: TextStyle(
-                        color: Colors.white, // White text on olive gold
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              // Category Navigation
-              Expanded(
-                child: SingleChildScrollView(child: CategoryNavigation()),
-              ),
-              // Footer
-              Container(
-                padding: const EdgeInsets.all(24),
-                child: Text(
-                  'ALMARYAH ROSTERY v1.0.0',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.black.withValues(alpha: 0.6), // Black text
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+      drawer:
+          const AppDrawer(), // Use the proper AppDrawer with Profile section
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           // TODO: Quick add to cart or navigate to favorites
@@ -246,5 +260,58 @@ class HomePage extends StatelessWidget {
         child: Icon(Icons.add_shopping_cart),
       ),
     );
+  }
+
+  /// Show location permission dialog when location error occurs
+  void _showLocationPermissionDialog(
+    BuildContext context,
+    LocationProvider locationProvider,
+  ) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.location_off, color: Colors.orange),
+            SizedBox(width: 8),
+            Text('Location Access Needed'),
+          ],
+        ),
+        content: Text(
+          locationProvider.errorMessage ??
+              'To show your delivery location, please enable location access in your device settings.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.of(context).pop();
+              // Try to open location settings
+              await locationProvider.openSettings();
+              // Refresh location after user returns
+              await Future.delayed(const Duration(seconds: 1));
+              locationProvider.refreshLocation();
+            },
+            child: const Text('Open Settings'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Show location picker dialog
+  void _showLocationPickerDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => const LocationPickerDialog(),
+    );
+  }
+
+  /// Show search dialog
+  void _showSearchDialog(BuildContext context) {
+    showDialog(context: context, builder: (context) => const SearchDialog());
   }
 }

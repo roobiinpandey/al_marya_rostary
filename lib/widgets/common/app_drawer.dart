@@ -4,8 +4,21 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
 import '../../core/theme/app_theme.dart';
 
-class AppDrawer extends StatelessWidget {
+class AppDrawer extends StatefulWidget {
   const AppDrawer({super.key});
+
+  @override
+  State<AppDrawer> createState() => _AppDrawerState();
+}
+
+class _AppDrawerState extends State<AppDrawer> {
+  // Track expanded sections
+  final Map<String, bool> _expandedSections = {
+    'coffee_beans': false,
+    'brewing_methods': false,
+    'accessories': false,
+    'gifts': false,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -203,25 +216,159 @@ class AppDrawer extends StatelessWidget {
       builder: (context, authProvider, child) {
         return Column(
           children: [
-            // Coffee & Shopping Section
-            _buildSectionHeader('Coffee & Shopping'),
+            // Profile at the TOP - Always visible
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFFA89A6A).withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: const Color(0xFFA89A6A).withValues(alpha: 0.3),
+                ),
+              ),
+              child: _buildNavItem(
+                context,
+                icon: Icons.person,
+                title: 'Profile',
+                subtitle: authProvider.isAuthenticated
+                    ? 'Manage your account'
+                    : 'Create your profile',
+                onTap: () => _navigateTo(context, '/profile'),
+              ),
+            ),
+
+            const SizedBox(height: 8),
+            const Divider(height: 1),
+
+            // Coffee & Product Categories
+            _buildSectionHeader('Coffee & Products'),
+
+            // Coffee Beans - Expandable
+            _buildExpandableSection(
+              context,
+              'coffee_beans',
+              Icons.coffee_outlined,
+              'Coffee Beans',
+              'Premium coffee varieties',
+              [
+                {'title': 'Arabica', 'route': '/coffee/arabica'},
+                {'title': 'Robusta', 'route': '/coffee/robusta'},
+                {'title': 'Blends', 'route': '/coffee/blends'},
+              ],
+            ),
+
+            // Brewing Methods - Expandable
+            _buildExpandableSection(
+              context,
+              'brewing_methods',
+              Icons.local_cafe_outlined,
+              'Brewing Methods',
+              'Perfect brewing techniques',
+              [
+                {'title': 'Drip', 'route': '/brewing/drip'},
+                {'title': 'French Press', 'route': '/brewing/french-press'},
+                {'title': 'Espresso', 'route': '/brewing/espresso'},
+              ],
+            ),
+
+            // Accessories - Expandable
+            _buildExpandableSection(
+              context,
+              'accessories',
+              Icons.build_outlined,
+              'Accessories',
+              'Coffee making tools',
+              [
+                {'title': 'Grinders', 'route': '/accessories/grinders'},
+                {'title': 'Mugs', 'route': '/accessories/mugs'},
+                {'title': 'Filters', 'route': '/accessories/filters'},
+              ],
+            ),
+
+            // Gifts - Expandable
+            _buildExpandableSection(
+              context,
+              'gifts',
+              Icons.card_giftcard_outlined,
+              'Gifts',
+              'Perfect coffee gifts',
+              [
+                {'title': 'Gift Sets', 'route': '/gifts/sets'},
+                {
+                  'title': 'Subscriptions',
+                  'route': '/subscription',
+                  'isSpecial': true,
+                },
+              ],
+            ),
+
+            const Divider(height: 1),
+
+            // Featured Sections
+            _buildSectionHeader('Featured'),
             _buildNavItem(
               context,
-              icon: Icons.home,
+              icon: Icons.star_outline,
+              title: 'Featured Products',
+              subtitle: 'Highlighted coffee selections',
+              onTap: () => _navigateTo(context, '/featured'),
+            ),
+            _buildNavItem(
+              context,
+              icon: Icons.trending_up_outlined,
+              title: 'Best Sellers',
+              subtitle: 'Popular items',
+              onTap: () => _navigateTo(context, '/bestsellers'),
+            ),
+            _buildNavItem(
+              context,
+              icon: Icons.new_releases_outlined,
+              title: 'New Arrivals',
+              subtitle: 'Latest coffee products',
+              onTap: () => _navigateTo(context, '/new-arrivals'),
+            ),
+
+            const Divider(height: 1),
+
+            // Quick Actions
+            _buildSectionHeader('Quick Actions'),
+            _buildNavItem(
+              context,
+              icon: Icons.menu_book_outlined,
+              title: 'Brewing Guide',
+              subtitle: 'Coffee preparation instructions',
+              onTap: () => _navigateTo(context, '/brewing-guide'),
+            ),
+            _buildNavItem(
+              context,
+              icon: Icons.repeat_outlined,
+              title: 'Subscription',
+              subtitle: 'Coffee subscription service',
+              isSpecial: true,
+              onTap: () => _navigateTo(context, '/subscription'),
+            ),
+            _buildNavItem(
+              context,
+              icon: Icons.contact_support_outlined,
+              title: 'Contact Us',
+              subtitle: 'Customer support',
+              onTap: () => _navigateTo(context, '/contact'),
+            ),
+
+            const Divider(height: 1),
+
+            // Essential Navigation
+            _buildSectionHeader('Navigation'),
+            _buildNavItem(
+              context,
+              icon: Icons.home_outlined,
               title: 'Home',
               subtitle: 'Browse coffee collection',
               onTap: () => _navigateTo(context, '/home'),
             ),
             _buildNavItem(
               context,
-              icon: Icons.local_cafe,
-              title: 'Coffee Menu',
-              subtitle: 'Explore our varieties',
-              onTap: () => _navigateTo(context, '/coffee'),
-            ),
-            _buildNavItem(
-              context,
-              icon: Icons.shopping_cart,
+              icon: Icons.shopping_cart_outlined,
               title: 'Cart',
               subtitle: 'View cart items',
               onTap: () => _navigateTo(context, '/cart'),
@@ -229,35 +376,27 @@ class AppDrawer extends StatelessWidget {
             if (authProvider.isAuthenticated) ...[
               _buildNavItem(
                 context,
-                icon: Icons.favorite,
+                icon: Icons.favorite_outline,
                 title: 'Favorites',
                 subtitle: 'Your favorite items',
                 onTap: () => _navigateTo(context, '/favorites'),
               ),
             ],
 
-            const Divider(height: 1),
-
             // Account Section (for authenticated users)
             if (authProvider.isAuthenticated) ...[
+              const Divider(height: 1),
               _buildSectionHeader('Account'),
               _buildNavItem(
                 context,
-                icon: Icons.receipt_long,
+                icon: Icons.receipt_long_outlined,
                 title: 'Order History',
                 subtitle: 'Track your orders',
                 onTap: () => _navigateTo(context, '/orders'),
               ),
               _buildNavItem(
                 context,
-                icon: Icons.person,
-                title: 'Profile',
-                subtitle: 'Manage your account',
-                onTap: () => _navigateTo(context, '/profile'),
-              ),
-              _buildNavItem(
-                context,
-                icon: Icons.settings,
+                icon: Icons.settings_outlined,
                 title: 'Settings',
                 subtitle: 'App preferences',
                 onTap: () => _navigateTo(context, '/settings'),
@@ -270,40 +409,113 @@ class AppDrawer extends StatelessWidget {
               _buildSectionHeader('Admin'),
               _buildNavItem(
                 context,
-                icon: Icons.dashboard,
+                icon: Icons.dashboard_outlined,
                 title: 'Admin Dashboard',
                 subtitle: 'Manage the app',
                 onTap: () => _navigateTo(context, '/admin'),
               ),
               _buildNavItem(
                 context,
-                icon: Icons.people,
+                icon: Icons.people_outline,
                 title: 'User Management',
                 subtitle: 'Manage users',
                 onTap: () => _navigateTo(context, '/admin/users'),
               ),
             ],
-
-            // Support Section
-            const Divider(height: 1),
-            _buildSectionHeader('Support'),
-            _buildNavItem(
-              context,
-              icon: Icons.help_outline,
-              title: 'Help & Support',
-              subtitle: 'Get assistance',
-              onTap: () => _showComingSoon(context, 'Help & Support'),
-            ),
-            _buildNavItem(
-              context,
-              icon: Icons.info_outline,
-              title: 'About',
-              subtitle: 'App information',
-              onTap: () => _showAboutDialog(context),
-            ),
           ],
         );
       },
+    );
+  }
+
+  // New method for expandable sections
+  Widget _buildExpandableSection(
+    BuildContext context,
+    String sectionKey,
+    IconData icon,
+    String title,
+    String subtitle,
+    List<Map<String, dynamic>> items,
+  ) {
+    final isExpanded = _expandedSections[sectionKey] ?? false;
+
+    return Column(
+      children: [
+        _buildNavItem(
+          context,
+          icon: icon,
+          title: title,
+          subtitle: subtitle,
+          trailing: Icon(
+            isExpanded ? Icons.expand_less : Icons.expand_more,
+            color: const Color(0xFF8C8C8C),
+          ),
+          onTap: () {
+            setState(() {
+              _expandedSections[sectionKey] = !isExpanded;
+            });
+          },
+        ),
+        if (isExpanded)
+          Container(
+            margin: const EdgeInsets.only(left: 56, right: 16),
+            child: Column(
+              children: items.map((item) {
+                final isSpecial = item['isSpecial'] == true;
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 4),
+                  child: ListTile(
+                    leading: isSpecial
+                        ? const Icon(
+                            Icons.star,
+                            color: Color(0xFFFFA000),
+                            size: 16,
+                          )
+                        : Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: const Color(
+                                0xFFA89A6A,
+                              ).withValues(alpha: 0.6),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                    title: Text(
+                      item['title'],
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: isSpecial
+                            ? const Color(0xFFFFA000)
+                            : const Color(0xFF2E2E2E),
+                        fontWeight: isSpecial
+                            ? FontWeight.w600
+                            : FontWeight.w500,
+                      ),
+                    ),
+                    trailing: isSpecial
+                        ? const Icon(
+                            Icons.star_outlined,
+                            color: Color(0xFFFFA000),
+                            size: 16,
+                          )
+                        : const Icon(
+                            Icons.chevron_right,
+                            color: Color(0xFF8C8C8C),
+                            size: 16,
+                          ),
+                    onTap: () => _navigateTo(context, item['route']),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 2,
+                    ),
+                    dense: true,
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+      ],
     );
   }
 
@@ -331,56 +543,72 @@ class AppDrawer extends StatelessWidget {
     required VoidCallback onTap,
     bool showBadge = false,
     String? badgeText,
+    bool isSpecial = false,
+    Widget? trailing,
   }) {
     return ListTile(
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: const Color(
-            0xFFA89A6A,
-          ).withValues(alpha: 0.1), // Almaryah olive gold
+          color: isSpecial
+              ? const Color(0xFFFFA000).withValues(alpha: 0.1)
+              : const Color(0xFFA89A6A).withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(
           icon,
-          color: const Color(0xFFA89A6A),
+          color: isSpecial ? const Color(0xFFFFA000) : const Color(0xFFA89A6A),
           size: 24,
-        ), // Almaryah olive gold
-      ),
-      title: Text(
-        title,
-        style: const TextStyle(
-          fontWeight: FontWeight.w600,
-          color: Color(0xFF2E2E2E), // textDark
         ),
+      ),
+      title: Row(
+        children: [
+          Expanded(
+            child: Text(
+              title,
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: isSpecial
+                    ? const Color(0xFFFFA000)
+                    : const Color(0xFF2E2E2E),
+              ),
+            ),
+          ),
+          if (isSpecial)
+            const Icon(Icons.star, size: 16, color: Color(0xFFFFA000)),
+        ],
       ),
       subtitle: Text(
         subtitle,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 12,
-          color: Color(0xFF8C8C8C), // textLight
+          color: isSpecial
+              ? const Color(0xFFFFA000).withValues(alpha: 0.8)
+              : const Color(0xFF8C8C8C),
         ),
       ),
-      trailing: showBadge && badgeText != null
-          ? Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFA000), // accentAmber
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                badgeText,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            )
-          : const Icon(
-              Icons.chevron_right,
-              color: Color(0xFF8C8C8C), // textLight
-            ),
+      trailing:
+          trailing ??
+          (showBadge && badgeText != null
+              ? Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFA000),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    badgeText,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                )
+              : const Icon(Icons.chevron_right, color: Color(0xFF8C8C8C))),
       onTap: onTap,
       contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
     );
@@ -502,33 +730,6 @@ class AppDrawer extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-
-  void _showComingSoon(BuildContext context, String feature) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('$feature - Coming Soon!'),
-        backgroundColor: const Color(0xFFFFA000),
-      ),
-    );
-  }
-
-  void _showAboutDialog(BuildContext context) {
-    showAboutDialog(
-      context: context,
-      applicationName: 'AlMaryah Rostery',
-      applicationVersion: '1.0.0',
-      applicationIcon: const Icon(
-        Icons.coffee,
-        size: 48,
-        color: Color(0xFFA89A6A),
-      ),
-      children: const [
-        Text('Premium Coffee Experience'),
-        Text('Authentic Emirati Coffee Culture'),
-        Text('Made with ❤️ in UAE'),
-      ],
     );
   }
 }

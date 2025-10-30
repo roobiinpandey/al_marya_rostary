@@ -425,12 +425,76 @@ function showErrorById(elementId, message) {
 }
 
 function showGlobalLoading(message = 'Loading...') {
-    document.getElementById('loadingText').textContent = message;
-    document.getElementById('globalLoading').style.display = 'flex';
+    const loadingText = document.getElementById('loadingText');
+    const globalLoading = document.getElementById('globalLoading');
+    
+    if (loadingText) {
+        loadingText.textContent = message;
+    }
+    
+    if (globalLoading) {
+        globalLoading.style.display = 'flex';
+    } else {
+        console.warn('Global loading element not found, creating temporary one...');
+        // Create a temporary loading element if the main one doesn't exist
+        createTemporaryLoading(message);
+    }
 }
 
 function hideGlobalLoading() {
-    document.getElementById('globalLoading').style.display = 'none';
+    const globalLoading = document.getElementById('globalLoading');
+    const tempLoading = document.getElementById('tempGlobalLoading');
+    
+    if (globalLoading) {
+        globalLoading.style.display = 'none';
+    }
+    
+    if (tempLoading) {
+        tempLoading.remove();
+    }
+}
+
+function createTemporaryLoading(message) {
+    // Remove any existing temporary loading
+    const existing = document.getElementById('tempGlobalLoading');
+    if (existing) {
+        existing.remove();
+    }
+    
+    // Create temporary loading overlay
+    const tempLoading = document.createElement('div');
+    tempLoading.id = 'tempGlobalLoading';
+    tempLoading.className = 'global-loading';
+    tempLoading.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        color: white;
+        font-size: 18px;
+    `;
+    
+    tempLoading.innerHTML = `
+        <div class="spinner" style="
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid #fff;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        "></div>
+        <div>${message}</div>
+    `;
+    
+    document.body.appendChild(tempLoading);
 }
 
 function showToast(message, type = 'success', duration = 3000) {

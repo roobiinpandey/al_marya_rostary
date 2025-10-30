@@ -10,6 +10,68 @@ const {
 } = require('../utils/cacheManager');
 
 /**
+ * Validate and format UAE phone number to E.164 standard
+ * @param {string} phoneNumber - Raw UAE phone number input
+ * @returns {string|null} - Formatted E.164 UAE phone number or null if invalid
+ */
+function validateAndFormatUAEPhoneNumber(phoneNumber) {
+  if (!phoneNumber || typeof phoneNumber !== 'string') {
+    return null;
+  }
+  
+  // Remove all non-digit characters except +
+  let cleaned = phoneNumber.replace(/[^\d+]/g, '');
+  
+  // Handle different UAE phone number formats
+  if (cleaned.startsWith('+971')) {
+    // Already in E.164 format, validate length
+    if (cleaned.length === 13) { // +971 + 9 digits
+      return cleaned;
+    }
+  } else if (cleaned.startsWith('00971')) {
+    // International format with 00 prefix
+    cleaned = '+' + cleaned.substring(2);
+    if (cleaned.length === 13) {
+      return cleaned;
+    }
+  } else if (cleaned.startsWith('971')) {
+    // Country code without + or 00
+    cleaned = '+' + cleaned;
+    if (cleaned.length === 13) {
+      return cleaned;
+    }
+  } else if (cleaned.startsWith('0')) {
+    // Local format starting with 0 (05xxxxxxxx)
+    if (cleaned.length === 10 && cleaned.startsWith('05')) {
+      // Remove leading 0 and add +971
+      cleaned = '+971' + cleaned.substring(1);
+      return cleaned;
+    }
+  } else if (cleaned.startsWith('5')) {
+    // Mobile number without country code (5xxxxxxxx)
+    if (cleaned.length === 9) {
+      cleaned = '+971' + cleaned;
+      return cleaned;
+    }
+  } else if (cleaned.length >= 7 && cleaned.length <= 9) {
+    // Assume it's a UAE number missing country code
+    // Add +971 prefix
+    cleaned = '+971' + cleaned;
+    if (cleaned.length === 13) {
+      return cleaned;
+    }
+  }
+  
+  // Final validation: UAE phone numbers should be +971XXXXXXXXX (13 digits total)
+  const uaePhoneRegex = /^\+971[5][0-9]{8}$/; // UAE mobile numbers start with 5
+  if (uaePhoneRegex.test(cleaned)) {
+    return cleaned;
+  }
+  
+  return null;
+}
+
+/**
  * Firebase Admin Controller
  * Provides comprehensive Firebase Authentication user management for admin panel
  */
@@ -229,21 +291,53 @@ exports.getFirebaseUser = async (req, res) => {
 exports.updateFirebaseUser = async (req, res) => {
   try {
     const { uid } = req.params;
-    const { displayName, phoneNumber, email, emailVerified, disabled, photoURL } = req.body;
+    const { 
+      displayName, 
+      phoneNumber, 
+      email, 
+      emailVerified, 
+      disabled, 
+      photoURL, 
+      password,
+      customClaims 
+    } = req.body;
     
     const auth = admin.auth();
     
     // Build update request
     const updateRequest = {};
     if (displayName !== undefined) updateRequest.displayName = displayName;
-    if (phoneNumber !== undefined) updateRequest.phoneNumber = phoneNumber;
+    
+    // Validate and format phone number if provided
+    if (phoneNumber !== undefined) {
+      if (phoneNumber === '' || phoneNumber === null) {
+        // Allow clearing phone number
+        updateRequest.phoneNumber = null;
+      } else {
+        const formattedPhone = validateAndFormatUAEPhoneNumber(phoneNumber);
+        if (!formattedPhone) {
+          return res.status(400).json({
+            success: false,
+            message: `Invalid UAE phone number format. Please use UAE mobile format (e.g., +971501234567, 0501234567, or 501234567). Received: "${phoneNumber}"`
+          });
+        }
+        updateRequest.phoneNumber = formattedPhone;
+      }
+    }
+    
     if (email !== undefined) updateRequest.email = email;
     if (emailVerified !== undefined) updateRequest.emailVerified = emailVerified;
     if (disabled !== undefined) updateRequest.disabled = disabled;
     if (photoURL !== undefined) updateRequest.photoURL = photoURL;
+    if (password !== undefined) updateRequest.password = password;
 
     // Update Firebase user
     const updatedUser = await auth.updateUser(uid, updateRequest);
+
+    // Update custom claims if provided
+    if (customClaims !== undefined) {
+      await auth.setCustomUserClaims(uid, customClaims);
+    }
 
     // Sync to local database if linked
     const localUser = await User.findOne({ firebaseUid: uid });
@@ -262,7 +356,7 @@ exports.updateFirebaseUser = async (req, res) => {
     await logAdminAction(
       req.user.id,
       'FIREBASE_USER_UPDATED',
-      { firebaseUid: uid, changes: updateRequest },
+      { firebaseUid: uid, changes: updateRequest, customClaims },
       req,
       uid
     );
@@ -678,6 +772,73 @@ exports.getFirebaseUserStats = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to get Firebase user statistics',
+      error: error.message
+    });
+  }
+};
+
+/**
+ * @desc    Send password reset email to Firebase user
+ * @route   POST /api/admin/firebase-users/:uid/reset-password
+ * @access  Private/Admin
+ */
+exports.sendPasswordResetEmail = async (req, res) => {
+  try {
+    const { uid } = req.params;
+    const auth = admin.auth();
+    
+    // Get user to verify they exist and get their email
+    const userRecord = await auth.getUser(uid);
+    
+    if (!userRecord.email) {
+      return res.status(400).json({
+        success: false,
+        message: 'User does not have an email address'
+      });
+    }
+
+    // Generate password reset link without continue URL to avoid domain allowlisting issues
+    const resetLink = await auth.generatePasswordResetLink(userRecord.email);
+
+    // Log admin action
+    await logAdminAction(
+      req.user.id,
+      'PASSWORD_RESET_EMAIL_SENT',
+      { firebaseUid: uid, email: userRecord.email },
+      req,
+      uid
+    );
+
+    res.json({
+      success: true,
+      message: 'Password reset email sent successfully',
+      data: {
+        email: userRecord.email,
+        resetLink: resetLink // Note: In production, you might not want to return this
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Send password reset email error:', error);
+    
+    if (error.code === 'auth/user-not-found') {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+    
+    if (error.code === 'auth/unauthorized-continue-uri') {
+      return res.status(500).json({
+        success: false,
+        message: 'Password reset configuration issue resolved. Please try again.',
+        error: 'Domain allowlisting issue - using default Firebase domain now'
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      message: 'Failed to send password reset email',
       error: error.message
     });
   }

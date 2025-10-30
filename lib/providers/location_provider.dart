@@ -6,11 +6,17 @@ class LocationProvider extends ChangeNotifier {
   final LocationService _locationService = LocationService();
 
   String? _currentLocation;
+  String? _manualLocation;
+  String? _manualLocationTitle;
+  bool _useManualLocation = false;
   bool _isLoading = false;
   bool _hasError = false;
   String? _errorMessage;
 
   String? get currentLocation => _currentLocation;
+  String? get manualLocation => _manualLocation;
+  String? get manualLocationTitle => _manualLocationTitle;
+  bool get useManualLocation => _useManualLocation;
   bool get isLoading => _isLoading;
   bool get hasError => _hasError;
   String? get errorMessage => _errorMessage;
@@ -76,6 +82,9 @@ class LocationProvider extends ChangeNotifier {
     if (_isLoading) {
       return 'Getting location...';
     }
+    if (_useManualLocation && _manualLocation != null) {
+      return _manualLocation!;
+    }
     if (_hasError) {
       return 'Location unavailable';
     }
@@ -83,5 +92,41 @@ class LocationProvider extends ChangeNotifier {
       return _currentLocation!;
     }
     return 'Location not set';
+  }
+
+  /// Set manual location (from saved addresses)
+  void setManualLocation(String location, String title) {
+    _manualLocation = location;
+    _manualLocationTitle = title;
+    _useManualLocation = true;
+    _hasError = false;
+    _errorMessage = null;
+    notifyListeners();
+  }
+
+  /// Switch back to GPS location
+  void useGpsLocation() {
+    _useManualLocation = false;
+    _manualLocation = null;
+    _manualLocationTitle = null;
+    notifyListeners();
+    // Refresh GPS location
+    refreshLocation();
+  }
+
+  /// Clear manual location
+  void clearManualLocation() {
+    _manualLocation = null;
+    _manualLocationTitle = null;
+    _useManualLocation = false;
+    notifyListeners();
+  }
+
+  /// Get location type for display (GPS, Home, Work, etc.)
+  String getLocationTitle() {
+    if (_useManualLocation && _manualLocationTitle != null) {
+      return _manualLocationTitle!;
+    }
+    return 'Current Location';
   }
 }

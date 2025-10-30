@@ -3,7 +3,7 @@ import '../pages/settings_page.dart';
 import '../features/wishlist/presentation/pages/wishlist_page.dart';
 import '../pages/orders_page.dart';
 import '../pages/profile_page.dart';
-import '../pages/home_page.dart';
+import '../features/home/presentation/pages/home_page.dart';
 import '../features/auth/presentation/pages/login_page.dart'; // FIXED: Use features-based login page
 import '../features/auth/presentation/pages/register_page.dart';
 import '../features/auth/presentation/pages/forgot_password_page.dart';
@@ -37,6 +37,24 @@ import '../features/coffee/presentation/pages/write_review_page.dart';
 import '../features/account/presentation/pages/loyalty_rewards_page.dart';
 import '../features/account/presentation/pages/referral_page.dart';
 import '../features/account/presentation/pages/subscription_management_page.dart';
+// Import new pages
+import '../features/admin/presentation/pages/admin_products_page.dart';
+import '../features/admin/presentation/pages/admin_analytics_page.dart';
+import '../features/admin/presentation/pages/admin_settings_page.dart';
+import '../features/admin/presentation/pages/admin_reports_page.dart';
+import '../features/common/presentation/pages/help_support_page.dart';
+import '../features/common/presentation/pages/about_page.dart';
+// Import enhanced navigation pages
+import '../features/coffee/presentation/pages/coffee_arabica_page.dart';
+import '../features/coffee/presentation/pages/coffee_robusta_page.dart';
+import '../features/coffee/presentation/pages/coffee_blends_page.dart';
+import '../features/coffee/presentation/pages/brewing_guide_page.dart';
+import '../features/coffee/presentation/pages/featured_products_page.dart';
+import '../features/coffee/presentation/pages/best_sellers_page.dart';
+import '../features/coffee/presentation/pages/new_arrivals_page.dart';
+import '../features/coffee/presentation/pages/accessories_page.dart';
+import '../features/coffee/presentation/pages/gifts_page.dart';
+import '../features/subscription/presentation/pages/subscription_page.dart';
 
 class AppRouter {
   static const String home = '/';
@@ -57,6 +75,12 @@ class AppRouter {
   static const String adminDashboard = '/admin/dashboard';
   static const String adminUsers = '/admin/users';
   static const String adminOrders = '/admin/orders';
+  static const String adminProducts = '/admin/products';
+  static const String adminAnalytics = '/admin/analytics';
+  static const String adminSettings = '/admin/settings';
+  static const String adminReports = '/admin/reports';
+  static const String helpSupport = '/help-support';
+  static const String about = '/about';
   static const String search = '/search';
   static const String productDetail = '/product';
   static const String accountSettings = '/account-settings';
@@ -72,6 +96,17 @@ class AppRouter {
   static const String referral = '/referral';
   static const String subscriptions = '/subscriptions';
   static const String debugAuth = '/debug/auth';
+  // Enhanced navigation routes
+  static const String coffeeArabica = '/coffee/arabica';
+  static const String coffeeRobusta = '/coffee/robusta';
+  static const String coffeeBlends = '/coffee/blends';
+  static const String brewingGuide = '/brewing-guide';
+  static const String featuredProducts = '/featured-products';
+  static const String bestSellers = '/best-sellers';
+  static const String newArrivals = '/new-arrivals';
+  static const String accessories = '/accessories';
+  static const String gifts = '/gifts';
+  static const String subscription = '/subscription';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -202,6 +237,18 @@ class AppRouter {
       case '/admin/orders':
         return _buildRoute(const AdminOrdersPage(), settings: settings);
 
+      case '/admin/products':
+        return _buildRoute(const AdminProductsPage(), settings: settings);
+
+      case '/admin/analytics':
+        return _buildRoute(const AdminAnalyticsPage(), settings: settings);
+
+      case '/admin/settings':
+        return _buildRoute(const AdminSettingsPage(), settings: settings);
+
+      case '/admin/reports':
+        return _buildRoute(const AdminReportsPage(), settings: settings);
+
       case '/account-settings':
         return _buildRoute(
           const EmailVerificationGuard(child: AccountSettingsPage()),
@@ -294,6 +341,43 @@ class AppRouter {
 
       case '/debug/auth':
         return _buildRoute(const AuthDebugPage(), settings: settings);
+
+      case '/help-support':
+        return _buildRoute(const HelpSupportPage(), settings: settings);
+
+      case '/about':
+        return _buildRoute(const AboutPage(), settings: settings);
+
+      // Enhanced navigation routes
+      case '/coffee/arabica':
+        return _buildRoute(const CoffeeArabicaPage(), settings: settings);
+
+      case '/coffee/robusta':
+        return _buildRoute(const CoffeeRobustaPage(), settings: settings);
+
+      case '/coffee/blends':
+        return _buildRoute(const CoffeeBlendsPage(), settings: settings);
+
+      case '/brewing-guide':
+        return _buildRoute(const BrewingGuidePage(), settings: settings);
+
+      case '/featured-products':
+        return _buildRoute(const FeaturedProductsPage(), settings: settings);
+
+      case '/best-sellers':
+        return _buildRoute(const BestSellersPage(), settings: settings);
+
+      case '/new-arrivals':
+        return _buildRoute(const NewArrivalsPage(), settings: settings);
+
+      case '/accessories':
+        return _buildRoute(const AccessoriesPage(), settings: settings);
+
+      case '/gifts':
+        return _buildRoute(const GiftsPage(), settings: settings);
+
+      case '/subscription':
+        return _buildRoute(const SubscriptionPage(), settings: settings);
 
       default:
         return _buildRoute(_buildNotFoundPage(), settings: settings);

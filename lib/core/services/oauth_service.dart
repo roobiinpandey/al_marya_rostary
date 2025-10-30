@@ -12,11 +12,19 @@ class OAuthService {
   final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email', 'profile']);
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
+  /// Debug logging helper - only logs in debug mode
+  void _debugLog(String message) {
+    assert(() {
+      _debugLog(message);
+      return true;
+    }());
+  }
+
   /// Sign in with Google
   /// Returns: Map with success status, user data, and token
   Future<Map<String, dynamic>> signInWithGoogle() async {
     try {
-      print('🔵 Starting Google Sign In...');
+      _debugLog('🔵 Starting Google Sign In...');
 
       // Trigger Google Sign In flow
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
@@ -28,7 +36,7 @@ class OAuthService {
         };
       }
 
-      print('✅ Google account selected: ${googleUser.email}');
+      _debugLog('✅ Google account selected: ${googleUser.email}');
 
       // Get auth details
       final GoogleSignInAuthentication googleAuth =
@@ -44,7 +52,7 @@ class OAuthService {
       final UserCredential userCredential = await _firebaseAuth
           .signInWithCredential(credential);
 
-      print('✅ Firebase authentication successful');
+      _debugLog('✅ Firebase authentication successful');
 
       // Get ID token for backend
       final String? idToken = await userCredential.user?.getIdToken();
@@ -53,7 +61,7 @@ class OAuthService {
         throw Exception('Failed to get ID token from Firebase');
       }
 
-      print('📡 Sending token to backend...');
+      _debugLog('📡 Sending token to backend...');
 
       // Send to backend
       final response = await http.post(
@@ -62,7 +70,7 @@ class OAuthService {
         body: json.encode({'idToken': idToken}),
       );
 
-      print('📡 Backend response: ${response.statusCode}');
+      _debugLog('📡 Backend response: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -71,8 +79,8 @@ class OAuthService {
           // Save token
           await _secureStorage.write(key: 'auth_token', value: data['token']);
 
-          print('✅ Google login successful: ${data['user']['email']}');
-          print('👤 User ID: ${data['user']['id']}');
+          _debugLog('✅ Google login successful: ${data['user']['email']}');
+          _debugLog('👤 User ID: ${data['user']['id']}');
 
           return {
             'success': true,
@@ -87,10 +95,10 @@ class OAuthService {
       final errorData = json.decode(response.body);
       throw Exception(errorData['message'] ?? 'Backend authentication failed');
     } on FirebaseAuthException catch (e) {
-      print('❌ Firebase auth error: ${e.code} - ${e.message}');
+      _debugLog('❌ Firebase auth error: ${e.code} - ${e.message}');
       return {'success': false, 'message': _getFirebaseErrorMessage(e.code)};
     } catch (e) {
-      print('❌ Google sign in error: $e');
+      _debugLog('❌ Google sign in error: $e');
       return {
         'success': false,
         'message': e.toString().replaceAll('Exception: ', ''),
@@ -103,7 +111,7 @@ class OAuthService {
   /// Returns: Map with success status, user data, and token
   Future<Map<String, dynamic>> signInWithFacebook() async {
     try {
-      print('📘 Facebook Sign In not yet implemented');
+      _debugLog('📘 Facebook Sign In not yet implemented');
 
       // Placeholder for Facebook authentication
       // You need to add flutter_facebook_auth package to use this
@@ -116,7 +124,7 @@ class OAuthService {
 
       // Uncomment when flutter_facebook_auth is added:
       /*
-      print('📘 Starting Facebook Sign In...');
+      _debugLog('📘 Starting Facebook Sign In...');
       
       final LoginResult result = await FacebookAuth.instance.login(
         permissions: ['email', 'public_profile'],
@@ -129,7 +137,7 @@ class OAuthService {
         };
       }
 
-      print('✅ Facebook login successful');
+      _debugLog('✅ Facebook login successful');
 
       final AccessToken? accessToken = result.accessToken;
       
@@ -137,7 +145,7 @@ class OAuthService {
         throw Exception('Failed to get Facebook access token');
       }
 
-      print('📡 Sending token to backend...');
+      _debugLog('📡 Sending token to backend...');
 
       final response = await http.post(
         Uri.parse('${AppConstants.baseUrl}/auth/facebook'),
@@ -149,7 +157,7 @@ class OAuthService {
         }),
       );
 
-      print('📡 Backend response: ${response.statusCode}');
+      _debugLog('📡 Backend response: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -160,7 +168,7 @@ class OAuthService {
             value: data['token'],
           );
 
-          print('✅ Facebook authentication successful: ${data['user']['email']}');
+          _debugLog('✅ Facebook authentication successful: ${data['user']['email']}');
 
           return {
             'success': true,
@@ -175,7 +183,7 @@ class OAuthService {
       throw Exception(errorData['message'] ?? 'Backend authentication failed');
       */
     } catch (e) {
-      print('❌ Facebook sign in error: $e');
+      _debugLog('❌ Facebook sign in error: $e');
       return {
         'success': false,
         'message': e.toString().replaceAll('Exception: ', ''),
@@ -187,7 +195,7 @@ class OAuthService {
   /// Returns: Map with success status, user data, and token
   Future<Map<String, dynamic>> signInWithApple() async {
     try {
-      print('🍎 Apple Sign In not yet implemented');
+      _debugLog('🍎 Apple Sign In not yet implemented');
 
       return {
         'success': false,
@@ -195,7 +203,7 @@ class OAuthService {
             'Apple login is not yet configured. Please use Google or email login.',
       };
     } catch (e) {
-      print('❌ Apple sign in error: $e');
+      _debugLog('❌ Apple sign in error: $e');
       return {
         'success': false,
         'message': e.toString().replaceAll('Exception: ', ''),
@@ -211,9 +219,9 @@ class OAuthService {
         _googleSignIn.signOut(),
         _secureStorage.delete(key: 'auth_token'),
       ]);
-      print('✅ User signed out successfully');
+      _debugLog('✅ User signed out successfully');
     } catch (e) {
-      print('❌ Sign out error: $e');
+      _debugLog('❌ Sign out error: $e');
       rethrow;
     }
   }

@@ -1,540 +1,861 @@
-/* Users Management Module */
+// Simple Firebase Users Management
+console.log('Loading Firebase Users Management...');
 
-let currentView = 'firebase'; // 'local' or 'firebase' - DEFAULT TO FIREBASE USERS
+/**
+ * Validate UAE phone number format
+ * @param {string} phoneNumber - UAE phone number to validate
+ * @returns {boolean} - True if valid UAE phone number format
+ */
+function isValidPhoneNumber(phoneNumber) {
+    if (!phoneNumber || typeof phoneNumber !== 'string') {
+        return false;
+    }
+    
+    // Remove all non-digit characters except +
+    const cleaned = phoneNumber.replace(/[^\d+]/g, '');
+    
+    // Check various UAE phone number formats
+    if (cleaned.startsWith('+971')) {
+        // E.164 format: +971XXXXXXXXX (13 digits total, mobile starts with 5)
+        return /^\+971[5][0-9]{8}$/.test(cleaned);
+    } else if (cleaned.startsWith('00971')) {
+        // International format: 00971XXXXXXXXX
+        return cleaned.length === 14 && /^00971[5][0-9]{8}$/.test(cleaned);
+    } else if (cleaned.startsWith('971')) {
+        // Country code without +: 971XXXXXXXXX
+        return cleaned.length === 12 && /^971[5][0-9]{8}$/.test(cleaned);
+    } else if (cleaned.startsWith('05')) {
+        // Local format with leading 0: 05XXXXXXXX
+        return cleaned.length === 10 && /^05[0-9]{8}$/.test(cleaned);
+    } else if (cleaned.startsWith('5')) {
+        // Mobile without country code: 5XXXXXXXX
+        return cleaned.length === 9 && /^5[0-9]{8}$/.test(cleaned);
+    } else if (cleaned.length >= 7 && cleaned.length <= 9) {
+        // Assume it might be a valid UAE number
+        return true; // Let backend handle detailed validation
+    }
+    
+    return false;
+}
+
+let usersDataTable = null;
 
 async function loadUsers() {
+    console.log('loadUsers() called - Loading Firebase users...');
     try {
-        console.log('🔍 loadUsers() called, currentView:', currentView);
-        showLoading('usersTable');
-        
-        // FORCE FIREBASE USERS - NO CONDITIONS
-        console.log('🔥 Forcing Firebase users to load...');
-        await loadFirebaseUsers();
-        
+        showUsersSection();
+        await loadFirebaseUsersData();
     } catch (error) {
-        console.error('❌ Error in loadUsers:', error);
-        showErrorById('usersTable', 'Failed to load users: ' + error.message);
+        console.error('Error in loadUsers:', error);
+        alert('Failed to load users: ' + error.message);
     }
 }
 
-async function loadLocalUsers() {
-    try {
-        const response = await authenticatedFetch(`${API_BASE_URL}/api/admin/users`);
-        const data = await response.json();
-
-        if (data.success) {
-            renderLocalUsersTable(data.data);
-        }
-    } catch (error) {
-        console.error('Error loading local users:', error);
-        showErrorById('usersTable', 'Failed to load local users');
-    }
-}
-
-async function loadFirebaseUsers() {
-    try {
-        console.log('🔥 loadFirebaseUsers() called');
-        console.log('🌐 API_BASE_URL:', typeof API_BASE_URL !== 'undefined' ? API_BASE_URL : 'UNDEFINED');
-        console.log('🔐 authenticatedFetch available:', typeof authenticatedFetch === 'function');
-        
-        const url = `${API_BASE_URL}/api/admin/firebase-users?limit=100`;
-        console.log('📡 Making request to:', url);
-        
-        const response = await authenticatedFetch(url);
-        console.log('📥 Response received, status:', response.status);
-        
-        const data = await response.json();
-        console.log('📊 Data parsed:', data.success, 'Users count:', data.data?.users?.length);
-
-        if (data.success) {
-            console.log('✅ Success! Rendering Firebase users table...');
-            renderFirebaseUsersTable(data.data.users);
-        } else {
-            console.log('❌ API returned error:', data.message);
-            showErrorById('usersTable', data.message || 'Failed to load Firebase users');
-        }
-    } catch (error) {
-        console.error('❌ Error loading Firebase users:', error);
-        showErrorById('usersTable', 'Failed to load Firebase users: ' + error.message);
-    }
-}
-
-function switchView(view) {
-    currentView = view;
+function showUsersSection() {
+    const usersSection = document.getElementById('users');
+    const usersTableContainer = document.getElementById('usersTable');
     
-    // Update button states
-    document.querySelectorAll('.view-switch-btn').forEach(btn => {
-        btn.classList.remove('active');
+    if (!usersSection || !usersTableContainer) {
+        console.error('Users section or table container not found');
+        throw new Error('Users section elements not found');
+    }
+    
+    // Clear the existing table content and replace with our loading/table structure
+    usersTableContainer.innerHTML = `
+        <!-- Users Stats Cards -->
+        <div class="users-stats-grid" style="display: none;" id="usersStatsGrid">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="totalUsersCount">0</h3>
+                    <p>Total Users</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon verified">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="verifiedUsersCount">0</h3>
+                    <p>Verified Users</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon active">
+                    <i class="fas fa-user-check"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="activeUsersCount">0</h3>
+                    <p>Active Users</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon providers">
+                    <i class="fas fa-link"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="providersCount">0</h3>
+                    <p>Auth Providers</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Spinner -->
+        <div id="usersLoadingSpinner" class="loading-container" style="display: block;">
+            <div class="loading-spinner">
+                <div class="spinner"></div>
+                <div class="loading-text">
+                    <h3>Loading Firebase Users...</h3>
+                    <p>Fetching user data from Firebase Authentication</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Error Message -->
+        <div id="usersErrorMessage" class="error-container" style="display: none;">
+            <div class="error-content">
+                <div class="error-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h3>Failed to Load Users</h3>
+                <p id="errorText">An error occurred while loading user data.</p>
+                <button onclick="loadFirebaseUsersData()" class="btn btn-primary retry-btn">
+                    <i class="fas fa-redo"></i> Retry Loading
+                </button>
+            </div>
+        </div>
+        
+        <!-- Users Table Container -->
+        <div id="usersTableContainer" class="table-container" style="display: none;">
+            <!-- Table Controls -->
+            <div class="table-controls">
+                <div class="table-controls-left">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="usersSearchInput" placeholder="Search users by email, name, or UID..." />
+                    </div>
+                </div>
+                <div class="table-controls-right">
+                    <div class="view-toggle">
+                        <button class="btn btn-sm active" onclick="setTableView('table')">
+                            <i class="fas fa-table"></i> Table
+                        </button>
+                        <button class="btn btn-sm" onclick="setTableView('cards')">
+                            <i class="fas fa-th-large"></i> Cards
+                        </button>
+                    </div>
+                    <button class="btn btn-sm btn-secondary" onclick="exportUsers()">
+                        <i class="fas fa-download"></i> Export
+                    </button>
+                </div>
+            </div>
+
+            <!-- Users Table -->
+            <div class="table-wrapper">
+                <table id="firebaseUsersTable" class="data-table users-table">
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-fingerprint"></i> UID</th>
+                            <th><i class="fas fa-envelope"></i> Email</th>
+                            <th><i class="fas fa-user"></i> Display Name</th>
+                            <th><i class="fas fa-phone"></i> Phone</th>
+                            <th><i class="fas fa-link"></i> Provider</th>
+                            <th><i class="fas fa-shield-alt"></i> Verified</th>
+                            <th><i class="fas fa-calendar-plus"></i> Created</th>
+                            <th><i class="fas fa-clock"></i> Last Sign In</th>
+                            <th><i class="fas fa-toggle-on"></i> Status</th>
+                            <th><i class="fas fa-cog"></i> Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Users will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+}
+
+async function loadFirebaseUsersData() {
+    console.log('Loading Firebase users from API...');
+    
+    const loadingSpinner = document.getElementById('usersLoadingSpinner');
+    const errorMessage = document.getElementById('usersErrorMessage');
+    const tableContainer = document.getElementById('usersTableContainer');
+    
+    loadingSpinner.style.display = 'block';
+    errorMessage.style.display = 'none';
+    tableContainer.style.display = 'none';
+    
+    try {
+        const token = localStorage.getItem('adminToken');
+        if (!token) {
+            throw new Error('Admin token not found. Please login again.');
+        }
+        
+        const response = await fetch('/api/admin/firebase-users?limit=100', {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + token,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        console.log('API Response status:', response.status);
+        
+        if (!response.ok) {
+            throw new Error('API request failed: ' + response.status);
+        }
+        
+        const data = await response.json();
+        console.log('Response data:', data);
+        
+        if (data.success && data.data && data.data.users) {
+            displayFirebaseUsersTable(data.data.users);
+        } else {
+            throw new Error(data.message || 'Invalid response format');
+        }
+        
+    } catch (error) {
+        console.error('Error loading Firebase users:', error);
+        showUsersError(error.message);
+    }
+}
+
+function displayFirebaseUsersTable(users) {
+    console.log('Displaying', users.length, 'users in table');
+    
+    const loadingSpinner = document.getElementById('usersLoadingSpinner');
+    const errorMessage = document.getElementById('usersErrorMessage');
+    const tableContainer = document.getElementById('usersTableContainer');
+    const statsGrid = document.getElementById('usersStatsGrid');
+    
+    // Hide loading and error, show stats and table
+    if (loadingSpinner) loadingSpinner.style.display = 'none';
+    if (errorMessage) errorMessage.style.display = 'none';
+    if (statsGrid) statsGrid.style.display = 'grid';
+    if (tableContainer) tableContainer.style.display = 'block';
+    
+    // Update user statistics
+    updateUserStats(users);
+    
+    // Clear and populate table
+    const tableBody = document.querySelector('#firebaseUsersTable tbody');
+    if (tableBody) {
+        tableBody.innerHTML = '';
+        
+        users.forEach((user, index) => {
+            const row = createUserTableRow(user, index);
+            tableBody.appendChild(row);
+        });
+    }
+    
+    // Initialize or reinitialize DataTable
+    try {
+        if (usersDataTable) {
+            usersDataTable.destroy();
+        }
+        usersDataTable = $('#firebaseUsersTable').DataTable({
+            responsive: true,
+            pageLength: 25,
+            order: [[6, 'desc']], // Sort by creation date
+            dom: 'rtip', // Remove default search and controls
+            language: {
+                search: '',
+                searchPlaceholder: 'Search users...',
+                lengthMenu: 'Show _MENU_ users per page',
+                info: 'Showing _START_ to _END_ of _TOTAL_ users',
+                paginate: {
+                    first: 'First',
+                    last: 'Last',
+                    next: 'Next',
+                    previous: 'Previous'
+                }
+            }
+        });
+        
+        // Connect custom search
+        $('#usersSearchInput').on('keyup', function() {
+            usersDataTable.search(this.value).draw();
+        });
+        
+        console.log('✅ DataTable initialized successfully');
+    } catch (error) {
+        console.error('⚠️ DataTable initialization failed:', error);
+    }
+}
+
+function createUserTableRow(user, index) {
+    const row = document.createElement('tr');
+    row.className = 'user-row';
+    
+    // Generate a shorter UID display
+    const shortUid = user.uid ? user.uid.substring(0, 8) + '...' : 'N/A';
+    
+    // Get provider badge
+    const providerBadge = getProviderBadge(user.providerData);
+    
+    // Get verification status
+    const verificationStatus = user.emailVerified ? 
+        '<span class="status-badge verified"><i class="fas fa-check-circle"></i> Verified</span>' : 
+        '<span class="status-badge unverified"><i class="fas fa-times-circle"></i> Not Verified</span>';
+    
+    // Get user status
+    const userStatus = user.disabled ? 
+        '<span class="status-badge disabled"><i class="fas fa-ban"></i> Disabled</span>' : 
+        '<span class="status-badge active"><i class="fas fa-check"></i> Active</span>';
+    
+    row.innerHTML = `
+        <td class="uid-cell" title="${user.uid}">
+            <span class="uid-text">${shortUid}</span>
+            <button class="copy-btn" onclick="copyToClipboard('${user.uid}')" title="Copy full UID">
+                <i class="fas fa-copy"></i>
+            </button>
+        </td>
+        <td class="email-cell">
+            <div class="user-info">
+                <span class="email">${user.email || 'N/A'}</span>
+                ${user.emailVerified ? '<i class="fas fa-shield-alt verified-icon" title="Email Verified"></i>' : ''}
+            </div>
+        </td>
+        <td class="name-cell">
+            <div class="user-profile">
+                <div class="user-avatar">
+                    ${user.photoURL ? 
+                        `<img src="${user.photoURL}" alt="Avatar" class="avatar-img">` : 
+                        `<i class="fas fa-user-circle"></i>`
+                    }
+                </div>
+                <span class="display-name">${user.displayName || 'No display name'}</span>
+            </div>
+        </td>
+        <td class="phone-cell">${user.phoneNumber || 'N/A'}</td>
+        <td class="provider-cell">${providerBadge}</td>
+        <td class="verification-cell">${verificationStatus}</td>
+        <td class="date-cell">${formatDate(user.metadata?.creationTime)}</td>
+        <td class="date-cell">${formatDate(user.metadata?.lastSignInTime)}</td>
+        <td class="status-cell">${userStatus}</td>
+        <td class="actions-cell">
+            <div class="action-buttons">
+                <button class="btn btn-xs btn-info" onclick="viewUserDetails('${user.uid}')" title="View Details">
+                    <i class="fas fa-eye"></i>
+                </button>
+                <button class="btn btn-xs btn-warning" onclick="editUser('${user.uid}')" title="Edit User">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn btn-xs ${user.disabled ? 'btn-success' : 'btn-secondary'}" 
+                        onclick="toggleUserStatus('${user.uid}', ${user.disabled})" 
+                        title="${user.disabled ? 'Enable User' : 'Disable User'}">
+                    <i class="fas fa-${user.disabled ? 'toggle-on' : 'toggle-off'}"></i>
+                </button>
+            </div>
+        </td>
+    `;
+    
+    return row;
+}
+
+function updateUserStats(users) {
+    const totalCount = users.length;
+    const verifiedCount = users.filter(user => user.emailVerified).length;
+    const activeCount = users.filter(user => !user.disabled).length;
+    
+    // Count unique providers
+    const providers = new Set();
+    users.forEach(user => {
+        if (user.providerData && Array.isArray(user.providerData)) {
+            user.providerData.forEach(provider => providers.add(provider.providerId));
+        }
     });
-    event.target.classList.add('active');
+    const providersCount = providers.size;
     
-    loadUsers();
+    // Update stat elements
+    const totalElement = document.getElementById('totalUsersCount');
+    const verifiedElement = document.getElementById('verifiedUsersCount');
+    const activeElement = document.getElementById('activeUsersCount');
+    const providersElement = document.getElementById('providersCount');
+    
+    if (totalElement) totalElement.textContent = totalCount;
+    if (verifiedElement) verifiedElement.textContent = verifiedCount;
+    if (activeElement) activeElement.textContent = activeCount;
+    if (providersElement) providersElement.textContent = providersCount;
+    
+    console.log(`📊 Stats updated: ${totalCount} total, ${verifiedCount} verified, ${activeCount} active, ${providersCount} providers`);
 }
 
-function renderLocalUsersTable(users) {
-    if (!users || users.length === 0) {
-        document.getElementById('usersTable').innerHTML = `
-            <div style="text-align: center; padding: 40px;">
-                <i class="fas fa-users" style="font-size: 64px; color: #ddd; margin-bottom: 20px;"></i>
-                <p style="font-size: 18px; color: #666;">No local users found</p>
-                <button class="btn btn-primary" onclick="switchView('firebase')">View Firebase Users</button>
+function showUsersError(message) {
+    const loadingSpinner = document.getElementById('usersLoadingSpinner');
+    const errorMessage = document.getElementById('usersErrorMessage');
+    const tableContainer = document.getElementById('usersTableContainer');
+    const errorText = document.getElementById('errorText');
+    
+    loadingSpinner.style.display = 'none';
+    tableContainer.style.display = 'none';
+    errorMessage.style.display = 'block';
+    errorText.textContent = message;
+}
+
+function getProviderInfo(providerData) {
+    if (!providerData || !Array.isArray(providerData) || providerData.length === 0) {
+        return 'Email';
+    }
+    
+    const providers = providerData.map(provider => {
+        switch (provider.providerId) {
+            case 'google.com': return 'Google';
+            case 'facebook.com': return 'Facebook';
+            case 'password': return 'Email';
+            default: return provider.providerId;
+        }
+    });
+    
+    return providers.join(', ');
+}
+
+function getProviderBadge(providerData) {
+    if (!providerData || !Array.isArray(providerData) || providerData.length === 0) {
+        return '<span class="provider-badge email"><i class="fas fa-envelope"></i> Email</span>';
+    }
+    
+    const badges = providerData.map(provider => {
+        switch (provider.providerId) {
+            case 'google.com': 
+                return '<span class="provider-badge google"><i class="fab fa-google"></i> Google</span>';
+            case 'facebook.com': 
+                return '<span class="provider-badge facebook"><i class="fab fa-facebook"></i> Facebook</span>';
+            case 'password': 
+                return '<span class="provider-badge email"><i class="fas fa-envelope"></i> Email</span>';
+            default: 
+                return `<span class="provider-badge other"><i class="fas fa-link"></i> ${provider.providerId}</span>`;
+        }
+    });
+    
+    return badges.join(' ');
+}
+
+function formatDate(dateString) {
+    if (!dateString) return '<span class="no-data">N/A</span>';
+    
+    try {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffTime = Math.abs(now - date);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        let timeAgo = '';
+        if (diffDays === 1) {
+            timeAgo = '1 day ago';
+        } else if (diffDays < 30) {
+            timeAgo = `${diffDays} days ago`;
+        } else if (diffDays < 365) {
+            const months = Math.floor(diffDays / 30);
+            timeAgo = `${months} month${months > 1 ? 's' : ''} ago`;
+        } else {
+            const years = Math.floor(diffDays / 365);
+            timeAgo = `${years} year${years > 1 ? 's' : ''} ago`;
+        }
+        
+        return `
+            <div class="date-info">
+                <span class="date-primary">${date.toLocaleDateString()}</span>
+                <span class="date-secondary">${timeAgo}</span>
             </div>
         `;
+    } catch (error) {
+        return '<span class="no-data">Invalid Date</span>';
+    }
+}
+
+// Helper functions for user actions
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        showToast('UID copied to clipboard!', 'success');
+    }).catch(() => {
+        showToast('Failed to copy UID', 'error');
+    });
+}
+
+function viewUserDetails(uid) {
+    // TODO: Implement user details modal
+    console.log('View user details:', uid);
+    showToast('User details feature coming soon!', 'info');
+}
+
+function editUser(uid) {
+    console.log('Edit user:', uid);
+    
+    // Find the user data
+    const users = getUsersFromTable();
+    const user = users.find(u => u.uid === uid);
+    
+    if (!user) {
+        showToast('User not found', 'error');
         return;
     }
-
-    const tableHTML = `
-        <div style="margin-bottom: 20px;">
-            <button class="btn view-switch-btn" onclick="switchView('local')">
-                <i class="fas fa-database"></i> Local Users
-            </button>
-            <button class="btn view-switch-btn active" onclick="switchView('firebase')">
-                <i class="fab fa-google"></i> Firebase Users
-            </button>
-        </div>
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Phone</th>
-                    <th>Role</th>
-                    <th>Status</th>
-                    <th>Firebase</th>
-                    <th>Joined</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${users.map(user => {
-                    const firebaseStatus = user.firebaseUid 
-                        ? (user.firebaseSyncStatus === 'synced' ? 'synced' : user.firebaseSyncStatus || 'unknown')
-                        : 'not-linked';
-                    
-                    const firebaseStatusColor = {
-                        'synced': 'status-completed',
-                        'pending': 'status-warning', 
-                        'error': 'status-error',
-                        'manual': 'status-inactive',
-                        'not-linked': 'status-inactive'
-                    };
-
-                    return `
-                    <tr>
-                        <td>
-                            <strong>${user.name || 'N/A'}</strong>
-                            ${user.firebaseUid ? '<i class="fas fa-link" style="color: #28a745; margin-left: 5px;" title="Linked to Firebase"></i>' : ''}
-                        </td>
-                        <td>
-                            ${user.email || 'N/A'}
-                            ${user.isEmailVerified ? '<i class="fas fa-check-circle" style="color: #28a745; margin-left: 5px;" title="Email Verified"></i>' : ''}
-                        </td>
-                        <td>${user.phone || 'N/A'}</td>
-                        <td>
-                            <span class="status-badge ${user.roles?.includes('admin') ? 'status-completed' : 'status-active'}">
-                                ${user.roles?.join(', ') || 'Customer'}
-                            </span>
-                        </td>
-                        <td>
-                            <span class="status-badge ${user.isActive ? 'status-active' : 'status-inactive'}">
-                                ${user.isActive ? 'Active' : 'Inactive'}
-                            </span>
-                        </td>
-                        <td>
-                            <span class="status-badge ${firebaseStatusColor[firebaseStatus] || 'status-inactive'}" 
-                                  title="${user.firebaseSyncError || 'Firebase sync status'}">
-                                ${firebaseStatus === 'not-linked' ? 'Not Linked' : 
-                                  firebaseStatus === 'synced' ? '✓ Synced' :
-                                  firebaseStatus === 'pending' ? '⏳ Pending' :
-                                  firebaseStatus === 'error' ? '❌ Error' :
-                                  firebaseStatus === 'manual' ? '👤 Manual' : firebaseStatus}
-                            </span>
-                        </td>
-                        <td>${new Date(user.createdAt).toLocaleDateString()}</td>
-                        <td style="white-space: nowrap;">
-                            <button class="btn btn-info btn-sm" onclick="editUser('${user._id}')" title="Edit User">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="btn btn-warning btn-sm" onclick="toggleUserStatus('${user._id}')" title="Toggle Status">
-                                <i class="fas fa-toggle-on"></i>
-                            </button>
-                            ${user.firebaseUid 
-                                ? `<button class="btn btn-secondary btn-sm" onclick="syncUserToFirebase('${user._id}')" title="Resync to Firebase">
-                                    <i class="fas fa-sync"></i>
-                                  </button>`
-                                : `<button class="btn btn-success btn-sm" onclick="syncUserToFirebase('${user._id}')" title="Sync to Firebase">
-                                    <i class="fas fa-cloud-upload-alt"></i>
-                                  </button>`
-                            }
-                            <button class="btn btn-danger btn-sm" onclick="deleteUser('${user._id}')" title="Delete User">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-                    `;
-                }).join('')}
-            </tbody>
-        </table>
-    `;
-    document.getElementById('usersTable').innerHTML = tableHTML;
+    
+    showUserEditModal(user);
 }
 
-function renderFirebaseUsersTable(users) {
-    if (!users || users.length === 0) {
-        document.getElementById('usersTable').innerHTML = `
-            <div style="text-align: center; padding: 40px;">
-                <i class="fab fa-google" style="font-size: 64px; color: #ddd; margin-bottom: 20px;"></i>
-                <p style="font-size: 18px; color: #666;">No Firebase users found</p>
-                <button class="btn btn-primary" onclick="switchView('local')">View Local Users</button>
-            </div>
-        `;
-        return;
-    }
-
-    const tableHTML = `
-        <div style="margin-bottom: 20px;">
-            <button class="btn view-switch-btn" onclick="switchView('local')">
-                <i class="fas fa-database"></i> Local Users
-            </button>
-            <button class="btn view-switch-btn active" onclick="switchView('firebase')">
-                <i class="fab fa-google"></i> Firebase Users (${users.length})
-            </button>
-            <button class="btn btn-success" onclick="syncAllFirebaseUsers()">
-                <i class="fas fa-sync"></i> Sync All to Local
-            </button>
-        </div>
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>Display Name</th>
-                    <th>Email</th>
-                    <th>Phone</th>
-                    <th>Provider</th>
-                    <th>Status</th>
-                    <th>Local Sync</th>
-                    <th>Last Sign In</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${users.map(user => {
-                    const syncStatus = user.syncStatus.syncStatus;
-                    const isLinked = user.syncStatus.isLinked;
-                    
-                    const syncStatusColor = {
-                        'synced': 'status-completed',
-                        'pending': 'status-warning',
-                        'error': 'status-error',
-                        'not-synced': 'status-inactive'
-                    };
-
-                    const providerNames = user.providerData.map(p => {
-                        if (p.providerId === 'password') return 'Email';
-                        if (p.providerId === 'google.com') return 'Google';
-                        if (p.providerId === 'phone') return 'Phone';
-                        return p.providerId;
-                    }).join(', ');
-
-                    return `
-                    <tr>
-                        <td>
-                            ${user.photoURL ? `<img src="${user.photoURL}" style="width: 30px; height: 30px; border-radius: 50%; vertical-align: middle; margin-right: 8px;" />` : ''}
-                            <strong>${user.displayName || 'N/A'}</strong>
-                        </td>
-                        <td>
-                            ${user.email || 'N/A'}
-                            ${user.emailVerified ? '<i class="fas fa-check-circle" style="color: #28a745; margin-left: 5px;" title="Email Verified"></i>' : '<i class="fas fa-times-circle" style="color: #dc3545; margin-left: 5px;" title="Email Not Verified"></i>'}
-                        </td>
-                        <td>${user.phoneNumber || 'N/A'}</td>
-                        <td><span class="status-badge status-info">${providerNames}</span></td>
-                        <td>
-                            <span class="status-badge ${user.disabled ? 'status-inactive' : 'status-active'}">
-                                ${user.disabled ? 'Disabled' : 'Active'}
-                            </span>
-                        </td>
-                        <td>
-                            <span class="status-badge ${syncStatusColor[syncStatus] || 'status-inactive'}" 
-                                  title="${user.syncStatus.syncError || 'Sync status'}">
-                                ${isLinked ? '✓ Linked' : '⚠ Not Synced'}
-                            </span>
-                        </td>
-                        <td>${user.metadata.lastSignInTime ? new Date(user.metadata.lastSignInTime).toLocaleDateString() : 'Never'}</td>
-                        <td style="white-space: nowrap;">
-                            <button class="btn btn-info btn-sm" onclick="viewFirebaseUser('${user.uid}')" title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-warning btn-sm" onclick="toggleFirebaseUserStatus('${user.uid}', ${user.disabled})" title="${user.disabled ? 'Enable' : 'Disable'} User">
-                                <i class="fas fa-toggle-${user.disabled ? 'off' : 'on'}"></i>
-                            </button>
-                            ${!isLinked 
-                                ? `<button class="btn btn-success btn-sm" onclick="syncFirebaseUserToLocal('${user.uid}')" title="Sync to Local">
-                                    <i class="fas fa-download"></i>
-                                  </button>`
-                                : `<button class="btn btn-secondary btn-sm" onclick="syncFirebaseUserToLocal('${user.uid}')" title="Re-sync">
-                                    <i class="fas fa-sync"></i>
-                                  </button>`
-                            }
-                            <button class="btn btn-danger btn-sm" onclick="deleteFirebaseUser('${user.uid}')" title="Delete from Firebase">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-                    `;
-                }).join('')}
-            </tbody>
-        </table>
-    `;
-    document.getElementById('usersTable').innerHTML = tableHTML;
-}
-
-async function syncAllFirebaseUsers() {
-    try {
-        const confirmSync = confirm('This will sync ALL Firebase users to the local database. This may take a few minutes. Continue?');
-        if (!confirmSync) return;
-
-        showGlobalLoading('Syncing Firebase users to local database...');
-        
-        const response = await authenticatedFetch(`${API_BASE_URL}/api/firebase-sync/bulk-sync-from-firebase`, {
-            method: 'POST'
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            showToast(`Sync completed! ${data.data.synced} users synced, ${data.data.errors} errors`, 'success');
-            await loadUsers();
-        } else {
-            showToast(`Sync failed: ${data.message}`, 'error');
+function getUsersFromTable() {
+    // Extract user data from the current table
+    const users = [];
+    const tableRows = document.querySelectorAll('#firebaseUsersTable tbody tr');
+    
+    tableRows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length >= 9) {
+            const uid = cells[0].getAttribute('title') || cells[0].textContent.trim();
+            const email = cells[1].querySelector('.email')?.textContent.trim();
+            const displayName = cells[2].querySelector('.display-name')?.textContent.trim();
+            const phoneNumber = cells[3].textContent.trim() === 'N/A' ? null : cells[3].textContent.trim();
+            const emailVerified = cells[5].textContent.includes('Verified');
+            const disabled = cells[8].textContent.includes('Disabled');
+            
+            users.push({
+                uid: uid.replace('...', ''),
+                email,
+                displayName: displayName === 'No display name' ? null : displayName,
+                phoneNumber,
+                emailVerified,
+                disabled
+            });
         }
-    } catch (error) {
-        console.error('Error syncing all Firebase users:', error);
-        showToast('Failed to sync Firebase users', 'error');
-    } finally {
-        hideGlobalLoading();
-    }
+    });
+    
+    return users;
 }
 
-async function syncFirebaseUserToLocal(firebaseUid) {
-    try {
-        showGlobalLoading('Syncing user to local database...');
-        
-        const response = await authenticatedFetch(`${API_BASE_URL}/api/admin/firebase-users/${firebaseUid}/sync-to-local`, {
-            method: 'POST'
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            showToast('User synced successfully!', 'success');
-            await loadUsers();
-        } else {
-            showToast(`Sync failed: ${data.message}`, 'error');
-        }
-    } catch (error) {
-        console.error('Error syncing Firebase user:', error);
-        showToast('Failed to sync Firebase user', 'error');
-    } finally {
-        hideGlobalLoading();
-    }
-}
-
-async function viewFirebaseUser(firebaseUid) {
-    try {
-        showGlobalLoading('Loading user details...');
-        
-        const response = await authenticatedFetch(`${API_BASE_URL}/api/admin/firebase-users/${firebaseUid}`);
-        const data = await response.json();
-        
-        hideGlobalLoading();
-        
-        if (data.success) {
-            const user = data.data;
-            const modalHTML = `
-                <div class="modal-overlay" onclick="closeFirebaseUserModal()">
-                    <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 800px;">
-                        <div class="modal-header">
-                            <h2><i class="fab fa-google"></i> Firebase User Details</h2>
-                            <button class="close-btn" onclick="closeFirebaseUserModal()">&times;</button>
-                        </div>
-                        <div class="modal-body">
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                                <div>
-                                    <h3>Firebase Account</h3>
-                                    <p><strong>UID:</strong> ${user.firebase.uid}</p>
-                                    <p><strong>Email:</strong> ${user.firebase.email || 'N/A'}</p>
-                                    <p><strong>Display Name:</strong> ${user.firebase.displayName || 'N/A'}</p>
-                                    <p><strong>Phone:</strong> ${user.firebase.phoneNumber || 'N/A'}</p>
-                                    <p><strong>Email Verified:</strong> ${user.firebase.emailVerified ? '✓ Yes' : '✗ No'}</p>
-                                    <p><strong>Status:</strong> ${user.firebase.disabled ? 'Disabled' : 'Active'}</p>
-                                    <p><strong>Created:</strong> ${new Date(user.firebase.metadata.creationTime).toLocaleString()}</p>
-                                    <p><strong>Last Sign In:</strong> ${user.firebase.metadata.lastSignInTime ? new Date(user.firebase.metadata.lastSignInTime).toLocaleString() : 'Never'}</p>
-                                    <p><strong>Custom Claims:</strong> ${JSON.stringify(user.firebase.customClaims || {}, null, 2)}</p>
+function showUserEditModal(user) {
+    // Create modal HTML
+    const modalHTML = `
+        <div class="modal-overlay" id="userEditModal">
+            <div class="user-edit-modal">
+                <div class="modal-header">
+                    <h3><i class="fas fa-user-edit"></i> Edit User</h3>
+                    <button class="close-btn" onclick="closeUserEditModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="modal-body">
+                    <form id="userEditForm">
+                        <input type="hidden" id="editUserId" value="${user.uid}">
+                        
+                        <!-- User Info Section -->
+                        <div class="form-section">
+                            <h4><i class="fas fa-user"></i> User Information</h4>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="editDisplayName">Display Name</label>
+                                    <input type="text" id="editDisplayName" value="${user.displayName || ''}" 
+                                           placeholder="Enter display name">
                                 </div>
-                                <div>
-                                    <h3>Local Database</h3>
-                                    ${user.local ? `
-                                        <p><strong>Linked:</strong> ✓ Yes</p>
-                                        <p><strong>Local ID:</strong> ${user.local._id}</p>
-                                        <p><strong>Name:</strong> ${user.local.name}</p>
-                                        <p><strong>Roles:</strong> ${user.local.roles.join(', ')}</p>
-                                        <p><strong>Active:</strong> ${user.local.isActive ? 'Yes' : 'No'}</p>
-                                        <p><strong>Sync Status:</strong> ${user.local.firebaseSyncStatus}</p>
-                                        <p><strong>Last Sync:</strong> ${user.local.lastFirebaseSync ? new Date(user.local.lastFirebaseSync).toLocaleString() : 'Never'}</p>
-                                    ` : `
-                                        <p><strong>Linked:</strong> ✗ No</p>
-                                        <p style="color: #dc3545;">This Firebase user is not synced to the local database.</p>
-                                        <button class="btn btn-primary" onclick="syncFirebaseUserToLocal('${user.firebase.uid}'); closeFirebaseUserModal();">
-                                            <i class="fas fa-download"></i> Sync to Local Database
-                                        </button>
-                                    `}
+                                <div class="form-group">
+                                    <label for="editEmail">Email Address</label>
+                                    <input type="email" id="editEmail" value="${user.email || ''}" 
+                                           placeholder="Enter email address">
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="editPhoneNumber">UAE Phone Number</label>
+                                    <input type="tel" id="editPhoneNumber" value="${user.phoneNumber || ''}" 
+                                           placeholder="e.g., +971501234567, 0501234567, or 501234567">
+                                    <small class="form-text">UAE mobile numbers only (starting with 05 or 5)</small>
+                                </div>
+                                <div class="form-group">
+                                    <label for="editPhotoURL">Profile Photo URL</label>
+                                    <input type="url" id="editPhotoURL" value="${user.photoURL || ''}" 
+                                           placeholder="Enter photo URL">
                                 </div>
                             </div>
                         </div>
-                    </div>
+                        
+                        <!-- Account Status Section -->
+                        <div class="form-section">
+                            <h4><i class="fas fa-shield-alt"></i> Account Status</h4>
+                            
+                            <div class="form-row">
+                                <div class="form-group checkbox-group">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" id="editEmailVerified" 
+                                               ${user.emailVerified ? 'checked' : ''}>
+                                        <span class="checkmark"></span>
+                                        Email Verified
+                                    </label>
+                                </div>
+                                <div class="form-group checkbox-group">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" id="editDisabled" 
+                                               ${user.disabled ? 'checked' : ''}>
+                                        <span class="checkmark"></span>
+                                        Account Disabled
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Custom Claims Section -->
+                        <div class="form-section">
+                            <h4><i class="fas fa-key"></i> Custom Claims</h4>
+                            <div class="form-group">
+                                <label for="editCustomClaims">Custom Claims (JSON)</label>
+                                <textarea id="editCustomClaims" rows="4" 
+                                          placeholder='{"role": "admin", "permissions": ["read", "write"]}'></textarea>
+                                <small class="form-help">Enter valid JSON for custom claims</small>
+                            </div>
+                        </div>
+                        
+                        <!-- Password Reset Section -->
+                        <div class="form-section">
+                            <h4><i class="fas fa-lock"></i> Password Management</h4>
+                            <div class="form-group">
+                                <label for="editNewPassword">New Password (Optional)</label>
+                                <input type="password" id="editNewPassword" 
+                                       placeholder="Enter new password (leave blank to keep current)">
+                                <small class="form-help">Minimum 6 characters required</small>
+                            </div>
+                        </div>
+                    </form>
                 </div>
-            `;
-            document.body.insertAdjacentHTML('beforeend', modalHTML);
-        }
-    } catch (error) {
-        hideGlobalLoading();
-        console.error('Error viewing Firebase user:', error);
-        showToast('Failed to load user details', 'error');
-    }
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeUserEditModal()">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                    <button type="button" class="btn btn-warning" onclick="sendPasswordResetEmail('${user.uid}')">
+                        <i class="fas fa-envelope"></i> Send Password Reset
+                    </button>
+                    <button type="submit" class="btn btn-primary" onclick="saveUserChanges()">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Add modal to page
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    // Show modal
+    setTimeout(() => {
+        document.getElementById('userEditModal').style.display = 'flex';
+    }, 10);
+    
+    // Load user's custom claims
+    loadUserCustomClaims(user.uid);
 }
 
-function closeFirebaseUserModal() {
-    const modal = document.querySelector('.modal-overlay');
-    if (modal) modal.remove();
-}
-
-async function toggleFirebaseUserStatus(firebaseUid, currentlyDisabled) {
+async function loadUserCustomClaims(uid) {
     try {
-        const action = currentlyDisabled ? 'enable' : 'disable';
-        const confirmAction = confirm(`Are you sure you want to ${action} this Firebase user?`);
-        if (!confirmAction) return;
-
-        showGlobalLoading(`${action === 'enable' ? 'Enabling' : 'Disabling'} user...`);
-        
-        const response = await authenticatedFetch(`${API_BASE_URL}/api/admin/firebase-users/${firebaseUid}/toggle-active`, {
-            method: 'POST'
+        const token = localStorage.getItem('adminToken');
+        const response = await fetch(`/api/admin/firebase-users/${uid}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
         });
         
-        const data = await response.json();
-        
-        if (data.success) {
-            showToast(`User ${action}d successfully!`, 'success');
-            await loadUsers();
-        } else {
-            showToast(`Failed to ${action} user: ${data.message}`, 'error');
-        }
-    } catch (error) {
-        console.error('Error toggling Firebase user status:', error);
-        showToast('Failed to toggle user status', 'error');
-    } finally {
-        hideGlobalLoading();
-    }
-}
-
-async function deleteFirebaseUser(firebaseUid) {
-    try {
-        const confirmDelete = confirm('⚠️ WARNING: This will permanently delete the user from Firebase Authentication!\n\nThe user will be unable to login to the mobile app.\n\nContinue?');
-        if (!confirmDelete) return;
-
-        showGlobalLoading('Deleting Firebase user...');
-        
-        const response = await authenticatedFetch(`${API_BASE_URL}/api/admin/firebase-users/${firebaseUid}`, {
-            method: 'DELETE'
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            showToast('Firebase user deleted successfully!', 'success');
-            await loadUsers();
-        } else {
-            showToast(`Failed to delete user: ${data.message}`, 'error');
-        }
-    } catch (error) {
-        console.error('Error deleting Firebase user:', error);
-        showToast('Failed to delete Firebase user', 'error');
-    } finally {
-        hideGlobalLoading();
-    }
-}
-
-function editUser(userId) {
-    showToast('Edit user feature coming soon', 'info');
-}
-
-function toggleUserStatus(userId) {
-    showToast('Toggle user status feature coming soon', 'info');
-}
-
-async function syncUserToFirebase(userId) {
-    try {
-        showGlobalLoading('Syncing user to Firebase...');
-        
-        const response = await authenticatedFetch(`${API_BASE_URL}/api/firebase-sync/sync-to-firebase/${userId}`, {
-            method: 'POST'
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            showToast('User synced to Firebase successfully!', 'success');
-            await loadUsers();
-        } else {
-            showToast(`Failed to sync user: ${data.message}`, 'error');
-        }
-    } catch (error) {
-        console.error('Error syncing user:', error);
-        showToast('Failed to sync user to Firebase', 'error');
-    } finally {
-        hideGlobalLoading();
-    }
-}
-
-async function deleteUser(userId) {
-    try {
-        const confirmDelete = confirm('Are you sure you want to delete this user? This action cannot be undone and will also remove their Firebase account if linked.');
-        if (!confirmDelete) return;
-
-        showGlobalLoading('Deleting user...');
-
-        const userResponse = await authenticatedFetch(`${API_BASE_URL}/api/admin/users/${userId}`);
-        const userData = await userResponse.json();
-        
-        if (userData.success && userData.data.firebaseUid) {
-            const firebaseResponse = await authenticatedFetch(`${API_BASE_URL}/api/firebase-sync/firebase-user/${userData.data.firebaseUid}`, {
-                method: 'DELETE'
-            });
-            
-            if (!firebaseResponse.ok) {
-                const firebaseError = await firebaseResponse.json();
-                console.warn('Failed to delete Firebase user:', firebaseError.message);
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.user.customClaims) {
+                document.getElementById('editCustomClaims').value = 
+                    JSON.stringify(data.user.customClaims, null, 2);
             }
         }
-        
-        const response = await authenticatedFetch(`${API_BASE_URL}/api/admin/users/${userId}`, {
-            method: 'DELETE'
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            showToast('User deleted successfully', 'success');
-            await loadUsers();
-        } else {
-            showToast('Failed to delete user: ' + data.message, 'error');
-        }
     } catch (error) {
-        console.error('Error deleting user:', error);
-        showToast('Failed to delete user', 'error');
-    } finally {
-        hideGlobalLoading();
+        console.error('Error loading custom claims:', error);
     }
 }
 
-function showAddUserModal() {
-    showToast('User creation is available through the registration process or API endpoints.', 'info');
+function closeUserEditModal() {
+    const modal = document.getElementById('userEditModal');
+    if (modal) {
+        modal.style.display = 'none';
+        setTimeout(() => {
+            modal.remove();
+        }, 300);
+    }
 }
+
+async function saveUserChanges() {
+    const uid = document.getElementById('editUserId').value;
+    const displayName = document.getElementById('editDisplayName').value.trim();
+    const email = document.getElementById('editEmail').value.trim();
+    const phoneNumber = document.getElementById('editPhoneNumber').value.trim();
+    const photoURL = document.getElementById('editPhotoURL').value.trim();
+    const emailVerified = document.getElementById('editEmailVerified').checked;
+    const disabled = document.getElementById('editDisabled').checked;
+    const newPassword = document.getElementById('editNewPassword').value.trim();
+    const customClaimsText = document.getElementById('editCustomClaims').value.trim();
+    
+    // Validate required fields
+    if (!email) {
+        showToast('Email is required', 'error');
+        return;
+    }
+    
+    // Validate UAE phone number format if provided
+    if (phoneNumber && !isValidPhoneNumber(phoneNumber)) {
+        showToast('Invalid UAE phone number format. Please use UAE mobile format (e.g., +971501234567, 0501234567, or 501234567)', 'error');
+        return;
+    }
+    
+    // Validate custom claims JSON
+    let customClaims = null;
+    if (customClaimsText) {
+        try {
+            customClaims = JSON.parse(customClaimsText);
+        } catch (error) {
+            showToast('Invalid JSON in custom claims', 'error');
+            return;
+        }
+    }
+    
+    // Validate password
+    if (newPassword && newPassword.length < 6) {
+        showToast('Password must be at least 6 characters', 'error');
+        return;
+    }
+    
+    try {
+        showLoading('Saving user changes...');
+        
+        const updateData = {
+            displayName: displayName || null,
+            email,
+            phoneNumber: phoneNumber || null,
+            photoURL: photoURL || null,
+            emailVerified,
+            disabled,
+            customClaims
+        };
+        
+        if (newPassword) {
+            updateData.password = newPassword;
+        }
+        
+        const token = localStorage.getItem('adminToken');
+        const response = await fetch(`/api/admin/firebase-users/${uid}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(updateData)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showToast('User updated successfully!', 'success');
+            closeUserEditModal();
+            // Refresh the users table
+            await loadFirebaseUsersData();
+        } else {
+            showToast(result.message || 'Failed to update user', 'error');
+        }
+        
+    } catch (error) {
+        console.error('Error updating user:', error);
+        showToast('Failed to update user', 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+async function sendPasswordResetEmail(uid) {
+    try {
+        showLoading('Sending password reset email...');
+        
+        const token = localStorage.getItem('adminToken');
+        const response = await fetch(`/api/admin/firebase-users/${uid}/reset-password`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showToast('Password reset email sent successfully!', 'success');
+        } else {
+            showToast(result.message || 'Failed to send reset email', 'error');
+        }
+        
+    } catch (error) {
+        console.error('Error sending reset email:', error);
+        showToast('Failed to send reset email', 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+function showLoading(message = 'Loading...') {
+    const existing = document.getElementById('globalLoading');
+    if (existing) existing.remove();
+    
+    const loadingHTML = `
+        <div id="globalLoading" class="global-loading">
+            <div class="spinner"></div>
+            <p>${message}</p>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', loadingHTML);
+}
+
+function hideLoading() {
+    const loading = document.getElementById('globalLoading');
+    if (loading) {
+        loading.remove();
+    }
+}
+
+function toggleUserStatus(uid, currentlyDisabled) {
+    // TODO: Implement user status toggle
+    console.log('Toggle user status:', uid, 'Currently disabled:', currentlyDisabled);
+    showToast('User status toggle feature coming soon!', 'info');
+}
+
+function setTableView(view) {
+    // TODO: Implement table/cards view toggle
+    console.log('Set table view:', view);
+    
+    // Update button states
+    document.querySelectorAll('.view-toggle .btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.closest('.btn').classList.add('active');
+}
+
+function exportUsers() {
+    // TODO: Implement user export functionality
+    console.log('Export users');
+    showToast('Export feature coming soon!', 'info');
+}
+
+function showToast(message, type = 'info') {
+    // Simple toast notification
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => toast.classList.add('show'), 100);
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => document.body.removeChild(toast), 300);
+    }, 3000);
+}
+
+window.loadUsers = loadUsers;
+window.loadFirebaseUsersData = loadFirebaseUsersData;
+
+console.log('Simple Firebase Users Management loaded successfully!');

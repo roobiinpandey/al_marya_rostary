@@ -78,43 +78,28 @@ async function renderDashboardStats() {
                 </div>
             </div>
         `;
+        
+        // Hide global loading after successful render
+        hideGlobalLoading();
+        
     } catch (error) {
         console.error('Error loading dashboard statistics:', error);
         showToast('Failed to load dashboard statistics', 'error');
+        
+        // Hide global loading even on error
+        hideGlobalLoading();
+        
         document.getElementById('dashboardStats').innerHTML = `
             <div class="stats-grid">
                 <div class="stat-card">
-                    <div class="stat-icon">💰</div>
+                    <div class="stat-icon">❌</div>
                     <div class="stat-info">
-                        <h3>AED 0</h3>
-                        <p>Total Revenue</p>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">📦</div>
-                    <div class="stat-info">
-                        <h3>0</h3>
-                        <p>Total Orders</p>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">👥</div>
-                    <div class="stat-info">
-                        <h3>0</h3>
-                        <p>Total Users</p>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">☕</div>
-                    <div class="stat-info">
-                        <h3>0</h3>
-                        <p>Products</p>
+                        <h3>Error</h3>
+                        <p>Failed to load statistics</p>
                     </div>
                 </div>
             </div>
         `;
-    } finally {
-        hideGlobalLoading();
     }
 }
 
