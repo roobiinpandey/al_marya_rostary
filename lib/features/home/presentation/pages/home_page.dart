@@ -156,7 +156,8 @@ class _HomePageState extends State<HomePage> {
         onRefresh: _handleRefresh,
         color: context.colors.primary,
         child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(), // Enables pull-to-refresh even when content is small
+          physics:
+              const AlwaysScrollableScrollPhysics(), // Enables pull-to-refresh even when content is small
           child: Padding(
             padding: const EdgeInsets.only(
               bottom: 100,
@@ -166,70 +167,74 @@ class _HomePageState extends State<HomePage> {
               children: [
                 // Hero Banner Carousel
                 const HeroBannerCarousel(),
-              // Quick Categories
-              const QuickCategoriesWidget(),
-              // Featured Products Header
-              Padding(
-                padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
-                child: Row(
-                  children: [
-                    Icon(Icons.star, color: context.colors.secondary, size: 24),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Featured Products',
-                      style: Theme.of(context).textTheme.headlineSmall
-                          ?.copyWith(
-                            color: context.colors.onSurface,
-                            fontWeight: FontWeight.bold,
+                // Quick Categories
+                const QuickCategoriesWidget(),
+                // Featured Products Header
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.star,
+                        color: context.colors.secondary,
+                        size: 24,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Featured Products',
+                        style: Theme.of(context).textTheme.headlineSmall
+                            ?.copyWith(
+                              color: context.colors.onSurface,
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                      const Spacer(),
+                      TextButton(
+                        onPressed: () {
+                          // TODO: Navigate to all products page
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('View all products coming soon!'),
+                            ),
+                          );
+                        },
+                        child: Text(
+                          'View All',
+                          style: TextStyle(
+                            color: context.colors.primary,
+                            fontWeight: FontWeight.w600,
                           ),
-                    ),
-                    const Spacer(),
-                    TextButton(
-                      onPressed: () {
-                        // TODO: Navigate to all products page
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('View all products coming soon!'),
-                          ),
-                        );
-                      },
-                      child: Text(
-                        'View All',
-                        style: TextStyle(
-                          color: context.colors.primary,
-                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              // Product Grid (2x2)
-              const ProductGridWidget(),
-              // All Products Section
-              Padding(
-                padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.grid_view,
-                      color: context.colors.secondary,
-                      size: 24,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'All Products',
-                      style: Theme.of(context).textTheme.headlineSmall
-                          ?.copyWith(
-                            color: context.colors.onSurface,
-                            fontWeight: FontWeight.bold,
-                          ),
-                    ),
-                  ],
+                // Product Grid (2x2)
+                const ProductGridWidget(),
+                // All Products Section
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.grid_view,
+                        color: context.colors.secondary,
+                        size: 24,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'All Products',
+                        style: Theme.of(context).textTheme.headlineSmall
+                            ?.copyWith(
+                              color: context.colors.onSurface,
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              // Coffee List (original full list)
-              const CoffeeListWidget(),
+                // Coffee List (original full list)
+                const CoffeeListWidget(),
               ],
             ),
           ),
