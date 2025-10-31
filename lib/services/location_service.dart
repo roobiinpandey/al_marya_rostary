@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
+import '../core/utils/app_logger.dart';
 
 /// Service to handle location permissions and fetching
 class LocationService {
@@ -145,8 +146,8 @@ class LocationService {
         : null;
 
     // Debug print to see what we're getting
-    print('🏠 Location parts - City: "$city", Country: "$country"');
-    print(
+    AppLogger.debug('🏠 Location parts - City: "$city", Country: "$country"');
+    AppLogger.debug(
       '🏠 Raw placemark - locality: "${place.locality}", subAdmin: "${place.subAdministrativeArea}", admin: "${place.administrativeArea}", subLocality: "${place.subLocality}"',
     );
 
@@ -210,11 +211,11 @@ class LocationService {
   Future<Map<String, dynamic>> getDetailedLocation() async {
     try {
       // Add more detailed logging
-      print('🔍 Starting location detection...');
+      AppLogger.debug('🔍 Starting location detection...');
 
       // Check if location services are enabled
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      print('📍 Location services enabled: $serviceEnabled');
+      AppLogger.debug('📍 Location services enabled: $serviceEnabled');
 
       if (!serviceEnabled) {
         return {'error': 'Location services disabled'};
@@ -222,11 +223,11 @@ class LocationService {
 
       // Check permission
       LocationPermission permission = await Geolocator.checkPermission();
-      print('🔐 Location permission: $permission');
+      AppLogger.debug('🔐 Location permission: $permission');
 
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
-        print('🔐 Permission after request: $permission');
+        AppLogger.debug('🔐 Permission after request: $permission');
       }
 
       if (permission == LocationPermission.denied ||
@@ -240,14 +241,14 @@ class LocationService {
         ),
       );
 
-      print('📍 Position: ${position.latitude}, ${position.longitude}');
+      AppLogger.debug('📍 Position: ${position.latitude}, ${position.longitude}');
 
       List<Placemark> placemarks = await placemarkFromCoordinates(
         position.latitude,
         position.longitude,
       );
 
-      print('🏠 Placemarks found: ${placemarks.length}');
+      AppLogger.debug('🏠 Placemarks found: ${placemarks.length}');
 
       Placemark? place = placemarks.isNotEmpty ? placemarks.first : null;
 
@@ -266,10 +267,10 @@ class LocationService {
             : 'No address found',
       };
 
-      print('📋 Final result: $result');
+      AppLogger.debug('📋 Final result: $result');
       return result;
     } catch (e) {
-      print('❌ Location error: $e');
+      AppLogger.error('❌ Location error: $e');
       return {'error': e.toString()};
     }
   }

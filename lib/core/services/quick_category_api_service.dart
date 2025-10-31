@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../data/models/quick_category_model.dart';
 import '../constants/app_constants.dart';
+import '../utils/app_logger.dart';
 
 /// Quick Category API Service
 /// Handles all quick category-related API calls
@@ -42,10 +43,10 @@ class QuickCategoryApiService {
           return handler.next(options);
         },
         onError: (error, handler) {
-          print('❌ QuickCategory API Error: ${error.message}');
+          AppLogger.error('❌ QuickCategory API Error: ${error.message}');
           if (error.response != null) {
-            print('📛 Status: ${error.response?.statusCode}');
-            print('📛 Data: ${error.response?.data}');
+            AppLogger.error('📛 Status: ${error.response?.statusCode}');
+            AppLogger.error('📛 Data: ${error.response?.data}');
           }
           return handler.next(error);
         },
@@ -76,7 +77,7 @@ class QuickCategoryApiService {
         queryParams['tag'] = tag;
       }
 
-      print(
+      AppLogger.debug(
         '🌐 QuickCategoryApiService: Fetching quick categories with params: $queryParams',
       );
 
@@ -85,7 +86,7 @@ class QuickCategoryApiService {
         queryParameters: queryParams,
       );
 
-      print(
+      AppLogger.debug(
         '✅ QuickCategoryApiService: Response status: ${response.statusCode}',
       );
 
@@ -93,7 +94,7 @@ class QuickCategoryApiService {
         // Handle null data field
         final data = response.data['data'];
         if (data == null) {
-          print(
+          AppLogger.debug(
             '⚠️ QuickCategoryApiService: Data field is null, returning empty list',
           );
           return {
@@ -110,7 +111,7 @@ class QuickCategoryApiService {
             )
             .toList();
 
-        print(
+        AppLogger.debug(
           '✅ QuickCategoryApiService: Successfully parsed ${quickCategories.length} quick categories',
         );
 
@@ -124,7 +125,7 @@ class QuickCategoryApiService {
         );
       }
     } catch (e) {
-      print('❌ QuickCategoryApiService: Error fetching quick categories: $e');
+      AppLogger.error('❌ QuickCategoryApiService: Error fetching quick categories: $e');
       rethrow;
     }
   }
@@ -136,14 +137,14 @@ class QuickCategoryApiService {
     try {
       final queryParams = <String, dynamic>{'limit': limit};
 
-      print('🌐 QuickCategoryApiService: Fetching active quick categories');
+      AppLogger.network('🌐 QuickCategoryApiService: Fetching active quick categories');
 
       final response = await _dio.get(
         '/api/quick-categories/active',
         queryParameters: queryParams,
       );
 
-      print(
+      AppLogger.debug(
         '✅ QuickCategoryApiService: Response status: ${response.statusCode}',
       );
 
@@ -151,7 +152,7 @@ class QuickCategoryApiService {
         // Handle null data field
         final data = response.data['data'];
         if (data == null) {
-          print(
+          AppLogger.debug(
             '⚠️ QuickCategoryApiService: Data field is null, returning empty list',
           );
           return [];
@@ -165,7 +166,7 @@ class QuickCategoryApiService {
             )
             .toList();
 
-        print(
+        AppLogger.debug(
           '✅ QuickCategoryApiService: Successfully parsed ${quickCategories.length} active quick categories',
         );
 
@@ -176,7 +177,7 @@ class QuickCategoryApiService {
         );
       }
     } catch (e) {
-      print(
+      AppLogger.debug(
         '❌ QuickCategoryApiService: Error fetching active quick categories: $e',
       );
       rethrow;
@@ -186,11 +187,11 @@ class QuickCategoryApiService {
   /// Fetch single quick category
   Future<QuickCategoryModel> fetchQuickCategory(String id) async {
     try {
-      print('🌐 QuickCategoryApiService: Fetching quick category: $id');
+      AppLogger.network('🌐 QuickCategoryApiService: Fetching quick category: $id');
 
       final response = await _dio.get('/api/quick-categories/$id');
 
-      print(
+      AppLogger.debug(
         '✅ QuickCategoryApiService: Response status: ${response.statusCode}',
       );
 
@@ -199,7 +200,7 @@ class QuickCategoryApiService {
           response.data['data'] as Map<String, dynamic>,
         );
 
-        print(
+        AppLogger.debug(
           '✅ QuickCategoryApiService: Successfully parsed quick category: ${quickCategory.title}',
         );
 
@@ -210,7 +211,7 @@ class QuickCategoryApiService {
         );
       }
     } catch (e) {
-      print('❌ QuickCategoryApiService: Error fetching quick category: $e');
+      AppLogger.error('❌ QuickCategoryApiService: Error fetching quick category: $e');
       rethrow;
     }
   }
@@ -232,7 +233,7 @@ class QuickCategoryApiService {
     List<String> tags = const [],
   }) async {
     try {
-      print('🌐 QuickCategoryApiService: Creating quick category: $title');
+      AppLogger.network('🌐 QuickCategoryApiService: Creating quick category: $title');
 
       FormData formData = FormData.fromMap({
         'title': title,
@@ -261,7 +262,7 @@ class QuickCategoryApiService {
 
       final response = await _dio.post('/api/quick-categories', data: formData);
 
-      print(
+      AppLogger.debug(
         '✅ QuickCategoryApiService: Response status: ${response.statusCode}',
       );
 
@@ -270,7 +271,7 @@ class QuickCategoryApiService {
           response.data['data'] as Map<String, dynamic>,
         );
 
-        print(
+        AppLogger.debug(
           '✅ QuickCategoryApiService: Successfully created quick category: ${quickCategory.title}',
         );
 
@@ -281,7 +282,7 @@ class QuickCategoryApiService {
         );
       }
     } catch (e) {
-      print('❌ QuickCategoryApiService: Error creating quick category: $e');
+      AppLogger.error('❌ QuickCategoryApiService: Error creating quick category: $e');
       rethrow;
     }
   }
@@ -302,7 +303,7 @@ class QuickCategoryApiService {
     List<String>? tags,
   }) async {
     try {
-      print('🌐 QuickCategoryApiService: Updating quick category: $id');
+      AppLogger.network('🌐 QuickCategoryApiService: Updating quick category: $id');
 
       FormData formData = FormData();
 
@@ -339,7 +340,7 @@ class QuickCategoryApiService {
         data: formData,
       );
 
-      print(
+      AppLogger.debug(
         '✅ QuickCategoryApiService: Response status: ${response.statusCode}',
       );
 
@@ -348,7 +349,7 @@ class QuickCategoryApiService {
           response.data['data'] as Map<String, dynamic>,
         );
 
-        print(
+        AppLogger.debug(
           '✅ QuickCategoryApiService: Successfully updated quick category: ${quickCategory.title}',
         );
 
@@ -359,7 +360,7 @@ class QuickCategoryApiService {
         );
       }
     } catch (e) {
-      print('❌ QuickCategoryApiService: Error updating quick category: $e');
+      AppLogger.error('❌ QuickCategoryApiService: Error updating quick category: $e');
       rethrow;
     }
   }
@@ -367,23 +368,23 @@ class QuickCategoryApiService {
   /// Delete quick category
   Future<void> deleteQuickCategory(String id) async {
     try {
-      print('🌐 QuickCategoryApiService: Deleting quick category: $id');
+      AppLogger.network('🌐 QuickCategoryApiService: Deleting quick category: $id');
 
       final response = await _dio.delete('/api/quick-categories/$id');
 
-      print(
+      AppLogger.debug(
         '✅ QuickCategoryApiService: Response status: ${response.statusCode}',
       );
 
       if (response.statusCode == 200 && response.data['success'] == true) {
-        print('✅ QuickCategoryApiService: Successfully deleted quick category');
+        AppLogger.success('✅ QuickCategoryApiService: Successfully deleted quick category');
       } else {
         throw Exception(
           'Failed to delete quick category: ${response.data['message']}',
         );
       }
     } catch (e) {
-      print('❌ QuickCategoryApiService: Error deleting quick category: $e');
+      AppLogger.error('❌ QuickCategoryApiService: Error deleting quick category: $e');
       rethrow;
     }
   }
@@ -393,7 +394,7 @@ class QuickCategoryApiService {
   /// Toggle quick category status
   Future<QuickCategoryModel> toggleQuickCategoryStatus(String id) async {
     try {
-      print(
+      AppLogger.debug(
         '🌐 QuickCategoryApiService: Toggling status for quick category: $id',
       );
 
@@ -401,7 +402,7 @@ class QuickCategoryApiService {
         '/api/quick-categories/$id/toggle-status',
       );
 
-      print(
+      AppLogger.debug(
         '✅ QuickCategoryApiService: Response status: ${response.statusCode}',
       );
 
@@ -410,7 +411,7 @@ class QuickCategoryApiService {
           response.data['data'] as Map<String, dynamic>,
         );
 
-        print(
+        AppLogger.debug(
           '✅ QuickCategoryApiService: Successfully toggled status: ${quickCategory.isActive}',
         );
 
@@ -421,7 +422,7 @@ class QuickCategoryApiService {
         );
       }
     } catch (e) {
-      print(
+      AppLogger.debug(
         '❌ QuickCategoryApiService: Error toggling quick category status: $e',
       );
       rethrow;
@@ -431,19 +432,19 @@ class QuickCategoryApiService {
   /// Reorder quick categories
   Future<void> reorderQuickCategories(List<String> orderedIds) async {
     try {
-      print('🌐 QuickCategoryApiService: Reordering quick categories');
+      AppLogger.network('🌐 QuickCategoryApiService: Reordering quick categories');
 
       final response = await _dio.put(
         '/api/quick-categories/reorder',
         data: {'orderedIds': orderedIds},
       );
 
-      print(
+      AppLogger.debug(
         '✅ QuickCategoryApiService: Response status: ${response.statusCode}',
       );
 
       if (response.statusCode == 200 && response.data['success'] == true) {
-        print(
+        AppLogger.debug(
           '✅ QuickCategoryApiService: Successfully reordered quick categories',
         );
       } else {
@@ -452,7 +453,7 @@ class QuickCategoryApiService {
         );
       }
     } catch (e) {
-      print('❌ QuickCategoryApiService: Error reordering quick categories: $e');
+      AppLogger.error('❌ QuickCategoryApiService: Error reordering quick categories: $e');
       rethrow;
     }
   }
@@ -462,18 +463,18 @@ class QuickCategoryApiService {
   /// Get quick category statistics
   Future<Map<String, dynamic>> getQuickCategoryStats() async {
     try {
-      print('🌐 QuickCategoryApiService: Fetching quick category stats');
+      AppLogger.network('🌐 QuickCategoryApiService: Fetching quick category stats');
 
       final response = await _dio.get('/api/quick-categories/stats');
 
-      print(
+      AppLogger.debug(
         '✅ QuickCategoryApiService: Response status: ${response.statusCode}',
       );
 
       if (response.statusCode == 200 && response.data['success'] == true) {
         final stats = response.data['data'] as Map<String, dynamic>;
 
-        print('✅ QuickCategoryApiService: Successfully fetched stats');
+        AppLogger.success('✅ QuickCategoryApiService: Successfully fetched stats');
 
         return stats;
       } else {
@@ -482,7 +483,7 @@ class QuickCategoryApiService {
         );
       }
     } catch (e) {
-      print(
+      AppLogger.debug(
         '❌ QuickCategoryApiService: Error fetching quick category stats: $e',
       );
       rethrow;
@@ -492,17 +493,17 @@ class QuickCategoryApiService {
   /// Track quick category click
   Future<void> trackQuickCategoryClick(String id) async {
     try {
-      print(
+      AppLogger.debug(
         '🌐 QuickCategoryApiService: Tracking click for quick category: $id',
       );
 
       final response = await _dio.post('/api/quick-categories/$id/click');
 
       if (response.statusCode == 200 && response.data['success'] == true) {
-        print('✅ QuickCategoryApiService: Successfully tracked click');
+        AppLogger.success('✅ QuickCategoryApiService: Successfully tracked click');
       }
     } catch (e) {
-      print('❌ QuickCategoryApiService: Error tracking click: $e');
+      AppLogger.error('❌ QuickCategoryApiService: Error tracking click: $e');
       // Don't rethrow for analytics - should not break user experience
     }
   }
@@ -510,17 +511,17 @@ class QuickCategoryApiService {
   /// Track quick category view
   Future<void> trackQuickCategoryView(String id) async {
     try {
-      print(
+      AppLogger.debug(
         '🌐 QuickCategoryApiService: Tracking view for quick category: $id',
       );
 
       final response = await _dio.post('/api/quick-categories/$id/view');
 
       if (response.statusCode == 200 && response.data['success'] == true) {
-        print('✅ QuickCategoryApiService: Successfully tracked view');
+        AppLogger.success('✅ QuickCategoryApiService: Successfully tracked view');
       }
     } catch (e) {
-      print('❌ QuickCategoryApiService: Error tracking view: $e');
+      AppLogger.error('❌ QuickCategoryApiService: Error tracking view: $e');
       // Don't rethrow for analytics - should not break user experience
     }
   }

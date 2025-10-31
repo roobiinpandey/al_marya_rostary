@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/utils/app_logger.dart';
 
 /// Admin provider for managing admin panel state and data
 class AdminProvider extends ChangeNotifier {
@@ -82,12 +83,12 @@ class AdminProvider extends ChangeNotifier {
       // Get authentication token
       final token = await _getAuthToken();
       if (token == null) {
-        print('❌ No authentication token found - showing mock data');
+        AppLogger.error('❌ No authentication token found - showing mock data');
         _error = 'No authentication token found';
         return;
       }
 
-      print('✅ Admin token found, fetching real data...');
+      AppLogger.success('✅ Admin token found, fetching real data...');
 
       final headers = {
         'Content-Type': 'application/json',
@@ -101,10 +102,10 @@ class AdminProvider extends ChangeNotifier {
       // For now, we'll focus on fixing the user count issue
 
       _error = null;
-      print('✅ Admin dashboard data loaded successfully');
+      AppLogger.success('✅ Admin dashboard data loaded successfully');
     } catch (e) {
       _error = e.toString();
-      print('❌ Error fetching dashboard data: $e');
+      AppLogger.error('❌ Error fetching dashboard data: $e');
       // Keep mock data if API fails
     } finally {
       _isLoading = false;
@@ -122,13 +123,13 @@ class AdminProvider extends ChangeNotifier {
         if (data['success'] == true && data['data'] != null) {
           final overview = data['data']['overview'];
           _totalUsers = overview['totalUsers'] ?? 0;
-          print('✅ Updated user count from API: $_totalUsers');
+          AppLogger.success('✅ Updated user count from API: $_totalUsers');
         }
       } else {
         throw Exception('Failed to load user stats: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error fetching user stats: $e');
+      AppLogger.error('fetching user stats: $e');
       throw e;
     }
   }
@@ -138,7 +139,7 @@ class AdminProvider extends ChangeNotifier {
     try {
       return await _storage.read(key: 'auth_token'); // Same key as admin login
     } catch (e) {
-      print('Error reading auth token: $e');
+      AppLogger.error('reading auth token: $e');
       return null;
     }
   }

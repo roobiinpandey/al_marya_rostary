@@ -27,6 +27,17 @@ const sliderSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  // Action type for button click
+  actionType: {
+    type: String,
+    enum: ['none', 'category', 'products', 'url', 'offers'],
+    default: 'none'
+  },
+  // Action value based on actionType (category ID, URL, etc)
+  actionValue: {
+    type: String,
+    trim: true
+  },
   backgroundColor: {
     type: String,
     default: '#A89A6A' // Default coffee brown

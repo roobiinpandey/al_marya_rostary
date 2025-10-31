@@ -4,6 +4,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../services/reward_service.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../../core/utils/app_logger.dart';
 
 class RewardsPage extends StatefulWidget {
   const RewardsPage({super.key});
@@ -37,18 +38,18 @@ class _RewardsPageState extends State<RewardsPage> {
     }
 
     try {
-      print('🎯 Loading reward data...');
+      AppLogger.debug('🎯 Loading reward data...');
 
       // Load points and transactions
-      print('📊 Loading reward points and transactions...');
+      AppLogger.debug('📊 Loading reward points and transactions...');
       final points = await RewardService.getUserRewardPoints();
       final transactions = await RewardService.getTransactionHistory(limit: 10);
-      print('📊 Points loaded: $points');
+      AppLogger.debug('📊 Points loaded: $points');
 
       // Load or create QR code
-      print('🔍 Loading QR code...');
+      AppLogger.debug('🔍 Loading QR code...');
       final qrCode = await RewardService.ensureUserHasQRCode();
-      print('🔍 QR code loaded successfully');
+      AppLogger.debug('🔍 QR code loaded successfully');
 
       if (mounted) {
         setState(() {
@@ -59,10 +60,10 @@ class _RewardsPageState extends State<RewardsPage> {
           _isLoadingQR = false;
         });
       }
-      print('✅ All reward data loaded successfully');
+      AppLogger.success('✅ All reward data loaded successfully');
     } catch (e) {
-      print('❌ Error loading reward data: $e');
-      print('❌ Error type: ${e.runtimeType}');
+      AppLogger.error('❌ Error loading reward data: $e');
+      AppLogger.error('❌ Error type: ${e.runtimeType}');
       if (mounted) {
         setState(() {
           _isLoading = false;

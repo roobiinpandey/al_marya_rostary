@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:convert';
+import '../core/utils/app_logger.dart';
 
 class RewardService {
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -22,7 +23,7 @@ class RewardService {
       final data = doc.data();
       return (data?['rewardPoints'] as int?) ?? 0;
     } catch (e) {
-      print('Error getting reward points: $e');
+      AppLogger.error('getting reward points: $e');
       return 0;
     }
   }
@@ -83,7 +84,7 @@ class RewardService {
 
       return true;
     } catch (e) {
-      print('Error earning points: $e');
+      AppLogger.error('earning points: $e');
       return false;
     }
   }
@@ -145,7 +146,7 @@ class RewardService {
 
       return true;
     } catch (e) {
-      print('Error redeeming points: $e');
+      AppLogger.error('redeeming points: $e');
       return false;
     }
   }
@@ -206,7 +207,7 @@ class RewardService {
         'pointsEarned': pointsEarned,
       };
     } catch (e) {
-      print('Error processing transaction: $e');
+      AppLogger.error('processing transaction: $e');
       return {'success': false, 'error': e.toString()};
     }
   }
@@ -232,7 +233,7 @@ class RewardService {
         return data;
       }).toList();
     } catch (e) {
-      print('Error getting transaction history: $e');
+      AppLogger.error('getting transaction history: $e');
       return [];
     }
   }
@@ -245,7 +246,7 @@ class RewardService {
       });
       return true;
     } catch (e) {
-      print('Error initializing user rewards: $e');
+      AppLogger.error('initializing user rewards: $e');
       return false;
     }
   }
@@ -262,7 +263,7 @@ class RewardService {
         'formattedCashValue': 'AED ${cashValue.toStringAsFixed(2)}',
       };
     } catch (e) {
-      print('Error getting reward summary: $e');
+      AppLogger.error('getting reward summary: $e');
       return {'points': 0, 'cashValue': 0.0, 'formattedCashValue': 'AED 0.00'};
     }
   }
@@ -301,31 +302,31 @@ class RewardService {
   // Ensure user has a QR code (create if doesn't exist)
   static Future<String> ensureUserHasQRCode() async {
     try {
-      print('🔍 Starting QR code check...');
+      AppLogger.debug('🔍 Starting QR code check...');
       final user = _auth.currentUser;
       if (user == null) {
-        print('❌ No authenticated user found');
+        AppLogger.error('❌ No authenticated user found');
         throw Exception('User not authenticated');
       }
-      print('✅ User authenticated: ${user.uid}');
+      AppLogger.success('✅ User authenticated: ${user.uid}');
 
-      print('📄 Checking existing QR code in Firestore...');
+      AppLogger.debug('📄 Checking existing QR code in Firestore...');
       final userDoc = await _firestore.collection('users').doc(user.uid).get();
-      print('📄 Document exists: ${userDoc.exists}');
+      AppLogger.debug('📄 Document exists: ${userDoc.exists}');
 
       if (userDoc.exists && userDoc.data()?['qrCodeData'] != null) {
         // QR code already exists
-        print('✅ QR code found in Firestore');
+        AppLogger.success('✅ QR code found in Firestore');
         return userDoc.data()!['qrCodeData'] as String;
       }
 
       // Generate new QR code
-      print('🔧 Generating new QR code...');
+      AppLogger.debug('🔧 Generating new QR code...');
       final qrCodeData = _generateQRCodeData(user.uid);
-      print('✅ QR code generated: ${qrCodeData.length} characters');
+      AppLogger.success('✅ QR code generated: ${qrCodeData.length} characters');
 
       // Save to Firestore
-      print('💾 Saving QR code to Firestore...');
+      AppLogger.data('💾 Saving QR code to Firestore...');
       if (userDoc.exists) {
         // Update existing document
         await _firestore.collection('users').doc(user.uid).update({
@@ -340,13 +341,13 @@ class RewardService {
           'rewardPoints': 0,
         });
       }
-      print('✅ QR code saved successfully');
+      AppLogger.success('✅ QR code saved successfully');
 
       return qrCodeData;
     } catch (e) {
-      print('❌ Error ensuring QR code: $e');
-      print('❌ Error type: ${e.runtimeType}');
-      print('❌ Stack trace: ${StackTrace.current}');
+      AppLogger.error('❌ Error ensuring QR code: $e');
+      AppLogger.error('❌ Error type: ${e.runtimeType}');
+      AppLogger.error('❌ Stack trace: ${StackTrace.current}');
       rethrow;
     }
   }
@@ -362,7 +363,7 @@ class RewardService {
 
       return userDoc.data()?['qrCodeData'] as String?;
     } catch (e) {
-      print('Error getting user QR code: $e');
+      AppLogger.error('getting user QR code: $e');
       return null;
     }
   }
@@ -377,19 +378,19 @@ class RewardService {
 
       // ⚠️  IMPORTANT: QR codes are PERMANENT and cannot be regenerated
       // This maintains customer loyalty system integrity
-      print('⚠️  QR Code regeneration blocked - returning existing QR code');
+      AppLogger.warning('⚠️  QR Code regeneration blocked - returning existing QR code');
       final existingQR = await getUserQRCode();
 
       if (existingQR != null) {
-        print('✅ Returning existing permanent QR code');
+        AppLogger.success('✅ Returning existing permanent QR code');
         return existingQR;
       }
 
       // Only generate if no QR code exists (should not happen)
-      print('🔧 No existing QR code found, creating new permanent one');
+      AppLogger.debug('🔧 No existing QR code found, creating new permanent one');
       return await ensureUserHasQRCode();
     } catch (e) {
-      print('Error getting QR code: $e');
+      AppLogger.error('getting QR code: $e');
       rethrow;
     }
   }
@@ -407,7 +408,7 @@ class RewardService {
 
       return qrCodeData;
     } catch (e) {
-      print('Error initializing QR code: $e');
+      AppLogger.error('initializing QR code: $e');
       rethrow;
     }
   }
@@ -442,11 +443,11 @@ class RewardService {
   // Generate QR codes for all existing users who don't have one
   static Future<void> migrateExistingUsersToQR() async {
     try {
-      print('🔄 Starting QR code migration for existing users...');
+      AppLogger.debug('🔄 Starting QR code migration for existing users...');
 
       // Get all users from Firestore
       final usersSnapshot = await _firestore.collection('users').get();
-      print('📊 Found ${usersSnapshot.docs.length} users in database');
+      AppLogger.debug('📊 Found ${usersSnapshot.docs.length} users in database');
 
       int usersWithoutQR = 0;
       int qrCodesCreated = 0;
@@ -460,12 +461,12 @@ class RewardService {
           // Check if user already has QR code
           if (userData['qrCodeData'] != null &&
               userData['qrCodeData'] is String) {
-            print('✅ User $userId already has QR code');
+            AppLogger.success('✅ User $userId already has QR code');
             continue;
           }
 
           usersWithoutQR++;
-          print('🔧 Creating QR code for user: $userId');
+          AppLogger.debug('🔧 Creating QR code for user: $userId');
 
           // Generate QR code for this user
           final qrCodeData = _generateQRCodeData(userId);
@@ -478,21 +479,21 @@ class RewardService {
           });
 
           qrCodesCreated++;
-          print('✅ QR code created for user: $userId');
+          AppLogger.success('✅ QR code created for user: $userId');
         } catch (e) {
           errors++;
-          print('❌ Error creating QR code for user ${userDoc.id}: $e');
+          AppLogger.error('❌ Error creating QR code for user ${userDoc.id}: $e');
         }
       }
 
-      print('🎉 QR Code Migration Complete!');
-      print('📊 Summary:');
-      print('  - Total users: ${usersSnapshot.docs.length}');
-      print('  - Users without QR: $usersWithoutQR');
-      print('  - QR codes created: $qrCodesCreated');
-      print('  - Errors: $errors');
+      AppLogger.debug('🎉 QR Code Migration Complete!');
+      AppLogger.debug('📊 Summary:');
+      AppLogger.debug('  - Total users: ${usersSnapshot.docs.length}');
+      AppLogger.debug('  - Users without QR: $usersWithoutQR');
+      AppLogger.debug('  - QR codes created: $qrCodesCreated');
+      AppLogger.debug('  - Errors: $errors');
     } catch (e) {
-      print('❌ Migration failed: $e');
+      AppLogger.error('❌ Migration failed: $e');
       rethrow;
     }
   }
@@ -500,7 +501,7 @@ class RewardService {
   // Generate QR code for a specific user by email/ID
   static Future<void> generateQRForUser(String userId) async {
     try {
-      print('🔧 Generating QR code for specific user: $userId');
+      AppLogger.debug('🔧 Generating QR code for specific user: $userId');
 
       final userDoc = await _firestore.collection('users').doc(userId).get();
 
@@ -516,9 +517,9 @@ class RewardService {
         'qrCodeManuallyGenerated': true,
       });
 
-      print('✅ QR code generated successfully for user: $userId');
+      AppLogger.success('✅ QR code generated successfully for user: $userId');
     } catch (e) {
-      print('❌ Error generating QR for user $userId: $e');
+      AppLogger.error('❌ Error generating QR for user $userId: $e');
       rethrow;
     }
   }

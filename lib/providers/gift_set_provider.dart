@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../data/models/gift_set_model.dart';
 import '../core/services/gift_set_api_service.dart';
+import '../core/utils/app_logger.dart';
 
 class GiftSetProvider with ChangeNotifier {
   final GiftSetApiService _apiService;
@@ -85,7 +86,7 @@ class GiftSetProvider with ChangeNotifier {
         notifyListeners();
       }
 
-      print('🎁 GiftSetProvider: Fetching gift sets (page $page)');
+      AppLogger.debug('🎁 GiftSetProvider: Fetching gift sets (page $page)');
 
       final result = await _apiService.getGiftSets(
         page: page,
@@ -111,12 +112,12 @@ class GiftSetProvider with ChangeNotifier {
       _pagination = result['pagination'] as Map<String, dynamic>;
       _error = null;
 
-      print(
+      AppLogger.debug(
         '✅ GiftSetProvider: Successfully fetched ${newGiftSets.length} gift sets',
       );
     } catch (e) {
       _error = e.toString();
-      print('❌ GiftSetProvider: Error fetching gift sets: $e');
+      AppLogger.error('❌ GiftSetProvider: Error fetching gift sets: $e');
 
       if (!loadMore) {
         _giftSets = [];
@@ -135,18 +136,18 @@ class GiftSetProvider with ChangeNotifier {
       _featuredError = null;
       notifyListeners();
 
-      print('🎁 GiftSetProvider: Fetching featured gift sets');
+      AppLogger.debug('🎁 GiftSetProvider: Fetching featured gift sets');
 
       _featuredGiftSets = await _apiService.getFeaturedGiftSets(limit: limit);
       _featuredError = null;
 
-      print(
+      AppLogger.debug(
         '✅ GiftSetProvider: Successfully fetched ${_featuredGiftSets.length} featured gift sets',
       );
     } catch (e) {
       _featuredError = e.toString();
       _featuredGiftSets = [];
-      print('❌ GiftSetProvider: Error fetching featured gift sets: $e');
+      AppLogger.error('❌ GiftSetProvider: Error fetching featured gift sets: $e');
     } finally {
       _isFeaturedLoading = false;
       notifyListeners();
@@ -160,18 +161,18 @@ class GiftSetProvider with ChangeNotifier {
       _popularError = null;
       notifyListeners();
 
-      print('🎁 GiftSetProvider: Fetching popular gift sets');
+      AppLogger.debug('🎁 GiftSetProvider: Fetching popular gift sets');
 
       _popularGiftSets = await _apiService.getPopularGiftSets(limit: limit);
       _popularError = null;
 
-      print(
+      AppLogger.debug(
         '✅ GiftSetProvider: Successfully fetched ${_popularGiftSets.length} popular gift sets',
       );
     } catch (e) {
       _popularError = e.toString();
       _popularGiftSets = [];
-      print('❌ GiftSetProvider: Error fetching popular gift sets: $e');
+      AppLogger.error('❌ GiftSetProvider: Error fetching popular gift sets: $e');
     } finally {
       _isPopularLoading = false;
       notifyListeners();
@@ -185,7 +186,7 @@ class GiftSetProvider with ChangeNotifier {
       _error = null;
       notifyListeners();
 
-      print('🎁 GiftSetProvider: Fetching gift set by ID: $id');
+      AppLogger.debug('🎁 GiftSetProvider: Fetching gift set by ID: $id');
 
       _selectedGiftSet = await _apiService.getGiftSetById(id);
       _error = null;
@@ -193,13 +194,13 @@ class GiftSetProvider with ChangeNotifier {
       // Increment view count for analytics
       await _apiService.incrementViews(id);
 
-      print(
+      AppLogger.debug(
         '✅ GiftSetProvider: Successfully fetched gift set: ${_selectedGiftSet?.name['en'] ?? _selectedGiftSet?.name['ar'] ?? 'Unknown'}',
       );
     } catch (e) {
       _error = e.toString();
       _selectedGiftSet = null;
-      print('❌ GiftSetProvider: Error fetching gift set by ID: $e');
+      AppLogger.error('❌ GiftSetProvider: Error fetching gift set by ID: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -295,7 +296,7 @@ class GiftSetProvider with ChangeNotifier {
     bool wouldRecommend = true,
   }) async {
     try {
-      print('🎁 GiftSetProvider: Adding review to gift set: $giftSetId');
+      AppLogger.debug('🎁 GiftSetProvider: Adding review to gift set: $giftSetId');
 
       await _apiService.addReview(
         giftSetId,
@@ -311,10 +312,10 @@ class GiftSetProvider with ChangeNotifier {
         await fetchGiftSetById(giftSetId);
       }
 
-      print('✅ GiftSetProvider: Successfully added review');
+      AppLogger.success('✅ GiftSetProvider: Successfully added review');
       return true;
     } catch (e) {
-      print('❌ GiftSetProvider: Error adding review: $e');
+      AppLogger.error('❌ GiftSetProvider: Error adding review: $e');
       return false;
     }
   }
@@ -322,10 +323,10 @@ class GiftSetProvider with ChangeNotifier {
   /// Get gift sets by occasion
   Future<List<GiftSetModel>> getGiftSetsByOccasion(String occasion) async {
     try {
-      print('🎁 GiftSetProvider: Getting gift sets by occasion: $occasion');
+      AppLogger.debug('🎁 GiftSetProvider: Getting gift sets by occasion: $occasion');
       return await _apiService.getGiftSetsByOccasion(occasion);
     } catch (e) {
-      print('❌ GiftSetProvider: Error getting gift sets by occasion: $e');
+      AppLogger.error('❌ GiftSetProvider: Error getting gift sets by occasion: $e');
       return [];
     }
   }
@@ -333,10 +334,10 @@ class GiftSetProvider with ChangeNotifier {
   /// Get gift sets by audience
   Future<List<GiftSetModel>> getGiftSetsByAudience(String audience) async {
     try {
-      print('🎁 GiftSetProvider: Getting gift sets by audience: $audience');
+      AppLogger.debug('🎁 GiftSetProvider: Getting gift sets by audience: $audience');
       return await _apiService.getGiftSetsByAudience(audience);
     } catch (e) {
-      print('❌ GiftSetProvider: Error getting gift sets by audience: $e');
+      AppLogger.error('❌ GiftSetProvider: Error getting gift sets by audience: $e');
       return [];
     }
   }
@@ -347,12 +348,12 @@ class GiftSetProvider with ChangeNotifier {
     double maxPrice,
   ) async {
     try {
-      print(
+      AppLogger.debug(
         '🎁 GiftSetProvider: Getting gift sets by price range: $minPrice - $maxPrice',
       );
       return await _apiService.getGiftSetsByPriceRange(minPrice, maxPrice);
     } catch (e) {
-      print('❌ GiftSetProvider: Error getting gift sets by price range: $e');
+      AppLogger.error('❌ GiftSetProvider: Error getting gift sets by price range: $e');
       return [];
     }
   }
@@ -401,7 +402,7 @@ class GiftSetProvider with ChangeNotifier {
   /// Search gift sets
   Future<List<GiftSetModel>> searchGiftSets(String query) async {
     try {
-      print('🎁 GiftSetProvider: Searching gift sets: $query');
+      AppLogger.debug('🎁 GiftSetProvider: Searching gift sets: $query');
 
       final result = await _apiService.getGiftSets(
         search: query,
@@ -411,7 +412,7 @@ class GiftSetProvider with ChangeNotifier {
 
       return result['giftSets'] as List<GiftSetModel>;
     } catch (e) {
-      print('❌ GiftSetProvider: Error searching gift sets: $e');
+      AppLogger.error('❌ GiftSetProvider: Error searching gift sets: $e');
       return [];
     }
   }

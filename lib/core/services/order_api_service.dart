@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../core/constants/app_constants.dart';
 import '../../models/order.dart';
+import '../utils/app_logger.dart';
 
 /// API Service for managing orders in the admin panel
 ///
@@ -35,7 +36,7 @@ class OrderApiService {
     try {
       _cachedAuthToken = await _secureStorage.read(key: 'auth_token');
     } catch (e) {
-      print('Error loading auth token: $e');
+      AppLogger.error('loading auth token: $e');
       _cachedAuthToken = null;
     }
   }
@@ -82,7 +83,7 @@ class OrderApiService {
         queryParams['page'] = page;
       }
 
-      print('Fetching orders with params: $queryParams');
+      AppLogger.network('orders with params: $queryParams');
 
       final headers = await _authHeaders;
       final response = await _dio.get(
@@ -91,7 +92,7 @@ class OrderApiService {
         options: Options(headers: headers),
       );
 
-      print('Orders API response: ${response.statusCode}');
+      AppLogger.network('Orders API response: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final List<dynamic> ordersJson =
@@ -105,13 +106,13 @@ class OrderApiService {
             // Adapt backend Order model to Flutter Order model
             return Order.fromJson(json, id);
           } catch (e) {
-            print('Error parsing order: $e');
-            print('Order JSON: $json');
+            AppLogger.error('parsing order: $e');
+            AppLogger.debug('Order JSON: $json');
             rethrow;
           }
         }).toList();
 
-        print('Successfully fetched ${orders.length} orders');
+        AppLogger.success('fully fetched ${orders.length} orders');
         return orders;
       } else if (response.statusCode == 401) {
         throw Exception('Unauthorized. Please login again.');
@@ -119,7 +120,7 @@ class OrderApiService {
         throw Exception('Failed to fetch orders: ${response.statusMessage}');
       }
     } on DioException catch (e) {
-      print('DioException fetching orders: ${e.message}');
+      AppLogger.error('fetching orders: ${e.message}');
       if (e.type == DioExceptionType.connectionTimeout ||
           e.type == DioExceptionType.receiveTimeout) {
         throw Exception(
@@ -134,7 +135,7 @@ class OrderApiService {
       }
       throw Exception('Network error: ${e.message}');
     } catch (e) {
-      print('Error fetching orders: $e');
+      AppLogger.error('fetching orders: $e');
       rethrow;
     }
   }
@@ -147,7 +148,7 @@ class OrderApiService {
   /// Returns: Order object with full details
   Future<Order> getOrderDetails(String orderId) async {
     try {
-      print('Fetching order details for: $orderId');
+      AppLogger.network('order details for: $orderId');
 
       final headers = await _authHeaders;
       final response = await _dio.get(
@@ -155,14 +156,14 @@ class OrderApiService {
         options: Options(headers: headers),
       );
 
-      print('Order details API response: ${response.statusCode}');
+      AppLogger.network('Order details API response: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final orderJson = response.data['order'] ?? response.data;
         final String id = orderJson['_id'] ?? orderJson['id'] ?? '';
         final order = Order.fromJson(orderJson, id);
 
-        print('Successfully fetched order details');
+        AppLogger.success('fully fetched order details');
         return order;
       } else if (response.statusCode == 404) {
         throw Exception('Order not found');
@@ -174,7 +175,7 @@ class OrderApiService {
         );
       }
     } on DioException catch (e) {
-      print('DioException fetching order details: ${e.message}');
+      AppLogger.error('fetching order details: ${e.message}');
       if (e.response?.statusCode == 404) {
         throw Exception('Order not found');
       } else if (e.response?.statusCode == 401) {
@@ -182,7 +183,7 @@ class OrderApiService {
       }
       throw Exception('Network error: ${e.message}');
     } catch (e) {
-      print('Error fetching order details: $e');
+      AppLogger.error('fetching order details: $e');
       rethrow;
     }
   }
@@ -196,7 +197,7 @@ class OrderApiService {
   /// Returns: Updated Order object
   Future<Order> updateOrderStatus(String orderId, String newStatus) async {
     try {
-      print('Updating order $orderId status to: $newStatus');
+      AppLogger.data('order $orderId status to: $newStatus');
 
       final headers = await _authHeaders;
       final response = await _dio.put(
@@ -205,14 +206,14 @@ class OrderApiService {
         options: Options(headers: headers),
       );
 
-      print('Update order status API response: ${response.statusCode}');
+      AppLogger.network('Update order status API response: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final orderJson = response.data['order'] ?? response.data;
         final String id = orderJson['_id'] ?? orderJson['id'] ?? '';
         final order = Order.fromJson(orderJson, id);
 
-        print('Successfully updated order status');
+        AppLogger.success('fully updated order status');
         return order;
       } else if (response.statusCode == 404) {
         throw Exception('Order not found');
@@ -227,7 +228,7 @@ class OrderApiService {
         );
       }
     } on DioException catch (e) {
-      print('DioException updating order status: ${e.message}');
+      AppLogger.error('updating order status: ${e.message}');
       if (e.response?.statusCode == 404) {
         throw Exception('Order not found');
       } else if (e.response?.statusCode == 401) {
@@ -238,7 +239,7 @@ class OrderApiService {
       }
       throw Exception('Network error: ${e.message}');
     } catch (e) {
-      print('Error updating order status: $e');
+      AppLogger.error('updating order status: $e');
       rethrow;
     }
   }
@@ -255,7 +256,7 @@ class OrderApiService {
     String newPaymentStatus,
   ) async {
     try {
-      print('Updating order $orderId payment status to: $newPaymentStatus');
+      AppLogger.data('order $orderId payment status to: $newPaymentStatus');
 
       final headers = await _authHeaders;
       final response = await _dio.put(
@@ -264,14 +265,14 @@ class OrderApiService {
         options: Options(headers: headers),
       );
 
-      print('Update payment status API response: ${response.statusCode}');
+      AppLogger.network('Update payment status API response: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final orderJson = response.data['order'] ?? response.data;
         final String id = orderJson['_id'] ?? orderJson['id'] ?? '';
         final order = Order.fromJson(orderJson, id);
 
-        print('Successfully updated payment status');
+        AppLogger.success('fully updated payment status');
         return order;
       } else if (response.statusCode == 404) {
         throw Exception('Order not found');
@@ -286,7 +287,7 @@ class OrderApiService {
         );
       }
     } on DioException catch (e) {
-      print('DioException updating payment status: ${e.message}');
+      AppLogger.error('updating payment status: ${e.message}');
       if (e.response?.statusCode == 404) {
         throw Exception('Order not found');
       } else if (e.response?.statusCode == 401) {
@@ -298,7 +299,7 @@ class OrderApiService {
       }
       throw Exception('Network error: ${e.message}');
     } catch (e) {
-      print('Error updating payment status: $e');
+      AppLogger.error('updating payment status: $e');
       rethrow;
     }
   }
@@ -311,7 +312,7 @@ class OrderApiService {
   /// Returns: Success message
   Future<String> deleteOrder(String orderId) async {
     try {
-      print('Deleting order: $orderId');
+      AppLogger.data('order: $orderId');
 
       final headers = await _authHeaders;
       final response = await _dio.delete(
@@ -319,12 +320,12 @@ class OrderApiService {
         options: Options(headers: headers),
       );
 
-      print('Delete order API response: ${response.statusCode}');
+      AppLogger.network('Delete order API response: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final message =
             response.data['message'] ?? 'Order deleted successfully';
-        print('Successfully deleted order');
+        AppLogger.success('fully deleted order');
         return message;
       } else if (response.statusCode == 404) {
         throw Exception('Order not found');
@@ -336,7 +337,7 @@ class OrderApiService {
         throw Exception('Failed to delete order: ${response.statusMessage}');
       }
     } on DioException catch (e) {
-      print('DioException deleting order: ${e.message}');
+      AppLogger.error('deleting order: ${e.message}');
       if (e.response?.statusCode == 404) {
         throw Exception('Order not found');
       } else if (e.response?.statusCode == 401) {
@@ -346,7 +347,7 @@ class OrderApiService {
       }
       throw Exception('Network error: ${e.message}');
     } catch (e) {
-      print('Error deleting order: $e');
+      AppLogger.error('deleting order: $e');
       rethrow;
     }
   }
@@ -356,7 +357,7 @@ class OrderApiService {
   /// Returns: Map with order statistics (total, pending, processing, completed, cancelled, totalRevenue)
   Future<Map<String, dynamic>> getOrderStats() async {
     try {
-      print('Fetching order statistics');
+      AppLogger.network('order statistics');
 
       final headers = await _authHeaders;
       final response = await _dio.get(
@@ -364,11 +365,11 @@ class OrderApiService {
         options: Options(headers: headers),
       );
 
-      print('Order stats API response: ${response.statusCode}');
+      AppLogger.network('Order stats API response: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final stats = response.data['stats'] ?? response.data;
-        print('Successfully fetched order stats');
+        AppLogger.success('fully fetched order stats');
         return stats;
       } else if (response.statusCode == 401) {
         throw Exception('Unauthorized. Please login again.');
@@ -378,13 +379,13 @@ class OrderApiService {
         );
       }
     } on DioException catch (e) {
-      print('DioException fetching order stats: ${e.message}');
+      AppLogger.error('fetching order stats: ${e.message}');
       if (e.response?.statusCode == 401) {
         throw Exception('Unauthorized. Please login again.');
       }
       throw Exception('Network error: ${e.message}');
     } catch (e) {
-      print('Error fetching order stats: $e');
+      AppLogger.error('fetching order stats: $e');
       rethrow;
     }
   }
@@ -409,7 +410,7 @@ class OrderApiService {
         queryParams['endDate'] = endDate;
       }
 
-      print('Fetching orders analytics with params: $queryParams');
+      AppLogger.network('orders analytics with params: $queryParams');
 
       final headers = await _authHeaders;
       final response = await _dio.get(
@@ -418,11 +419,11 @@ class OrderApiService {
         options: Options(headers: headers),
       );
 
-      print('Orders analytics API response: ${response.statusCode}');
+      AppLogger.network('Orders analytics API response: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final analytics = response.data;
-        print('Successfully fetched orders analytics');
+        AppLogger.success('fully fetched orders analytics');
         return analytics;
       } else if (response.statusCode == 401) {
         throw Exception('Unauthorized. Please login again.');
@@ -432,13 +433,13 @@ class OrderApiService {
         );
       }
     } on DioException catch (e) {
-      print('DioException fetching orders analytics: ${e.message}');
+      AppLogger.error('fetching orders analytics: ${e.message}');
       if (e.response?.statusCode == 401) {
         throw Exception('Unauthorized. Please login again.');
       }
       throw Exception('Network error: ${e.message}');
     } catch (e) {
-      print('Error fetching orders analytics: $e');
+      AppLogger.error('fetching orders analytics: $e');
       rethrow;
     }
   }

@@ -43,10 +43,11 @@ class LoyaltyProvider with ChangeNotifier {
       notifyListeners();
     } catch (e) {
       debugPrint('❌ Error loading loyalty account: $e');
-      _setError('Failed to load loyalty account: ${e.toString()}');
-
-      // Load fallback mock data if API fails
-      _loadMockLoyaltyAccount(userId);
+      _setError(
+        'Unable to load loyalty information. Please check your connection and try again.',
+      );
+      _loyaltyAccount = null;
+      notifyListeners();
     } finally {
       _setLoading(false);
     }
@@ -64,7 +65,9 @@ class LoyaltyProvider with ChangeNotifier {
       notifyListeners();
     } catch (e) {
       debugPrint('❌ Error loading points history: $e');
-      _loadMockPointsHistory();
+      _setError('Unable to load points history. Please try again.');
+      _pointsHistory = [];
+      notifyListeners();
     }
   }
 
@@ -80,7 +83,9 @@ class LoyaltyProvider with ChangeNotifier {
       notifyListeners();
     } catch (e) {
       debugPrint('❌ Error loading loyalty tiers: $e');
-      _loadMockLoyaltyTiers();
+      _setError('Unable to load loyalty tiers. Please try again.');
+      _loyaltyTiers = [];
+      notifyListeners();
     }
   }
 
@@ -96,7 +101,9 @@ class LoyaltyProvider with ChangeNotifier {
       notifyListeners();
     } catch (e) {
       debugPrint('❌ Error loading available rewards: $e');
-      _loadMockAvailableRewards();
+      _setError('Unable to load available rewards. Please try again.');
+      _availableRewards = [];
+      notifyListeners();
     }
   }
 
@@ -128,7 +135,9 @@ class LoyaltyProvider with ChangeNotifier {
       notifyListeners();
     } catch (e) {
       debugPrint('❌ Error loading program info: $e');
-      _loadMockProgramInfo();
+      _setError('Unable to load program information. Please try again.');
+      _programInfo = null;
+      notifyListeners();
     }
   }
 
@@ -196,203 +205,7 @@ class LoyaltyProvider with ChangeNotifier {
     }
   }
 
-  // Mock data methods for fallback
-  void _loadMockLoyaltyAccount(String userId) {
-    _loyaltyAccount = {
-      'userId': userId,
-      'points': 1250,
-      'tier': 'Gold',
-      'tierProgress': 0.75,
-      'nextTierPoints': 500,
-      'lifetimePoints': 3750,
-      'totalRedemptions': 5,
-      'createdAt': DateTime.now()
-          .subtract(const Duration(days: 180))
-          .toIso8601String(),
-      'updatedAt': DateTime.now().toIso8601String(),
-    };
-
-    debugPrint('📱 Loaded mock loyalty account');
-    notifyListeners();
-  }
-
-  void _loadMockPointsHistory() {
-    _pointsHistory = [
-      {
-        '_id': 'mock_1',
-        'userId': 'user1',
-        'points': 150,
-        'type': 'earned',
-        'description': 'Purchase - Ethiopian Yirgacheffe',
-        'orderId': 'order_123',
-        'createdAt': DateTime.now()
-            .subtract(const Duration(days: 2))
-            .toIso8601String(),
-      },
-      {
-        '_id': 'mock_2',
-        'userId': 'user1',
-        'points': -500,
-        'type': 'redeemed',
-        'description': 'Redeemed - Free 250g Coffee',
-        'rewardId': 'reward_123',
-        'createdAt': DateTime.now()
-            .subtract(const Duration(days: 5))
-            .toIso8601String(),
-      },
-      {
-        '_id': 'mock_3',
-        'userId': 'user1',
-        'points': 200,
-        'type': 'earned',
-        'description': 'Purchase - Colombian Supremo',
-        'orderId': 'order_124',
-        'createdAt': DateTime.now()
-            .subtract(const Duration(days: 10))
-            .toIso8601String(),
-      },
-      {
-        '_id': 'mock_4',
-        'userId': 'user1',
-        'points': 100,
-        'type': 'bonus',
-        'description': 'Birthday Bonus',
-        'createdAt': DateTime.now()
-            .subtract(const Duration(days: 15))
-            .toIso8601String(),
-      },
-    ];
-
-    debugPrint('📱 Loaded mock points history');
-  }
-
-  void _loadMockLoyaltyTiers() {
-    _loyaltyTiers = [
-      {
-        '_id': 'bronze',
-        'name': 'Bronze',
-        'minPoints': 0,
-        'maxPoints': 499,
-        'benefits': ['5% discount on orders', 'Birthday bonus points'],
-        'pointMultiplier': 1.0,
-        'color': '#CD7F32',
-      },
-      {
-        '_id': 'silver',
-        'name': 'Silver',
-        'minPoints': 500,
-        'maxPoints': 999,
-        'benefits': [
-          '10% discount on orders',
-          'Free shipping',
-          'Priority support',
-        ],
-        'pointMultiplier': 1.2,
-        'color': '#C0C0C0',
-      },
-      {
-        '_id': 'gold',
-        'name': 'Gold',
-        'minPoints': 1000,
-        'maxPoints': 1999,
-        'benefits': [
-          '15% discount on orders',
-          'Exclusive products',
-          'Monthly free coffee',
-        ],
-        'pointMultiplier': 1.5,
-        'color': '#FFD700',
-      },
-      {
-        '_id': 'platinum',
-        'name': 'Platinum',
-        'minPoints': 2000,
-        'maxPoints': 4999,
-        'benefits': [
-          '20% discount on orders',
-          'VIP events',
-          'Personal coffee consultant',
-        ],
-        'pointMultiplier': 2.0,
-        'color': '#E5E4E2',
-      },
-      {
-        '_id': 'diamond',
-        'name': 'Diamond',
-        'minPoints': 5000,
-        'maxPoints': null,
-        'benefits': [
-          '25% discount on orders',
-          'Unlimited perks',
-          'Custom blends',
-        ],
-        'pointMultiplier': 3.0,
-        'color': '#B9F2FF',
-      },
-    ];
-
-    debugPrint('📱 Loaded mock loyalty tiers');
-  }
-
-  void _loadMockAvailableRewards() {
-    _availableRewards = [
-      {
-        '_id': 'reward_1',
-        'title': 'Free 250g Coffee',
-        'description': 'Choose any 250g coffee blend',
-        'pointsRequired': 500,
-        'category': 'coffee',
-        'isActive': true,
-      },
-      {
-        '_id': 'reward_2',
-        'title': '10% Off Next Order',
-        'description': 'Get 10% discount on your next purchase',
-        'pointsRequired': 200,
-        'category': 'discount',
-        'isActive': true,
-      },
-      {
-        '_id': 'reward_3',
-        'title': 'Coffee Tasting Kit',
-        'description': 'Sample pack of 5 different coffee origins',
-        'pointsRequired': 750,
-        'category': 'experience',
-        'isActive': true,
-      },
-      {
-        '_id': 'reward_4',
-        'title': 'Premium Grinder',
-        'description': 'High-quality burr grinder for perfect coffee',
-        'pointsRequired': 2000,
-        'category': 'equipment',
-        'isActive': true,
-      },
-    ];
-
-    debugPrint('📱 Loaded mock available rewards');
-  }
-
-  void _loadMockProgramInfo() {
-    _programInfo = {
-      'name': 'Al Marya Loyalty Program',
-      'description':
-          'Earn points with every purchase and unlock exclusive rewards',
-      'pointsPerDollar': 10,
-      'welcomeBonus': 100,
-      'birthdayBonus': 200,
-      'referralBonus': 300,
-      'features': [
-        'Earn 10 points for every AED spent',
-        'Exclusive member-only deals',
-        'Birthday and anniversary bonuses',
-        'Free shipping on tier benefits',
-        'Priority customer support',
-      ],
-    };
-
-    debugPrint('📱 Loaded mock program info');
-  }
+  // All mock data removed - app now relies entirely on backend API
 
   // Private helper methods
   void _setLoading(bool loading) {

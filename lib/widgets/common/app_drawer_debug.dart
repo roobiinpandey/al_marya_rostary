@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/utils/app_logger.dart';
 
 /// DEBUG VERSION: AppDrawer with extensive debugging
 class AppDrawerDebug extends StatelessWidget {
@@ -70,7 +71,7 @@ class AppDrawerDebug extends StatelessWidget {
       builder: (context, authProvider, child) {
         // Debug logging in debug mode only
         assert(() {
-          print(
+          AppLogger.debug(
             'DEBUG: Building header - isAuthenticated: ${authProvider.isAuthenticated}',
           );
           return true;
@@ -83,7 +84,7 @@ class AppDrawerDebug extends StatelessWidget {
         final user = authProvider.user;
         // Debug logging in debug mode only
         assert(() {
-          print('DEBUG: User: ${user?.name}, Email: ${user?.email}');
+          AppLogger.debug('DEBUG: User: ${user?.name}, Email: ${user?.email}');
           return true;
         }());
 
@@ -188,7 +189,7 @@ class AppDrawerDebug extends StatelessWidget {
   Widget _buildGuestHeader(BuildContext context) {
     // Debug logging in debug mode only
     assert(() {
-      print('DEBUG: Building guest header');
+      AppLogger.debug('DEBUG: Building guest header');
       return true;
     }());
 
@@ -239,10 +240,10 @@ class AppDrawerDebug extends StatelessWidget {
       builder: (context, authProvider, child) {
         // Debug logging in debug mode only
         assert(() {
-          print(
+          AppLogger.debug(
             'DEBUG: Building navigation section - isAuthenticated: ${authProvider.isAuthenticated}',
           );
-          print('DEBUG: User: ${authProvider.user?.name}');
+          AppLogger.debug('DEBUG: User: ${authProvider.user?.name}');
           return true;
         }());
 
@@ -549,7 +550,7 @@ class AppDrawerDebug extends StatelessWidget {
   void _navigateTo(BuildContext context, String route) {
     // Debug logging in debug mode only
     assert(() {
-      print('DEBUG: Navigating to: $route');
+      AppLogger.debug('DEBUG: Navigating to: $route');
       return true;
     }());
     Navigator.pop(context); // Close drawer

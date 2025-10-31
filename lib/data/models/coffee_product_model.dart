@@ -1,5 +1,6 @@
 import '../../core/constants/app_constants.dart';
 import '../../domain/entities/coffee_product.dart';
+import '../../core/utils/app_logger.dart';
 
 /// Variant model for different coffee sizes and prices
 class CoffeeVariant {
@@ -80,7 +81,7 @@ class CoffeeProductModel extends CoffeeProduct {
     }
 
     // Fallback: Return empty string and let backend handle error
-    print('⚠️ Warning: Could not parse product ID from: ${json['_id']}');
+    AppLogger.warning('⚠️ Warning: Could not parse product ID from: ${json['_id']}');
     return '';
   }
 
@@ -94,7 +95,7 @@ class CoffeeProductModel extends CoffeeProduct {
     }
 
     if (bytes.length != 12) {
-      print('⚠️ Warning: Invalid buffer length: ${bytes.length}');
+      AppLogger.warning('⚠️ Warning: Invalid buffer length: ${bytes.length}');
       return '';
     }
 

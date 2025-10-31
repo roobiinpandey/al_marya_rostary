@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/services/slider_api_service.dart';
 import '../../../../data/models/slider_model.dart';
+import '../../../../core/utils/app_logger.dart';
 
 /// Slider Provider
 /// Manages state for slider/banner management
@@ -96,7 +97,7 @@ class SliderProvider with ChangeNotifier {
       await _fetchStatistics();
     } catch (e) {
       _errorMessage = e.toString();
-      print('Error fetching sliders: $e');
+      AppLogger.error('fetching sliders: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -116,7 +117,7 @@ class SliderProvider with ChangeNotifier {
     try {
       _statistics = await _sliderApiService.getSliderStats();
     } catch (e) {
-      print('Error fetching statistics: $e');
+      AppLogger.error('fetching statistics: $e');
       _statistics = {
         'total': _sliders.length,
         'active': _sliders.where((s) => s.status == 'Active').length,
@@ -186,7 +187,7 @@ class SliderProvider with ChangeNotifier {
       _errorMessage = e.toString();
       _isLoading = false;
       notifyListeners();
-      print('Error creating slider: $e');
+      AppLogger.error('creating slider: $e');
       return false;
     }
   }
@@ -255,7 +256,7 @@ class SliderProvider with ChangeNotifier {
       _errorMessage = e.toString();
       _isLoading = false;
       notifyListeners();
-      print('Error updating slider: $e');
+      AppLogger.error('updating slider: $e');
       return false;
     }
   }
@@ -285,7 +286,7 @@ class SliderProvider with ChangeNotifier {
       _errorMessage = e.toString();
       _isLoading = false;
       notifyListeners();
-      print('Error deleting slider: $e');
+      AppLogger.error('deleting slider: $e');
       return false;
     }
   }
@@ -310,7 +311,7 @@ class SliderProvider with ChangeNotifier {
       return success;
     } catch (e) {
       _errorMessage = e.toString();
-      print('Error toggling status: $e');
+      AppLogger.error('toggling status: $e');
       return false;
     }
   }
@@ -369,7 +370,7 @@ class SliderProvider with ChangeNotifier {
         notifyListeners();
       }
     } catch (e) {
-      print('Error tracking click: $e');
+      AppLogger.error('tracking click: $e');
     }
   }
 
@@ -387,7 +388,7 @@ class SliderProvider with ChangeNotifier {
         notifyListeners();
       }
     } catch (e) {
-      print('Error tracking view: $e');
+      AppLogger.error('tracking view: $e');
     }
   }
 
@@ -418,7 +419,7 @@ class SliderProvider with ChangeNotifier {
 
       return success;
     } catch (e) {
-      print('Error updating display order: $e');
+      AppLogger.error('updating display order: $e');
       return false;
     }
   }

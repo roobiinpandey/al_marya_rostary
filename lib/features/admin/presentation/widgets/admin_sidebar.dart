@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../../core/utils/app_logger.dart';
 
 /// Admin sidebar navigation widget
 class AdminSidebar extends StatelessWidget {
@@ -127,7 +128,7 @@ class AdminSidebar extends StatelessWidget {
                   'Quick Categories',
                   Icons.flash_on,
                   onTap: () {
-                    print('🟢 Quick Categories tapped!'); // Debug log
+                    AppLogger.debug('🟢 Quick Categories tapped!'); // Debug log
                     Navigator.pushNamed(context, '/admin/quick-categories');
                   },
                 ),

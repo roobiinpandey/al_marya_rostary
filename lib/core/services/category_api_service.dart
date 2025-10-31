@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../data/models/category_model.dart';
+import '../utils/app_logger.dart';
 
 /// API Service for Category Management
 /// Handles all category-related API calls to the backend
@@ -43,7 +44,11 @@ class CategoryApiService {
     try {
       return await _secureStorage.read(key: 'auth_token');
     } catch (e) {
-      print('Error reading auth token: $e');
+      AppLogger.error(
+        'Failed to read auth token',
+        tag: 'CategoryAPI',
+        error: e,
+      );
       return null;
     }
   }
@@ -102,13 +107,18 @@ class CategoryApiService {
         );
       }
     } on DioException catch (e) {
-      print('DioException in fetchAllCategories: ${e.message}');
-      if (e.response != null) {
-        print('Response data: ${e.response?.data}');
-      }
+      AppLogger.error(
+        'Network error fetching categories',
+        tag: 'CategoryAPI',
+        error: e,
+      );
       throw Exception('Network error: ${e.message}');
     } catch (e) {
-      print('Error in fetchAllCategories: $e');
+      AppLogger.error(
+        'Failed to fetch categories',
+        tag: 'CategoryAPI',
+        error: e,
+      );
       throw Exception('Failed to fetch categories: $e');
     }
   }
@@ -154,16 +164,23 @@ class CategoryApiService {
         );
       }
     } on DioException catch (e) {
-      print('DioException in createCategory: ${e.message}');
+      AppLogger.error(
+        'Network error creating category',
+        tag: 'CategoryAPI',
+        error: e,
+      );
       if (e.response != null) {
-        print('Response data: ${e.response?.data}');
         throw Exception(
           e.response?.data['message'] ?? 'Failed to create category',
         );
       }
       throw Exception('Network error: ${e.message}');
     } catch (e) {
-      print('Error in createCategory: $e');
+      AppLogger.error(
+        'Failed to create category',
+        tag: 'CategoryAPI',
+        error: e,
+      );
       throw Exception('Failed to create category: $e');
     }
   }
@@ -210,16 +227,23 @@ class CategoryApiService {
         );
       }
     } on DioException catch (e) {
-      print('DioException in updateCategory: ${e.message}');
+      AppLogger.error(
+        'Network error updating category',
+        tag: 'CategoryAPI',
+        error: e,
+      );
       if (e.response != null) {
-        print('Response data: ${e.response?.data}');
         throw Exception(
           e.response?.data['message'] ?? 'Failed to update category',
         );
       }
       throw Exception('Network error: ${e.message}');
     } catch (e) {
-      print('Error in updateCategory: $e');
+      AppLogger.error(
+        'Failed to update category',
+        tag: 'CategoryAPI',
+        error: e,
+      );
       throw Exception('Failed to update category: $e');
     }
   }
@@ -242,16 +266,24 @@ class CategoryApiService {
         );
       }
     } on DioException catch (e) {
-      print('DioException in deleteCategory: ${e.message}');
+      AppLogger.error(
+        'Network error deleting category',
+        tag: 'CategoryAPI',
+        error: e,
+      ); //  ${e.message}');
       if (e.response != null) {
-        print('Response data: ${e.response?.data}');
+        //  ${e.response?.data}');
         throw Exception(
           e.response?.data['message'] ?? 'Failed to delete category',
         );
       }
       throw Exception('Network error: ${e.message}');
     } catch (e) {
-      print('Error in deleteCategory: $e');
+      AppLogger.error(
+        'Failed to delete category',
+        tag: 'CategoryAPI',
+        error: e,
+      ); //  $e');
       throw Exception('Failed to delete category: $e');
     }
   }
@@ -270,10 +302,18 @@ class CategoryApiService {
         );
       }
     } on DioException catch (e) {
-      print('DioException in getCategoryById: ${e.message}');
+      AppLogger.error(
+        'Network error fetching category',
+        tag: 'CategoryAPI',
+        error: e,
+      ); //  ${e.message}');
       throw Exception('Network error: ${e.message}');
     } catch (e) {
-      print('Error in getCategoryById: $e');
+      AppLogger.error(
+        'Failed to fetch category',
+        tag: 'CategoryAPI',
+        error: e,
+      ); //  $e');
       throw Exception('Failed to fetch category: $e');
     }
   }
@@ -284,7 +324,11 @@ class CategoryApiService {
     try {
       await updateCategory(categoryId: categoryId, isActive: isActive);
     } catch (e) {
-      print('Error toggling category status: $e');
+      AppLogger.error(
+        'Failed to toggle category status',
+        tag: 'CategoryAPI',
+        error: e,
+      ); //  $e');
       rethrow;
     }
   }
@@ -295,7 +339,11 @@ class CategoryApiService {
     try {
       await updateCategory(categoryId: categoryId, displayOrder: displayOrder);
     } catch (e) {
-      print('Error updating display order: $e');
+      AppLogger.error(
+        'Failed to update display order',
+        tag: 'CategoryAPI',
+        error: e,
+      ); //  $e');
       rethrow;
     }
   }
@@ -318,7 +366,11 @@ class CategoryApiService {
 
       return stats;
     } catch (e) {
-      print('Error getting category stats: $e');
+      AppLogger.error(
+        'Failed to get category stats',
+        tag: 'CategoryAPI',
+        error: e,
+      ); //  $e');
       return {
         'total': 0,
         'active': 0,
@@ -348,7 +400,11 @@ class CategoryApiService {
 
       return rootCategories;
     } catch (e) {
-      print('Error getting categories tree: $e');
+      AppLogger.error(
+        'Failed to get categories tree',
+        tag: 'CategoryAPI',
+        error: e,
+      ); //  $e');
       rethrow;
     }
   }

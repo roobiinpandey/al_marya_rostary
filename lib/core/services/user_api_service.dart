@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../data/models/user_model.dart';
+import '../utils/app_logger.dart';
 
 /// User API Service
 /// Handles all user/customer management API calls
@@ -25,7 +26,7 @@ class UserApiService {
           return handler.next(options);
         },
         onError: (error, handler) {
-          print('API Error: ${error.message}');
+          AppLogger.error('API Error: ${error.message}');
           return handler.next(error);
         },
       ),
