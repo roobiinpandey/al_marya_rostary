@@ -89,17 +89,17 @@ const REQUIRED_ENV_VARS = {
     errorMessage: 'FIREBASE_SERVICE_ACCOUNT_KEY must be valid JSON service account'
   },
 
-  // Frontend Configuration
+  // Frontend Configuration (Optional - used for CORS and email links)
   FRONTEND_URL: {
-    required: () => process.env.NODE_ENV === 'production',
+    required: false, // Optional: only needed if serving a separate frontend
     validate: (value) => !value || (value.startsWith('http://') || value.startsWith('https://')),
-    errorMessage: 'FRONTEND_URL must be a valid URL (required in production)'
+    errorMessage: 'FRONTEND_URL must be a valid URL if provided'
   },
 
   BASE_URL: {
-    required: () => process.env.NODE_ENV === 'production',
+    required: false, // Optional: only needed for generating email links
     validate: (value) => !value || (value.startsWith('http://') || value.startsWith('https://')),
-    errorMessage: 'BASE_URL must be a valid URL (required in production)'
+    errorMessage: 'BASE_URL must be a valid URL if provided'
   }
 };
 
