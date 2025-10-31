@@ -9,34 +9,52 @@ import 'features/cart/presentation/providers/cart_provider.dart';
 import 'features/admin/presentation/providers/admin_provider.dart';
 import 'features/admin/presentation/providers/admin_user_provider.dart';
 import 'features/admin/presentation/providers/firebase_user_provider.dart';
+import 'features/admin/presentation/providers/product_provider.dart';
+import 'features/admin/presentation/providers/category_provider.dart';
+import 'features/admin/presentation/providers/slider_provider.dart';
+import 'features/admin/presentation/providers/quick_category_provider.dart';
+import 'features/admin/presentation/providers/user_provider.dart';
 import 'features/auth/presentation/providers/auth_provider.dart';
 import 'data/repositories/firebase_auth_repository_impl.dart';
 import 'data/datasources/firebase_auth_service.dart';
 import 'features/coffee/presentation/providers/coffee_provider.dart';
 import 'features/splash/presentation/pages/splash_page.dart';
 import 'core/providers/language_provider.dart';
+import 'core/services/product_api_service.dart';
+import 'core/services/category_api_service.dart';
+import 'core/services/slider_api_service.dart';
+import 'core/services/user_api_service.dart';
+import 'core/services/gift_set_api_service.dart';
 import 'providers/location_provider.dart';
 import 'providers/address_provider.dart';
+import 'providers/gift_set_provider.dart';
 import 'l10n/app_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Initialize Firebase with error handling
+  bool firebaseInitialized = false;
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    // Firebase initialized successfully - silently continue
-  } catch (e) {
-    // Firebase initialization failed - continue without Firebase features
-    // Error logged internally
+    firebaseInitialized = true;
+    debugPrint('✅ Firebase initialized successfully');
+  } catch (e, stackTrace) {
+    debugPrint('⚠️ Firebase initialization error: $e');
+    debugPrint('Stack trace: $stackTrace');
+    // Don't crash the app - some features will be limited without Firebase
+    // but the app should still work for browsing products, etc.
   }
 
-  runApp(const MyApp());
+  runApp(MyApp(firebaseInitialized: firebaseInitialized));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final bool firebaseInitialized;
+
+  const MyApp({super.key, this.firebaseInitialized = true});
 
   @override
   Widget build(BuildContext context) {
@@ -53,10 +71,28 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (context) => FirebaseUserProvider()),
         ChangeNotifierProvider(create: (context) => CoffeeProvider()),
         ChangeNotifierProvider(
+          create: (context) => ProductProvider(ProductApiService()),
+        ),
+        ChangeNotifierProvider(
+          create: (context) =>
+              CategoryProvider(categoryApiService: CategoryApiService()),
+        ),
+        ChangeNotifierProvider(
+          create: (context) =>
+              SliderProvider(sliderApiService: SliderApiService()),
+        ),
+        ChangeNotifierProvider(create: (context) => QuickCategoryProvider()),
+        ChangeNotifierProvider(
+          create: (context) => UserProvider(userApiService: UserApiService()),
+        ),
+        ChangeNotifierProvider(
           create: (context) => LocationProvider()..initialize(),
         ),
         ChangeNotifierProvider(
           create: (context) => AddressProvider()..initialize(),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => GiftSetProvider(GiftSetApiService()),
         ),
       ],
       child: Consumer<LanguageProvider>(

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../../../home/presentation/pages/home_page.dart';
+import '../../../navigation/presentation/pages/main_navigation_page.dart';
 import '../../../auth/presentation/pages/login_page.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 
@@ -65,7 +65,7 @@ class _SplashPageState extends State<SplashPage>
 
     final authProvider = context.read<AuthProvider>();
     final nextPage = authProvider.isAuthenticated
-        ? const HomePage()
+        ? const MainNavigationPage()
         : const LoginPage();
 
     Navigator.of(context).pushReplacement(

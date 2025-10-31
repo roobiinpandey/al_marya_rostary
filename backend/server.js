@@ -14,6 +14,8 @@ const { performanceMiddleware, createCacheMiddleware, optimizeJsonResponse } = r
 const { monitoring } = require('./config/monitoring');
 // ⚡ NEW: Import performance monitoring
 const { performanceMonitoring, startPerformanceReporting } = require('./middleware/performanceMonitoring');
+// ⚡ NEW: Import JSON serialization middleware to fix ObjectId serialization
+const { serializeResponse } = require('./middleware/jsonSerializer');
 
 const app = express();
 
@@ -34,6 +36,9 @@ performanceMiddleware(app);
 // Additional security headers
 app.use(additionalSecurityHeaders);
 
+// ⚡ NEW: JSON serialization middleware (fixes ObjectId buffer issue with .lean())
+app.use(serializeResponse);
+
 // JSON optimization
 app.use(optimizeJsonResponse);
 
@@ -42,8 +47,18 @@ if (process.env.NODE_ENV !== 'production') {
   const morgan = require('morgan');
   app.use(morgan('combined'));
 }
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+
+// Conditional JSON parsing middleware - skip for multipart/form-data
+app.use((req, res, next) => {
+  const contentType = req.headers['content-type'];
+  if (contentType && contentType.startsWith('multipart/form-data')) {
+    // Skip JSON parsing for multipart data, let multer handle it
+    return next();
+  }
+  express.json({ limit: '10mb' })(req, res, next);
+});
+
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Serve static files from uploads directory
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -87,7 +102,13 @@ app.use('/api/users', require('./routes/users'));
 // Cached routes for better performance
 app.use('/api/coffees', createCacheMiddleware({ ttl: 300 }), require('./routes/coffees')); // 5 min cache
 app.use('/api/categories', createCacheMiddleware({ ttl: 600 }), require('./routes/categories')); // 10 min cache
+app.use('/api/attributes', createCacheMiddleware({ ttl: 600 }), require('./routes/attributes')); // 10 min cache - NEW
 app.use('/api/sliders', createCacheMiddleware({ ttl: 300 }), require('./routes/sliders')); // 5 min cache
+app.use('/api/quick-categories', createCacheMiddleware({ ttl: 300 }), require('./routes/quickCategories')); // 5 min cache
+app.use('/api/brewing-methods', createCacheMiddleware({ ttl: 600 }), require('./routes/brewingMethods')); // 10 min cache
+app.use('/api/accessories', createCacheMiddleware({ ttl: 300 }), require('./routes/accessories')); // 5 min cache
+app.use('/api/accessory-types', createCacheMiddleware({ ttl: 600 }), require('./routes/accessoryTypes')); // 10 min cache
+app.use('/api/gift-sets', createCacheMiddleware({ ttl: 300 }), require('./routes/giftSets')); // 5 min cache
 
 // Non-cached routes (user-specific or frequently changing)
 app.use('/api/notifications', require('./routes/notifications'));
@@ -95,6 +116,13 @@ app.use('/api/newsletters', require('./routes/newsletters'));
 app.use('/api/support-tickets', require('./routes/support'));
 app.use('/api/feedback', require('./routes/feedback'));
 app.use('/api/analytics', require('./routes/analytics'));
+app.use('/api/contact-inquiries', require('./routes/contactInquiries'));
+
+// Debug routes (for development)
+app.use('/api/debug', require('./routes/debug'));
+
+// Email testing routes (admin only)
+app.use('/api/test', require('./routes/emailTest'));
 
 // Firebase Sync Routes
 app.use('/api/firebase-sync', require('./routes/firebaseSync'));
@@ -102,9 +130,16 @@ app.use('/api/firebase-sync', require('./routes/firebaseSync'));
 // Auto Firebase Sync Routes
 app.use('/api/auto-sync', require('./routes/autoSync'));
 
+// New Feature Routes
+app.use('/api/reviews', require('./routes/reviews'));
+app.use('/api/loyalty', require('./routes/loyalty'));
+app.use('/api/referrals', require('./routes/referrals'));
+app.use('/api/subscriptions', require('./routes/subscriptions'));
+
 // Public settings route (no auth required)
 const { getPublicSettings } = require('./controllers/settingsController');
 app.get('/api/settings/public', getPublicSettings);
+app.get('/api/settings', getPublicSettings); // FIXED: Add general settings route for admin panel
 
 // ⚡ NEW: Performance metrics endpoint (admin only)
 const { getPerformanceMetrics } = require('./middleware/performanceMonitoring');

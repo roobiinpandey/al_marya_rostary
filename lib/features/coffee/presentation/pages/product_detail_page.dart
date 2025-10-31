@@ -4,6 +4,7 @@ import '../../../cart/presentation/providers/cart_provider.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../data/models/coffee_product_model.dart';
+import 'write_review_page.dart';
 
 /// Product detail page showing full product information with size selection
 class ProductDetailPage extends StatefulWidget {
@@ -17,6 +18,14 @@ class ProductDetailPage extends StatefulWidget {
 
 class _ProductDetailPageState extends State<ProductDetailPage> {
   String _selectedSize = '500g'; // Default selected size
+
+  @override
+  void initState() {
+    super.initState();
+    print('🔍 Product Detail: Received product: ${widget.product.name}');
+    print('🔍 Product Detail: Product ID: ${widget.product.id}');
+    print('🔍 Product Detail: Product type: ${widget.product.runtimeType}');
+  }
 
   // Size options with their prices (multipliers relative to base price per kg)
   // Home page shows per kg price, here we show multiple weight options
@@ -259,7 +268,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                     builder: (context, cartProvider, child) {
                       final isInCart = cartProvider.items.any(
                         (item) =>
-                            item.product.id == widget.product.id &&
+                            item.itemType == CartItemType.coffee &&
+                            item.id == widget.product.id &&
                             item.selectedSize == _selectedSize,
                       );
 
@@ -280,7 +290,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                               );
                             } else {
                               // Add to cart with selected size
-                              final cartItem = CartItem(
+                              final cartItem = CartItem.coffee(
                                 product: widget.product,
                                 quantity: 1,
                                 selectedSize: _selectedSize,
@@ -297,7 +307,13 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                     label: 'View Cart',
                                     textColor: Colors.white,
                                     onPressed: () {
-                                      Navigator.pushNamed(context, '/cart');
+                                      Navigator.pushNamed(
+                                        context,
+                                        '/main-navigation',
+                                        arguments: {
+                                          'initialIndex': 2,
+                                        }, // Cart tab
+                                      );
                                     },
                                   ),
                                 ),
@@ -334,6 +350,43 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                         ),
                       );
                     },
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Write Review Button
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => WriteReviewPage(
+                              productId: widget.product.id,
+                              productName: widget.product.name,
+                            ),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.rate_review),
+                      label: Text(
+                        'Write a Review',
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppTheme.primaryBrown,
+                        side: BorderSide(
+                          color: AppTheme.primaryBrown,
+                          width: 2,
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),

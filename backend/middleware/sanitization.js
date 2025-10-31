@@ -13,6 +13,12 @@ const validator = require('validator');
 const xssProtection = () => {
   return (req, res, next) => {
     try {
+      // Skip processing for multipart/form-data - let multer handle it first
+      const contentType = req.headers['content-type'];
+      if (contentType && contentType.startsWith('multipart/form-data')) {
+        return next();
+      }
+
       // Sanitize request body
       if (req.body && typeof req.body === 'object') {
         req.body = sanitizeObject(req.body);
@@ -100,6 +106,12 @@ const requestSizeLimit = (options = {}) => {
 
   return (req, res, next) => {
     try {
+      // Skip processing for multipart/form-data - let multer handle it first
+      const contentType = req.headers['content-type'];
+      if (contentType && contentType.startsWith('multipart/form-data')) {
+        return next();
+      }
+
       // Check URL parameter length
       if (req.url && req.url.length > maxParamLength) {
         return res.status(414).json({
@@ -162,6 +174,12 @@ const sqlInjectionProtection = () => {
 
   return (req, res, next) => {
     try {
+      // Skip processing for multipart/form-data - let multer handle it first
+      const contentType = req.headers['content-type'];
+      if (contentType && contentType.startsWith('multipart/form-data')) {
+        return next();
+      }
+
       const checkForSqlInjection = (value) => {
         if (typeof value === 'string') {
           const decodedValue = decodeURIComponent(value.toLowerCase());
@@ -238,6 +256,12 @@ const pathTraversalProtection = () => {
 
   return (req, res, next) => {
     try {
+      // Skip processing for multipart/form-data - let multer handle it first
+      const contentType = req.headers['content-type'];
+      if (contentType && contentType.startsWith('multipart/form-data')) {
+        return next();
+      }
+
       const checkForPathTraversal = (value) => {
         if (typeof value === 'string') {
           const decodedValue = decodeURIComponent(value.toLowerCase());

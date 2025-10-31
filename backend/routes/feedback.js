@@ -10,7 +10,8 @@ const {
   getTopRatedProducts,
   // Admin functions
   getAllFeedback,
-  moderateFeedback
+  moderateFeedback,
+  getFeedbackStats
 } = require('../controllers/feedbackController');
 const { protect } = require('../middleware/auth');
 const adminAuth = require('../middleware/adminAuth');
@@ -117,6 +118,7 @@ router.post('/:id/vote', voteValidation, voteFeedback);
 
 // Admin routes
 router.get('/admin/all', adminAuth, getAllFeedback);
+router.get('/stats', adminAuth, getFeedbackStats);
 router.put('/admin/:id/moderate', adminAuth, moderateValidation, moderateFeedback);
 
 module.exports = router;

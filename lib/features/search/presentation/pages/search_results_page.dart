@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../data/models/coffee_product_model.dart';
 import '../../../coffee/presentation/widgets/coffee_product_card.dart';
 import '../../../coffee/presentation/pages/product_detail_page.dart';
+import '../../../coffee/presentation/providers/coffee_provider.dart';
 
 /// SearchResultsPage displays filtered and searched coffee products
 class SearchResultsPage extends StatefulWidget {
@@ -26,7 +28,6 @@ class SearchResultsPage extends StatefulWidget {
 class _SearchResultsPageState extends State<SearchResultsPage> {
   final TextEditingController _searchController = TextEditingController();
   List<CoffeeProductModel> _searchResults = [];
-  List<CoffeeProductModel> _allProducts = [];
   bool _isLoading = true;
   String _sortBy = 'relevance';
   RangeValues _priceRange = const RangeValues(10, 100);
@@ -73,103 +74,52 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
     _loadProducts();
   }
 
-  void _loadProducts() async {
+  void _loadProducts() {
     setState(() {
       _isLoading = true;
     });
 
-    // TODO: Replace with actual API call
-    // Mock data for now
-    await Future.delayed(const Duration(milliseconds: 500));
-
-    _allProducts = [
-      CoffeeProductModel(
-        id: '1',
-        name: 'Ethiopian Single Origin',
-        description: 'Premium Ethiopian coffee with floral notes',
-        price: 45.0,
-        imageUrl:
-            'https://via.placeholder.com/300x300/A89A6A/FFFFFF?text=Ethiopian',
-        origin: 'Ethiopia',
-        categories: ['Arabica'],
-        rating: 4.8,
-        roastLevel: 'Medium',
-        isFeatured: true,
-        stock: 100,
-      ),
-      CoffeeProductModel(
-        id: '2',
-        name: 'Yemeni Mocha',
-        description: 'Traditional Yemeni coffee with chocolate undertones',
-        price: 55.0,
-        imageUrl:
-            'https://via.placeholder.com/300x300/A89A6A/FFFFFF?text=Yemeni',
-        origin: 'Yemen',
-        categories: ['Traditional'],
-        rating: 4.9,
-        roastLevel: 'Dark',
-        isFeatured: true,
-        stock: 50,
-      ),
-      CoffeeProductModel(
-        id: '3',
-        name: 'Colombian Supremo',
-        description: 'Rich Colombian coffee with balanced acidity',
-        price: 40.0,
-        imageUrl:
-            'https://via.placeholder.com/300x300/A89A6A/FFFFFF?text=Colombian',
-        origin: 'Colombia',
-        categories: ['Arabica'],
-        rating: 4.6,
-        roastLevel: 'Medium',
-        isFeatured: false,
-        stock: 75,
-      ),
-      CoffeeProductModel(
-        id: '4',
-        name: 'Espresso Blend',
-        description: 'Perfect espresso blend for your morning shot',
-        price: 38.0,
-        imageUrl:
-            'https://via.placeholder.com/300x300/A89A6A/FFFFFF?text=Espresso',
-        origin: 'Brazil',
-        categories: ['Espresso'],
-        rating: 4.5,
-        roastLevel: 'Dark',
-        isFeatured: false,
-        stock: 120,
-      ),
-      CoffeeProductModel(
-        id: '5',
-        name: 'Cold Brew Special',
-        description: 'Smooth cold brew coffee concentrate',
-        price: 32.0,
-        imageUrl:
-            'https://via.placeholder.com/300x300/A89A6A/FFFFFF?text=Cold+Brew',
-        origin: 'Guatemala',
-        categories: ['Cold Brew'],
-        rating: 4.4,
-        roastLevel: 'Medium',
-        isFeatured: false,
-        stock: 0,
-      ),
-    ];
+    // Load products from CoffeeProvider instead of hardcoded data
+    final coffeeProvider = Provider.of<CoffeeProvider>(context, listen: false);
 
     if (widget.initialResults != null) {
+      // Use provided initial results
       _searchResults = widget.initialResults!;
+      setState(() {
+        _isLoading = false;
+      });
+    } else if (coffeeProvider.coffees.isEmpty) {
+      // Load from API if not already loaded
+      coffeeProvider
+          .loadCoffees()
+          .then((_) {
+            _performSearch();
+            setState(() {
+              _isLoading = false;
+            });
+          })
+          .catchError((error) {
+            setState(() {
+              _isLoading = false;
+            });
+          });
     } else {
+      // Use already loaded products
       _performSearch();
+      setState(() {
+        _isLoading = false;
+      });
     }
-
-    setState(() {
-      _isLoading = false;
-    });
   }
 
   void _performSearch() {
     String query = _searchController.text.toLowerCase().trim();
 
-    List<CoffeeProductModel> results = _allProducts.where((product) {
+    // Get products from CoffeeProvider instead of hardcoded _allProducts
+    final coffeeProvider = Provider.of<CoffeeProvider>(context, listen: false);
+    List<CoffeeProductModel> allProducts = coffeeProvider.coffees;
+
+    List<CoffeeProductModel> results = allProducts.where((product) {
       // Text search
       bool matchesQuery =
           query.isEmpty ||
@@ -242,9 +192,17 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.filter_list),
-            onPressed: _showFilterSheet,
+          Container(
+            margin: const EdgeInsets.only(right: 8),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.filter_list, color: Colors.white),
+              onPressed: _showFilterSheet,
+              tooltip: 'Filter results',
+            ),
           ),
         ],
       ),
@@ -272,34 +230,50 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
   Widget _buildSearchBar() {
     return Container(
       padding: const EdgeInsets.all(16),
-      color: AppTheme.surfaceWhite,
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceWhite,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withValues(alpha: 0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: Row(
         children: [
           Expanded(
-            child: TextField(
-              controller: _searchController,
-              onSubmitted: (value) => _performSearch(),
-              decoration: InputDecoration(
-                hintText: 'Search for coffee...',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          _searchController.clear();
-                          _performSearch();
-                        },
-                      )
-                    : null,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                filled: true,
-                fillColor: AppTheme.backgroundCream,
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppTheme.primaryBrown),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey.shade300),
+                color: Colors.white,
+              ),
+              child: TextField(
+                controller: _searchController,
+                onSubmitted: (value) => _performSearch(),
+                onChanged: (value) => setState(() {}),
+                decoration: InputDecoration(
+                  hintText: 'Search for coffee...',
+                  hintStyle: TextStyle(color: Colors.grey.shade500),
+                  prefixIcon: const Icon(
+                    Icons.search,
+                    color: AppTheme.primaryBrown,
+                  ),
+                  suffixIcon: _searchController.text.isNotEmpty
+                      ? IconButton(
+                          icon: Icon(Icons.clear, color: Colors.grey.shade600),
+                          onPressed: () {
+                            _searchController.clear();
+                            _performSearch();
+                          },
+                        )
+                      : null,
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                 ),
               ),
             ),
@@ -309,10 +283,18 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
             decoration: BoxDecoration(
               color: AppTheme.primaryBrown,
               borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.primaryBrown.withValues(alpha: 0.3),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: IconButton(
               icon: const Icon(Icons.search, color: Colors.white),
               onPressed: _performSearch,
+              tooltip: 'Search',
             ),
           ),
         ],
@@ -322,33 +304,57 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
 
   Widget _buildResultsHeader() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      color: AppTheme.backgroundCream,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: AppTheme.backgroundCream,
+        border: Border(
+          bottom: BorderSide(color: Colors.grey.shade200, width: 1),
+        ),
+      ),
       child: Row(
         children: [
+          Icon(Icons.search_outlined, size: 20, color: AppTheme.primaryBrown),
+          const SizedBox(width: 8),
           Text(
             '${_searchResults.length} results found',
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(color: AppTheme.textMedium),
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: AppTheme.textMedium,
+              fontWeight: FontWeight.w600,
+            ),
           ),
           const Spacer(),
-          DropdownButton<String>(
-            value: _sortBy,
-            onChanged: (value) {
-              setState(() {
-                _sortBy = value!;
-              });
-              _performSearch();
-            },
-            items: _sortOptions.map((option) {
-              return DropdownMenuItem(
-                value: option,
-                child: Text(_getSortLabel(option)),
-              );
-            }).toList(),
-            underline: Container(),
-            icon: const Icon(Icons.arrow_drop_down),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey.shade300),
+            ),
+            child: DropdownButton<String>(
+              value: _sortBy,
+              onChanged: (value) {
+                setState(() {
+                  _sortBy = value!;
+                });
+                _performSearch();
+              },
+              items: _sortOptions.map((option) {
+                return DropdownMenuItem(
+                  value: option,
+                  child: Text(
+                    _getSortLabel(option),
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                );
+              }).toList(),
+              underline: Container(),
+              icon: Icon(
+                Icons.keyboard_arrow_down,
+                color: AppTheme.primaryBrown,
+                size: 20,
+              ),
+              isDense: true,
+            ),
           ),
         ],
       ),
@@ -368,15 +374,27 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.search_off, size: 64, color: AppTheme.textLight),
-            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryBrown.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.search_off,
+                size: 64,
+                color: AppTheme.primaryBrown,
+              ),
+            ),
+            const SizedBox(height: 24),
             Text(
               'No results found',
-              style: Theme.of(
-                context,
-              ).textTheme.headlineSmall?.copyWith(color: AppTheme.textDark),
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                color: AppTheme.textDark,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             Text(
               'Try adjusting your search terms or filters',
               style: Theme.of(
@@ -384,11 +402,11 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
               ).textTheme.bodyLarge?.copyWith(color: AppTheme.textMedium),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                OutlinedButton(
+                OutlinedButton.icon(
                   onPressed: () {
                     _searchController.clear();
                     setState(() {
@@ -398,23 +416,35 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
                     });
                     _performSearch();
                   },
+                  icon: const Icon(Icons.clear_all),
+                  label: const Text('Clear Filters'),
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: AppTheme.primaryBrown),
+                    foregroundColor: AppTheme.primaryBrown,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
                   ),
-                  child: const Text('Clear Filters'),
                 ),
-                const SizedBox(width: 12),
-                ElevatedButton(
+                const SizedBox(width: 16),
+                ElevatedButton.icon(
                   onPressed: () {
                     Navigator.of(context).pushNamedAndRemoveUntil(
                       '/coffee',
                       (route) => route.settings.name == '/home',
                     );
                   },
+                  icon: const Icon(Icons.coffee),
+                  label: const Text('Browse All'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primaryBrown,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
                   ),
-                  child: const Text('Browse All'),
                 ),
               ],
             ),

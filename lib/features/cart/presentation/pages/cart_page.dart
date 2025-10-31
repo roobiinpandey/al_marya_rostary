@@ -156,11 +156,13 @@ class CartPage extends StatelessWidget {
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(12),
                           child: Image.network(
-                            item.product.imageUrl,
+                            item.imageUrl,
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) {
-                              return const Icon(
-                                Icons.coffee,
+                              return Icon(
+                                item.itemType == CartItemType.coffee
+                                    ? Icons.coffee
+                                    : Icons.shopping_bag,
                                 color: AppTheme.primaryBrown,
                                 size: 32,
                               );
@@ -177,7 +179,7 @@ class CartPage extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              item.product.name,
+                              item.name,
                               style: Theme.of(context).textTheme.titleMedium
                                   ?.copyWith(
                                     color: AppTheme.textDark,
@@ -188,7 +190,9 @@ class CartPage extends StatelessWidget {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              item.product.origin,
+                              item.itemType == CartItemType.coffee
+                                  ? item.product!.origin
+                                  : item.accessory!.category,
                               style: Theme.of(context).textTheme.bodyMedium
                                   ?.copyWith(color: AppTheme.textMedium),
                             ),
@@ -217,7 +221,9 @@ class CartPage extends StatelessWidget {
                             ],
                             const SizedBox(height: 4),
                             Text(
-                              '${AppConstants.currencySymbol}${(item.price ?? item.product.price).toStringAsFixed(2)} per ${item.selectedSize ?? 'kg'}',
+                              item.itemType == CartItemType.coffee
+                                  ? '${AppConstants.currencySymbol}${item.unitPrice.toStringAsFixed(2)} per ${item.selectedSize ?? 'kg'}'
+                                  : '${item.unitPrice.toStringAsFixed(2)} ${item.accessory!.price.currency}',
                               style: Theme.of(context).textTheme.bodyMedium
                                   ?.copyWith(
                                     color: AppTheme.primaryBrown,
@@ -234,9 +240,8 @@ class CartPage extends StatelessWidget {
                           Row(
                             children: [
                               IconButton(
-                                onPressed: () => cartProvider.decrementQuantity(
-                                  item.product.id,
-                                ),
+                                onPressed: () =>
+                                    cartProvider.decrementQuantity(item.id),
                                 icon: const Icon(
                                   Icons.remove_circle_outline,
                                   color: AppTheme.primaryBrown,
@@ -264,9 +269,8 @@ class CartPage extends StatelessWidget {
                                 ),
                               ),
                               IconButton(
-                                onPressed: () => cartProvider.incrementQuantity(
-                                  item.product.id,
-                                ),
+                                onPressed: () =>
+                                    cartProvider.incrementQuantity(item.id),
                                 icon: const Icon(
                                   Icons.add_circle_outline,
                                   color: AppTheme.primaryBrown,

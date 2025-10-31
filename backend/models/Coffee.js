@@ -156,6 +156,11 @@ const coffeeSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  isPremium: {
+    type: Boolean,
+    default: false,
+    index: true
+  },
   tags: [String], // For search and filtering
   seo: {
     metaTitle: String,

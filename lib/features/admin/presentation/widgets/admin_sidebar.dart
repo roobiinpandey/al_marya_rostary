@@ -108,6 +108,31 @@ class AdminSidebar extends StatelessWidget {
                 ),
                 _buildNavItem(
                   context,
+                  'Categories',
+                  Icons.category,
+                  onTap: () {
+                    Navigator.pushNamed(context, '/admin/categories');
+                  },
+                ),
+                _buildNavItem(
+                  context,
+                  'Sliders',
+                  Icons.view_carousel,
+                  onTap: () {
+                    Navigator.pushNamed(context, '/admin/sliders');
+                  },
+                ),
+                _buildNavItem(
+                  context,
+                  'Quick Categories',
+                  Icons.flash_on,
+                  onTap: () {
+                    print('🟢 Quick Categories tapped!'); // Debug log
+                    Navigator.pushNamed(context, '/admin/quick-categories');
+                  },
+                ),
+                _buildNavItem(
+                  context,
                   'Orders',
                   Icons.shopping_cart,
                   onTap: () {
@@ -116,10 +141,10 @@ class AdminSidebar extends StatelessWidget {
                 ),
                 _buildNavItem(
                   context,
-                  'Firebase Users',
+                  'Users',
                   Icons.people,
                   onTap: () {
-                    Navigator.pushNamed(context, '/admin/firebase-users');
+                    Navigator.pushNamed(context, '/admin/users');
                   },
                 ),
                 const Divider(height: 1),

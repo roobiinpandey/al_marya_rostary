@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
+import '../../features/brewing_methods/data/brewing_method_api_service.dart';
+import '../../features/brewing_methods/data/brewing_method_model.dart';
 import '../../core/theme/app_theme.dart';
 
 class AppDrawer extends StatefulWidget {
@@ -12,6 +14,10 @@ class AppDrawer extends StatefulWidget {
 }
 
 class _AppDrawerState extends State<AppDrawer> {
+  final BrewingMethodApiService _brewingMethodApi = BrewingMethodApiService();
+  List<BrewingMethod> _brewingMethods = [];
+  bool _loadingBrewingMethods = false;
+
   // Track expanded sections
   final Map<String, bool> _expandedSections = {
     'coffee_beans': false,
@@ -19,6 +25,36 @@ class _AppDrawerState extends State<AppDrawer> {
     'accessories': false,
     'gifts': false,
   };
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBrewingMethods();
+  }
+
+  Future<void> _loadBrewingMethods() async {
+    setState(() {
+      _loadingBrewingMethods = true;
+    });
+
+    try {
+      // Load all brewing methods to show correct count
+      final methods = await _brewingMethodApi.fetchBrewingMethods(limit: 100);
+      if (mounted) {
+        setState(() {
+          _brewingMethods = methods;
+          _loadingBrewingMethods = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _loadingBrewingMethods = false;
+        });
+      }
+      debugPrint('Error loading brewing methods for drawer: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -99,7 +135,11 @@ class _AppDrawerState extends State<AppDrawer> {
                     bottom: 0,
                     right: 0,
                     child: GestureDetector(
-                      onTap: () => Navigator.pushNamed(context, '/profile'),
+                      onTap: () => Navigator.pushNamed(
+                        context,
+                        '/main-navigation',
+                        arguments: {'initialIndex': 3}, // Profile tab
+                      ),
                       child: Container(
                         padding: const EdgeInsets.all(4),
                         decoration: const BoxDecoration(
@@ -216,30 +256,6 @@ class _AppDrawerState extends State<AppDrawer> {
       builder: (context, authProvider, child) {
         return Column(
           children: [
-            // Profile at the TOP - Always visible
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: const Color(0xFFA89A6A).withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: const Color(0xFFA89A6A).withValues(alpha: 0.3),
-                ),
-              ),
-              child: _buildNavItem(
-                context,
-                icon: Icons.person,
-                title: 'Profile',
-                subtitle: authProvider.isAuthenticated
-                    ? 'Manage your account'
-                    : 'Create your profile',
-                onTap: () => _navigateTo(context, '/profile'),
-              ),
-            ),
-
-            const SizedBox(height: 8),
-            const Divider(height: 1),
-
             // Coffee & Product Categories
             _buildSectionHeader('Coffee & Products'),
 
@@ -251,25 +267,16 @@ class _AppDrawerState extends State<AppDrawer> {
               'Coffee Beans',
               'Premium coffee varieties',
               [
-                {'title': 'Arabica', 'route': '/coffee/arabica'},
-                {'title': 'Robusta', 'route': '/coffee/robusta'},
-                {'title': 'Blends', 'route': '/coffee/blends'},
+                {'title': 'Asia', 'route': '/coffee/asia'},
+                {'title': 'Africa', 'route': '/coffee/africa'},
+                {'title': 'Latin America', 'route': '/coffee/latin-america'},
               ],
             ),
 
-            // Brewing Methods - Expandable
-            _buildExpandableSection(
-              context,
-              'brewing_methods',
-              Icons.local_cafe_outlined,
-              'Brewing Methods',
-              'Perfect brewing techniques',
-              [
-                {'title': 'Drip', 'route': '/brewing/drip'},
-                {'title': 'French Press', 'route': '/brewing/french-press'},
-                {'title': 'Espresso', 'route': '/brewing/espresso'},
-              ],
-            ),
+            const Divider(height: 1),
+
+            // Brewing Guide - Dynamic from Backend
+            _buildBrewingMethodsSection(context),
 
             // Accessories - Expandable
             _buildExpandableSection(
@@ -311,14 +318,14 @@ class _AppDrawerState extends State<AppDrawer> {
               icon: Icons.star_outline,
               title: 'Featured Products',
               subtitle: 'Highlighted coffee selections',
-              onTap: () => _navigateTo(context, '/featured'),
+              onTap: () => _navigateTo(context, '/featured-products'),
             ),
             _buildNavItem(
               context,
               icon: Icons.trending_up_outlined,
               title: 'Best Sellers',
               subtitle: 'Popular items',
-              onTap: () => _navigateTo(context, '/bestsellers'),
+              onTap: () => _navigateTo(context, '/best-sellers'),
             ),
             _buildNavItem(
               context,
@@ -336,8 +343,8 @@ class _AppDrawerState extends State<AppDrawer> {
               context,
               icon: Icons.menu_book_outlined,
               title: 'Brewing Guide',
-              subtitle: 'Coffee preparation instructions',
-              onTap: () => _navigateTo(context, '/brewing-guide'),
+              subtitle: 'Coffee preparation methods',
+              onTap: () => _navigateTo(context, '/brewing-methods'),
             ),
             _buildNavItem(
               context,
@@ -356,32 +363,6 @@ class _AppDrawerState extends State<AppDrawer> {
             ),
 
             const Divider(height: 1),
-
-            // Essential Navigation
-            _buildSectionHeader('Navigation'),
-            _buildNavItem(
-              context,
-              icon: Icons.home_outlined,
-              title: 'Home',
-              subtitle: 'Browse coffee collection',
-              onTap: () => _navigateTo(context, '/home'),
-            ),
-            _buildNavItem(
-              context,
-              icon: Icons.shopping_cart_outlined,
-              title: 'Cart',
-              subtitle: 'View cart items',
-              onTap: () => _navigateTo(context, '/cart'),
-            ),
-            if (authProvider.isAuthenticated) ...[
-              _buildNavItem(
-                context,
-                icon: Icons.favorite_outline,
-                title: 'Favorites',
-                subtitle: 'Your favorite items',
-                onTap: () => _navigateTo(context, '/favorites'),
-              ),
-            ],
 
             // Account Section (for authenticated users)
             if (authProvider.isAuthenticated) ...[
@@ -514,6 +495,151 @@ class _AppDrawerState extends State<AppDrawer> {
                 );
               }).toList(),
             ),
+          ),
+      ],
+    );
+  }
+
+  // Dynamic brewing methods section loaded from backend
+  Widget _buildBrewingMethodsSection(BuildContext context) {
+    final isExpanded = _expandedSections['brewing_methods'] ?? false;
+
+    return Column(
+      children: [
+        _buildNavItem(
+          context,
+          icon: Icons.local_cafe_outlined,
+          title: 'Brewing Guide',
+          subtitle: _loadingBrewingMethods
+              ? 'Loading...'
+              : _brewingMethods.isEmpty
+              ? 'Explore brewing techniques'
+              : '${_brewingMethods.length} methods available',
+          trailing: Icon(
+            isExpanded ? Icons.expand_less : Icons.expand_more,
+            color: const Color(0xFF8C8C8C),
+          ),
+          onTap: () {
+            setState(() {
+              _expandedSections['brewing_methods'] = !isExpanded;
+            });
+          },
+        ),
+        if (isExpanded)
+          Container(
+            margin: const EdgeInsets.only(left: 56, right: 16),
+            child: _loadingBrewingMethods
+                ? const Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Center(
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  )
+                : _brewingMethods.isEmpty
+                ? Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Text(
+                      'No brewing methods available',
+                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                    ),
+                  )
+                : Column(
+                    children: [
+                      ..._brewingMethods.map((method) {
+                        final isPopular = method.isPopular;
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 4),
+                          child: ListTile(
+                            leading: isPopular
+                                ? const Icon(
+                                    Icons.star,
+                                    color: Color(0xFFFFA000),
+                                    size: 16,
+                                  )
+                                : Container(
+                                    width: 8,
+                                    height: 8,
+                                    decoration: BoxDecoration(
+                                      color: const Color(
+                                        0xFFA89A6A,
+                                      ).withValues(alpha: 0.6),
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                            title: Text(
+                              method.name.en,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: isPopular
+                                    ? const Color(0xFFFFA000)
+                                    : const Color(0xFF2E2E2E),
+                                fontWeight: isPopular
+                                    ? FontWeight.w600
+                                    : FontWeight.w500,
+                              ),
+                            ),
+                            trailing: isPopular
+                                ? const Icon(
+                                    Icons.star_outlined,
+                                    color: Color(0xFFFFA000),
+                                    size: 16,
+                                  )
+                                : const Icon(
+                                    Icons.chevron_right,
+                                    color: Color(0xFF8C8C8C),
+                                    size: 16,
+                                  ),
+                            onTap: () {
+                              Navigator.pop(context); // Close drawer
+                              Navigator.pushNamed(
+                                context,
+                                '/brewing-method-detail',
+                                arguments: method,
+                              );
+                            },
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 2,
+                            ),
+                            dense: true,
+                          ),
+                        );
+                      }),
+                      // View all brewing methods button
+                      Container(
+                        margin: const EdgeInsets.only(top: 8, bottom: 4),
+                        child: ListTile(
+                          leading: const Icon(
+                            Icons.grid_view,
+                            color: Color(0xFFA89A6A),
+                            size: 16,
+                          ),
+                          title: const Text(
+                            'View All Methods',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Color(0xFFA89A6A),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          trailing: const Icon(
+                            Icons.arrow_forward,
+                            color: Color(0xFFA89A6A),
+                            size: 16,
+                          ),
+                          onTap: () {
+                            Navigator.pop(context); // Close drawer
+                            Navigator.pushNamed(context, '/brewing-methods');
+                          },
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 2,
+                          ),
+                          dense: true,
+                        ),
+                      ),
+                    ],
+                  ),
           ),
       ],
     );

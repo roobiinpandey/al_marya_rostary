@@ -4,6 +4,34 @@ const User = require('../models/User');
 const Coffee = require('../models/Coffee');
 const Order = require('../models/Order');
 const mongoose = require('mongoose');
+const admin = require('firebase-admin');
+
+/**
+ * Get Firebase user count (source of truth for user statistics)
+ * @returns {Promise<number>} Total Firebase users count
+ */
+async function getFirebaseUserCount() {
+  try {
+    const auth = admin.auth();
+    let totalFirebaseUsers = 0;
+    
+    let pageToken;
+    do {
+      const listUsersResult = await auth.listUsers(1000, pageToken);
+      totalFirebaseUsers += listUsersResult.users.length;
+      pageToken = listUsersResult.pageToken;
+    } while (pageToken);
+
+    return totalFirebaseUsers;
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Error getting Firebase user count:', error.message);
+    }
+    // Fallback to local count if Firebase fails
+    const localCount = await User.countDocuments();
+    return localCount;
+  }
+}
 
 // User Analytics Functions
 
@@ -280,52 +308,104 @@ const getDashboardOverview = async (req, res) => {
     const todayEnd = new Date();
     todayEnd.setHours(23, 59, 59, 999);
 
-    // Get basic counts
-    const totalUsers = await User.countDocuments();
-    const totalProducts = await Coffee.countDocuments();
-    const totalOrders = await Order.countDocuments({
-      createdAt: { $gte: startDate, $lte: endDate }
-    });
-
-    // Get revenue data
-    const revenueAggregation = await Order.aggregate([
-      {
-        $match: {
-          createdAt: { $gte: startDate, $lte: endDate },
-          status: { $in: ['delivered', 'completed'] }
+    // OPTIMIZATION: Execute all queries in parallel using Promise.all
+    const [
+      totalUsers,
+      totalProducts,
+      totalOrders,
+      revenueAggregation,
+      monthlyRevenue,
+      recentOrders,
+      todayOrders,
+      todayRevenue,
+      orderStats
+    ] = await Promise.all([
+      // Use local User count instead of slow Firebase API call
+      User.countDocuments(),
+      
+      Coffee.countDocuments(),
+      
+      Order.countDocuments(),
+      
+      // Get 30-day revenue
+      Order.aggregate([
+        {
+          $match: {
+            createdAt: { $gte: startDate, $lte: endDate },
+            status: { $in: ['delivered', 'completed'] }
+          }
+        },
+        {
+          $group: {
+            _id: null,
+            totalRevenue: { $sum: '$totalAmount' }
+          }
         }
-      },
-      {
-        $group: {
-          _id: null,
-          totalRevenue: { $sum: '$totalAmount' }
+      ]),
+      
+      // Get monthly revenue data for chart
+      Order.aggregate([
+        {
+          $match: {
+            createdAt: { $gte: new Date(new Date().getFullYear(), 0, 1) },
+            status: { $in: ['delivered', 'completed'] }
+          }
+        },
+        {
+          $group: {
+            _id: { 
+              year: { $year: '$createdAt' },
+              month: { $month: '$createdAt' }
+            },
+            revenue: { $sum: '$totalAmount' }
+          }
+        },
+        {
+          $sort: { '_id.year': 1, '_id.month': 1 }
         }
-      }
+      ]),
+      
+      // Get recent orders with lean() for better performance
+      Order.find()
+        .populate('user', 'name email')
+        .sort({ createdAt: -1 })
+        .limit(10)
+        .select('_id user totalAmount status createdAt items')
+        .lean(),
+      
+      // Today's order count
+      Order.countDocuments({
+        createdAt: { $gte: todayStart, $lte: todayEnd }
+      }),
+      
+      // Today's revenue
+      Order.aggregate([
+        {
+          $match: {
+            createdAt: { $gte: todayStart, $lte: todayEnd },
+            status: { $in: ['delivered', 'completed'] }
+          }
+        },
+        {
+          $group: {
+            _id: null,
+            revenue: { $sum: '$totalAmount' }
+          }
+        }
+      ]),
+      
+      // Order status stats
+      Order.aggregate([
+        {
+          $group: {
+            _id: '$status',
+            count: { $sum: 1 }
+          }
+        }
+      ])
     ]);
 
     const totalRevenue = revenueAggregation[0]?.totalRevenue || 0;
-
-    // Get monthly revenue data for chart
-    const monthlyRevenue = await Order.aggregate([
-      {
-        $match: {
-          createdAt: { $gte: new Date(new Date().getFullYear(), 0, 1) }, // This year
-          status: { $in: ['delivered', 'completed'] }
-        }
-      },
-      {
-        $group: {
-          _id: { 
-            year: { $year: '$createdAt' },
-            month: { $month: '$createdAt' }
-          },
-          revenue: { $sum: '$totalAmount' }
-        }
-      },
-      {
-        $sort: { '_id.year': 1, '_id.month': 1 }
-      }
-    ]);
 
     // Format monthly data for chart
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -339,43 +419,6 @@ const getDashboardOverview = async (req, res) => {
       const monthData = monthlyRevenue.find(item => item._id.month === i + 1);
       revenueData.values.push(monthData ? monthData.revenue : 0);
     }
-
-    // Get recent orders
-    const recentOrders = await Order.find()
-      .populate('user', 'name email')
-      .sort({ createdAt: -1 })
-      .limit(10)
-      .select('_id user totalAmount status createdAt items');
-
-    // Get today's stats
-    const todayOrders = await Order.countDocuments({
-      createdAt: { $gte: todayStart, $lte: todayEnd }
-    });
-
-    const todayRevenue = await Order.aggregate([
-      {
-        $match: {
-          createdAt: { $gte: todayStart, $lte: todayEnd },
-          status: { $in: ['delivered', 'completed'] }
-        }
-      },
-      {
-        $group: {
-          _id: null,
-          revenue: { $sum: '$totalAmount' }
-        }
-      }
-    ]);
-
-    // Get order status stats
-    const orderStats = await Order.aggregate([
-      {
-        $group: {
-          _id: '$status',
-          count: { $sum: 1 }
-        }
-      }
-    ]);
 
     const statusCounts = {
       pending: 0,

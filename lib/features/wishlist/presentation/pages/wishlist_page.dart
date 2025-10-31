@@ -526,7 +526,11 @@ class _WishlistPageState extends State<WishlistPage> {
           label: 'View Cart',
           textColor: Colors.white,
           onPressed: () {
-            Navigator.pushNamed(context, '/cart');
+            Navigator.pushNamed(
+              context,
+              '/main-navigation',
+              arguments: {'initialIndex': 2}, // Cart tab
+            );
           },
         ),
       ),

@@ -1,9 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../widgets/common/app_drawer.dart';
+import '../providers/coffee_provider.dart';
 
-class FeaturedProductsPage extends StatelessWidget {
+class FeaturedProductsPage extends StatefulWidget {
   const FeaturedProductsPage({super.key});
+
+  @override
+  State<FeaturedProductsPage> createState() => _FeaturedProductsPageState();
+}
+
+class _FeaturedProductsPageState extends State<FeaturedProductsPage> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadFeaturedProducts();
+    });
+  }
+
+  void _loadFeaturedProducts() {
+    final coffeeProvider = Provider.of<CoffeeProvider>(context, listen: false);
+    coffeeProvider.loadCoffees();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -68,32 +88,237 @@ class FeaturedProductsPage extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             const Text(
-              'Featured Categories',
+              'Featured Products',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            _buildCategoryCard(
-              context,
-              'Signature Blends',
-              'Our master roaster\'s exclusive creations',
-              Icons.local_cafe,
-              Colors.brown,
-            ),
-            const SizedBox(height: 12),
-            _buildCategoryCard(
-              context,
-              'Single Origin Specials',
-              'Premium beans from specific regions',
-              Icons.public,
-              Colors.green,
-            ),
-            const SizedBox(height: 12),
-            _buildCategoryCard(
-              context,
-              'Limited Editions',
-              'Rare and seasonal coffee varieties',
-              Icons.diamond,
-              Colors.purple,
+
+            // Real products section
+            Consumer<CoffeeProvider>(
+              builder: (context, coffeeProvider, child) {
+                if (coffeeProvider.isLoading) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(32.0),
+                      child: CircularProgressIndicator(
+                        color: AppTheme.primaryBrown,
+                      ),
+                    ),
+                  );
+                }
+
+                if (coffeeProvider.hasError) {
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(32.0),
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.error_outline,
+                            size: 48,
+                            color: Colors.red.shade400,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Unable to load featured products',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.textDark,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            coffeeProvider.error ?? 'Please try again later',
+                            style: TextStyle(color: AppTheme.textMedium),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 16),
+                          ElevatedButton(
+                            onPressed: _loadFeaturedProducts,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.primaryBrown,
+                              foregroundColor: Colors.white,
+                            ),
+                            child: const Text('Retry'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+
+                // Show selected products as "featured"
+                final featuredProducts = coffeeProvider.coffees
+                    .take(8)
+                    .toList();
+
+                if (featuredProducts.isEmpty) {
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(32.0),
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.coffee_outlined,
+                            size: 48,
+                            color: AppTheme.textMedium,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'No featured products found',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.textDark,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Check back soon for featured products',
+                            style: TextStyle(color: AppTheme.textMedium),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+
+                return GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                    childAspectRatio: 0.8,
+                  ),
+                  itemCount: featuredProducts.length,
+                  itemBuilder: (context, index) {
+                    final coffee = featuredProducts[index];
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.pushNamed(
+                          context,
+                          '/product',
+                          arguments: coffee,
+                        );
+                      },
+                      child: Card(
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              flex: 3,
+                              child: Stack(
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: const BorderRadius.vertical(
+                                      top: Radius.circular(12),
+                                    ),
+                                    child: Image.network(
+                                      coffee.imageUrl,
+                                      width: double.infinity,
+                                      fit: BoxFit.cover,
+                                      errorBuilder:
+                                          (context, error, stackTrace) =>
+                                              Container(
+                                                color: AppTheme.backgroundCream,
+                                                child: const Icon(
+                                                  Icons.coffee,
+                                                  size: 48,
+                                                  color: AppTheme.primaryBrown,
+                                                ),
+                                              ),
+                                    ),
+                                  ),
+                                  Positioned(
+                                    top: 8,
+                                    left: 8,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.amber,
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: const Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            Icons.star,
+                                            size: 12,
+                                            color: Colors.white,
+                                          ),
+                                          SizedBox(width: 2),
+                                          Text(
+                                            'FEATURED',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 8,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: Padding(
+                                padding: const EdgeInsets.all(12),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      coffee.name,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      coffee.origin,
+                                      style: TextStyle(
+                                        color: AppTheme.textMedium,
+                                        fontSize: 12,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const Spacer(),
+                                    Text(
+                                      '\$${coffee.price.toStringAsFixed(2)}',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: AppTheme.primaryBrown,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
             ),
             const SizedBox(height: 24),
             SizedBox(
@@ -126,41 +351,6 @@ class FeaturedProductsPage extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildCategoryCard(
-    BuildContext context,
-    String title,
-    String description,
-    IconData icon,
-    Color color,
-  ) {
-    return Card(
-      child: ListTile(
-        leading: Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(icon, color: color, size: 24),
-        ),
-        title: Text(
-          title,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-        ),
-        subtitle: Text(description, style: const TextStyle(fontSize: 14)),
-        trailing: const Icon(Icons.chevron_right),
-        onTap: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Opening $title'),
-              backgroundColor: AppTheme.primaryBrown,
-            ),
-          );
-        },
       ),
     );
   }

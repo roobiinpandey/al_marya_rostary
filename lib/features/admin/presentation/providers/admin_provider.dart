@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../../../../core/constants/app_constants.dart';
 
 /// Admin provider for managing admin panel state and data
 class AdminProvider extends ChangeNotifier {
@@ -7,12 +11,18 @@ class AdminProvider extends ChangeNotifier {
   double _totalRevenue = 0.0;
   int _totalProducts = 0;
   int _totalUsers = 0;
+  bool _isLoading = false;
+  String? _error;
+
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   // Getters
   int get totalOrders => _totalOrders;
   double get totalRevenue => _totalRevenue;
   int get totalProducts => _totalProducts;
   int get totalUsers => _totalUsers;
+  bool get isLoading => _isLoading;
+  String? get error => _error;
 
   // Mock data for demonstration
   final List<Map<String, dynamic>> _recentOrders = [
@@ -51,9 +61,86 @@ class AdminProvider extends ChangeNotifier {
   List<Map<String, dynamic>> get recentOrders => _recentOrders;
   List<Map<String, dynamic>> get salesData => _salesData;
 
-  // Initialize with mock data
+  // Initialize and fetch real data
   AdminProvider() {
+    _initializeData();
+  }
+
+  void _initializeData() {
+    // Load mock data initially, then fetch real data
     _loadMockData();
+    fetchDashboardData();
+  }
+
+  // Fetch real dashboard data from backend
+  Future<void> fetchDashboardData() async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      // Get authentication token
+      final token = await _getAuthToken();
+      if (token == null) {
+        print('❌ No authentication token found - showing mock data');
+        _error = 'No authentication token found';
+        return;
+      }
+
+      print('✅ Admin token found, fetching real data...');
+
+      final headers = {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      };
+
+      // Fetch user statistics
+      await _fetchUserStats(headers);
+
+      // TODO: Add other metrics (orders, products, revenue)
+      // For now, we'll focus on fixing the user count issue
+
+      _error = null;
+      print('✅ Admin dashboard data loaded successfully');
+    } catch (e) {
+      _error = e.toString();
+      print('❌ Error fetching dashboard data: $e');
+      // Keep mock data if API fails
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> _fetchUserStats(Map<String, String> headers) async {
+    try {
+      final uri = Uri.parse('${AppConstants.baseUrl}/api/admin/users/stats');
+      final response = await http.get(uri, headers: headers);
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['success'] == true && data['data'] != null) {
+          final overview = data['data']['overview'];
+          _totalUsers = overview['totalUsers'] ?? 0;
+          print('✅ Updated user count from API: $_totalUsers');
+        }
+      } else {
+        throw Exception('Failed to load user stats: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error fetching user stats: $e');
+      throw e;
+    }
+  }
+
+  // Get authentication token - using same key as admin login page
+  Future<String?> _getAuthToken() async {
+    try {
+      return await _storage.read(key: 'auth_token'); // Same key as admin login
+    } catch (e) {
+      print('Error reading auth token: $e');
+      return null;
+    }
   }
 
   void _loadMockData() {
@@ -80,9 +167,7 @@ class AdminProvider extends ChangeNotifier {
 
   // Refresh dashboard data
   Future<void> refreshDashboard() async {
-    // TODO: Implement actual data fetching from API
-    await Future.delayed(const Duration(seconds: 1)); // Simulate network delay
-    _loadMockData(); // Reload mock data
+    await fetchDashboardData();
   }
 
   // Get order status color

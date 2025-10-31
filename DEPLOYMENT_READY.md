@@ -76,7 +76,7 @@ For the `FIREBASE_SERVICE_ACCOUNT_KEY` variable:
 
 1. **Go to** [Render Dashboard](https://dashboard.render.com)
 2. **Create** New Web Service
-3. **Connect** GitHub: `roobiinpandey/al_marya_rostary`
+3. **Connect** GitHub: `almaryarostery/al_marya_rostary`
 4. **Configure Service**:
    - Name: `almaryarostery`
    - Root Directory: `backend`

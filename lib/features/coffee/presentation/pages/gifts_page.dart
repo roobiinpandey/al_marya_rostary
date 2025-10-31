@@ -1,9 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../widgets/common/app_drawer.dart';
+import '../../../../providers/gift_set_provider.dart';
+import '../../../../data/models/gift_set_model.dart';
 
-class GiftsPage extends StatelessWidget {
+class GiftsPage extends StatefulWidget {
   const GiftsPage({super.key});
+
+  @override
+  State<GiftsPage> createState() => _GiftsPageState();
+}
+
+class _GiftsPageState extends State<GiftsPage> {
+  @override
+  void initState() {
+    super.initState();
+    // Fetch gift sets when page loads
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<GiftSetProvider>().fetchGiftSets();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -171,28 +188,88 @@ class GiftsPage extends StatelessWidget {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
-            _buildPopularGiftCard(
-              context,
-              'Coffee Lovers Starter Pack',
-              'French press + 2 coffee bags + grinder',
-              'AED 299',
-              'Perfect for beginners',
-            ),
-            const SizedBox(height: 12),
-            _buildPopularGiftCard(
-              context,
-              'Premium Tasting Set',
-              '5 single-origin coffees from around the world',
-              'AED 199',
-              'For the connoisseur',
-            ),
-            const SizedBox(height: 12),
-            _buildPopularGiftCard(
-              context,
-              'Office Coffee Bundle',
-              'Large quantity coffee + accessories',
-              'AED 449',
-              'Great for teams',
+            // Dynamic Gift Sets from Backend
+            Consumer<GiftSetProvider>(
+              builder: (context, provider, child) {
+                if (provider.isLoading && provider.giftSets.isEmpty) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(20),
+                      child: CircularProgressIndicator(),
+                    ),
+                  );
+                }
+
+                if (provider.error != null && provider.giftSets.isEmpty) {
+                  return Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        children: [
+                          const Icon(Icons.error_outline, color: Colors.red),
+                          const SizedBox(height: 8),
+                          const Text('Unable to load gift sets'),
+                          const SizedBox(height: 8),
+                          ElevatedButton(
+                            onPressed: () => provider.fetchGiftSets(),
+                            child: const Text('Retry'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+
+                if (provider.giftSets.isEmpty) {
+                  return const Card(
+                    child: Padding(
+                      padding: EdgeInsets.all(16),
+                      child: Center(
+                        child: Text('No gift sets available at the moment'),
+                      ),
+                    ),
+                  );
+                }
+
+                // Show first 3 gift sets
+                final displayGiftSets = provider.giftSets.take(3).toList();
+
+                return Column(
+                  children: displayGiftSets.map((giftSet) {
+                    final locale = Localizations.localeOf(context);
+                    final isArabic = locale.languageCode == 'ar';
+
+                    final name = isArabic
+                        ? giftSet.name['ar'] ?? giftSet.name['en'] ?? 'Unknown'
+                        : giftSet.name['en'] ?? giftSet.name['ar'] ?? 'Unknown';
+
+                    final description = isArabic
+                        ? giftSet.description['ar'] ??
+                              giftSet.description['en'] ??
+                              ''
+                        : giftSet.description['en'] ??
+                              giftSet.description['ar'] ??
+                              '';
+
+                    return Column(
+                      children: [
+                        _buildPopularGiftCard(
+                          context,
+                          name,
+                          description,
+                          giftSet.formattedPrice,
+                          giftSet.occasion.replaceFirst(
+                            giftSet.occasion[0],
+                            giftSet.occasion[0].toUpperCase(),
+                          ),
+                          giftSet,
+                        ),
+                        const SizedBox(height: 12),
+                      ],
+                    );
+                  }).toList(),
+                );
+              },
             ),
             const SizedBox(height: 24),
             Row(
@@ -221,7 +298,8 @@ class GiftsPage extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () => Navigator.pushNamed(context, '/shop'),
+                    onPressed: () =>
+                        Navigator.pushNamed(context, '/gifts/sets'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.brown,
                       foregroundColor: Colors.white,
@@ -287,8 +365,9 @@ class GiftsPage extends StatelessWidget {
     String title,
     String contents,
     String price,
-    String note,
-  ) {
+    String note, [
+    GiftSetModel? giftSet,
+  ]) {
     return Card(
       elevation: 2,
       child: Padding(
@@ -338,24 +417,42 @@ class GiftsPage extends StatelessWidget {
               children: [
                 TextButton(
                   onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Viewing details for $title'),
-                        backgroundColor: AppTheme.primaryBrown,
-                      ),
-                    );
+                    if (giftSet != null) {
+                      Navigator.pushNamed(
+                        context,
+                        '/gift-set-detail',
+                        arguments: giftSet.id,
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Viewing details for $title'),
+                          backgroundColor: AppTheme.primaryBrown,
+                        ),
+                      );
+                    }
                   },
                   child: const Text('View Details'),
                 ),
                 const SizedBox(width: 8),
                 ElevatedButton(
                   onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Added $title to cart'),
-                        backgroundColor: AppTheme.primaryBrown,
-                      ),
-                    );
+                    if (giftSet != null) {
+                      // Add gift set to cart logic here
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Added $title to cart'),
+                          backgroundColor: AppTheme.primaryBrown,
+                        ),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Added $title to cart'),
+                          backgroundColor: AppTheme.primaryBrown,
+                        ),
+                      );
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.pink,

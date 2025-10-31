@@ -4,11 +4,18 @@ async function loadSettings() {
     try {
         showLoading('settingsContent');
         
-        const response = await authenticatedFetch(`${API_BASE_URL}/api/settings`);
+        const response = await authenticatedFetch(`${API_BASE_URL}/api/admin/settings?includePrivate=true`);
         const data = await handleApiResponse(response);
         
         if (data.success) {
-            renderSettings(data.data);
+            // Flatten the settings object (from categorized to flat)
+            const flatSettings = {};
+            for (const category in data.data) {
+                for (const key in data.data[category]) {
+                    flatSettings[key] = data.data[category][key].value;
+                }
+            }
+            renderSettings(flatSettings);
         } else {
             showErrorById('settingsContent', 'Failed to load settings');
         }
@@ -32,22 +39,68 @@ function renderSettingsUI(settings = {}) {
                     <div class="form-group">
                         <label>Store Name</label>
                         <input type="text" class="form-control" id="storeName" 
-                               value="${settings.storeName || 'Al Marya Rostery'}" />
+                               value="${settings.app_name || 'Al Marya Rostery'}" />
                     </div>
                     <div class="form-group">
                         <label>Contact Email</label>
                         <input type="email" class="form-control" id="storeEmail" 
-                               value="${settings.storeEmail || 'info@almaryarostery.com'}" />
+                               value="${settings.contact_email || 'info@almaryarostery.com'}" />
                     </div>
                     <div class="form-group">
                         <label>Contact Phone</label>
                         <input type="tel" class="form-control" id="storePhone" 
-                               value="${settings.storePhone || '+971 XX XXX XXXX'}" />
+                               value="${settings.contact_phone || '+971 XX XXX XXXX'}" />
+                    </div>
+                    <div class="form-group">
+                        <label>WhatsApp Number</label>
+                        <input type="tel" class="form-control" id="whatsappNumber" 
+                               value="${settings.whatsapp_number || '+971 XX XXX XXXX'}" />
+                    </div>
+                    <div class="form-group">
+                        <label>Business Hours</label>
+                        <input type="text" class="form-control" id="businessHours" 
+                               value="${settings.business_hours || '9:00 AM - 10:00 PM'}" 
+                               placeholder="e.g., 9:00 AM - 10:00 PM" />
                     </div>
                     <div class="form-group">
                         <label>Store Address</label>
-                        <textarea class="form-control" id="storeAddress" rows="3">${settings.storeAddress || 'Dubai, UAE'}</textarea>
+                        <textarea class="form-control" id="storeAddress" rows="3">${settings.address || 'Dubai, UAE'}</textarea>
+                        <small class="form-text text-muted">This address will be used for map navigation</small>
                     </div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h3><i class="fas fa-map-marker-alt"></i> Store Location (Google Maps)</h3>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> 
+                    <strong>How to get your store coordinates:</strong><br>
+                    1. Open <a href="https://www.google.com/maps" target="_blank">Google Maps</a><br>
+                    2. Search for your store or right-click on your location<br>
+                    3. Click on the coordinates (e.g., 25.0760, 55.1320) at the top or in the popup<br>
+                    4. The coordinates will be copied - paste them below<br>
+                    5. Format: First number is Latitude, second is Longitude
+                </div>
+                <div class="settings-grid">
+                    <div class="form-group">
+                        <label>Latitude <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="storeLatitude" 
+                               value="${settings.store_latitude || ''}" 
+                               placeholder="e.g., 25.0760" />
+                        <small class="form-text text-muted">Example: 25.0760 (Dubai Marina)</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Longitude <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="storeLongitude" 
+                               value="${settings.store_longitude || ''}" 
+                               placeholder="e.g., 55.1320" />
+                        <small class="form-text text-muted">Example: 55.1320 (Dubai Marina)</small>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <button type="button" class="btn btn-secondary" onclick="testMapLocation()">
+                        <i class="fas fa-map-marked-alt"></i> Test Location in Google Maps
+                    </button>
                 </div>
             </div>
 
@@ -57,22 +110,22 @@ function renderSettingsUI(settings = {}) {
                     <div class="form-group">
                         <label>Minimum Order Amount (AED)</label>
                         <input type="number" class="form-control" id="minOrderAmount" 
-                               value="${settings.minOrderAmount || 0}" step="0.01" />
+                               value="${settings.minimum_order_amount || 0}" step="0.01" />
                     </div>
                     <div class="form-group">
                         <label>Delivery Fee (AED)</label>
                         <input type="number" class="form-control" id="deliveryFee" 
-                               value="${settings.deliveryFee || 0}" step="0.01" />
+                               value="${settings.delivery_fee || 0}" step="0.01" />
                     </div>
                     <div class="form-group">
                         <label>Free Delivery Threshold (AED)</label>
                         <input type="number" class="form-control" id="freeDeliveryThreshold" 
-                               value="${settings.freeDeliveryThreshold || 100}" step="0.01" />
+                               value="${settings.free_delivery_threshold || 100}" step="0.01" />
                     </div>
                     <div class="form-group">
                         <label>Tax Rate (%)</label>
                         <input type="number" class="form-control" id="taxRate" 
-                               value="${settings.taxRate || 5}" step="0.01" />
+                               value="${settings.tax_rate || 5}" step="0.01" />
                     </div>
                 </div>
             </div>
@@ -83,21 +136,21 @@ function renderSettingsUI(settings = {}) {
                     <div class="form-group">
                         <label class="checkbox-label">
                             <input type="checkbox" id="emailNotifications" 
-                                   ${settings.emailNotifications !== false ? 'checked' : ''} />
+                                   ${settings.email_notifications_enabled !== false ? 'checked' : ''} />
                             <span>Enable Email Notifications</span>
                         </label>
                     </div>
                     <div class="form-group">
                         <label class="checkbox-label">
                             <input type="checkbox" id="orderNotifications" 
-                                   ${settings.orderNotifications !== false ? 'checked' : ''} />
+                                   ${settings.order_status_notifications !== false ? 'checked' : ''} />
                             <span>New Order Notifications</span>
                         </label>
                     </div>
                     <div class="form-group">
                         <label class="checkbox-label">
                             <input type="checkbox" id="lowStockNotifications" 
-                                   ${settings.lowStockNotifications !== false ? 'checked' : ''} />
+                                   ${settings.low_stock_notifications !== false ? 'checked' : ''} />
                             <span>Low Stock Alerts</span>
                         </label>
                     </div>
@@ -125,15 +178,15 @@ function renderSettingsUI(settings = {}) {
                     <div class="form-group">
                         <label>Date Format</label>
                         <select class="form-control" id="dateFormat">
-                            <option value="DD/MM/YYYY" ${settings.dateFormat === 'DD/MM/YYYY' ? 'selected' : ''}>DD/MM/YYYY</option>
-                            <option value="MM/DD/YYYY" ${settings.dateFormat === 'MM/DD/YYYY' ? 'selected' : ''}>MM/DD/YYYY</option>
-                            <option value="YYYY-MM-DD" ${settings.dateFormat === 'YYYY-MM-DD' ? 'selected' : ''}>YYYY-MM-DD</option>
+                            <option value="DD/MM/YYYY" ${settings.date_format === 'DD/MM/YYYY' ? 'selected' : ''}>DD/MM/YYYY</option>
+                            <option value="MM/DD/YYYY" ${settings.date_format === 'MM/DD/YYYY' ? 'selected' : ''}>MM/DD/YYYY</option>
+                            <option value="YYYY-MM-DD" ${settings.date_format === 'YYYY-MM-DD' ? 'selected' : ''}>YYYY-MM-DD</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label class="checkbox-label">
                             <input type="checkbox" id="maintenanceMode" 
-                                   ${settings.maintenanceMode ? 'checked' : ''} />
+                                   ${settings.maintenance_mode ? 'checked' : ''} />
                             <span>Maintenance Mode</span>
                         </label>
                     </div>
@@ -146,17 +199,17 @@ function renderSettingsUI(settings = {}) {
                     <div class="form-group">
                         <label>Primary Color</label>
                         <input type="color" class="form-control" id="primaryColor" 
-                               value="${settings.primaryColor || '#8B4513'}" />
+                               value="${settings.primary_color || '#8B4513'}" />
                     </div>
                     <div class="form-group">
                         <label>Secondary Color</label>
                         <input type="color" class="form-control" id="secondaryColor" 
-                               value="${settings.secondaryColor || '#D2691E'}" />
+                               value="${settings.secondary_color || '#D2691E'}" />
                     </div>
                     <div class="form-group">
                         <label>Logo URL</label>
                         <input type="text" class="form-control" id="logoUrl" 
-                               value="${settings.logoUrl || '/assets/images/logo.png'}" />
+                               value="${settings.logo_url || '/assets/images/logo.png'}" />
                     </div>
                 </div>
             </div>
@@ -245,32 +298,49 @@ function renderSettingsUI(settings = {}) {
 
 async function saveSettings() {
     try {
+        // Map frontend field names to database keys
         const settings = {
-            storeName: document.getElementById('storeName')?.value,
-            storeEmail: document.getElementById('storeEmail')?.value,
-            storePhone: document.getElementById('storePhone')?.value,
-            storeAddress: document.getElementById('storeAddress')?.value,
-            minOrderAmount: parseFloat(document.getElementById('minOrderAmount')?.value || 0),
-            deliveryFee: parseFloat(document.getElementById('deliveryFee')?.value || 0),
-            freeDeliveryThreshold: parseFloat(document.getElementById('freeDeliveryThreshold')?.value || 100),
-            taxRate: parseFloat(document.getElementById('taxRate')?.value || 5),
-            emailNotifications: document.getElementById('emailNotifications')?.checked,
-            orderNotifications: document.getElementById('orderNotifications')?.checked,
-            lowStockNotifications: document.getElementById('lowStockNotifications')?.checked,
-            currency: document.getElementById('currency')?.value,
-            timezone: document.getElementById('timezone')?.value,
-            dateFormat: document.getElementById('dateFormat')?.value,
-            maintenanceMode: document.getElementById('maintenanceMode')?.checked,
-            primaryColor: document.getElementById('primaryColor')?.value,
-            secondaryColor: document.getElementById('secondaryColor')?.value,
-            logoUrl: document.getElementById('logoUrl')?.value
+            // Store Information -> General & Business
+            'app_name': document.getElementById('storeName')?.value,
+            'contact_email': document.getElementById('storeEmail')?.value,
+            'contact_phone': document.getElementById('storePhone')?.value,
+            'whatsapp_number': document.getElementById('whatsappNumber')?.value,
+            'business_hours': document.getElementById('businessHours')?.value,
+            'address': document.getElementById('storeAddress')?.value,
+            'store_latitude': document.getElementById('storeLatitude')?.value,
+            'store_longitude': document.getElementById('storeLongitude')?.value,
+            
+            // Order Settings -> Business
+            'minimum_order_amount': parseFloat(document.getElementById('minOrderAmount')?.value || 0),
+            'delivery_fee': parseFloat(document.getElementById('deliveryFee')?.value || 0),
+            'free_delivery_threshold': parseFloat(document.getElementById('freeDeliveryThreshold')?.value || 100),
+            'tax_rate': parseFloat(document.getElementById('taxRate')?.value || 5),
+            
+            // Notification Settings -> Notification
+            'email_notifications_enabled': document.getElementById('emailNotifications')?.checked,
+            'order_status_notifications': document.getElementById('orderNotifications')?.checked,
+            'low_stock_notifications': document.getElementById('lowStockNotifications')?.checked,
+            
+            // System Settings -> Business & General
+            'currency': document.getElementById('currency')?.value,
+            'timezone': document.getElementById('timezone')?.value,
+            'date_format': document.getElementById('dateFormat')?.value,
+            'maintenance_mode': document.getElementById('maintenanceMode')?.checked,
+            
+            // Appearance Settings -> Business
+            'primary_color': document.getElementById('primaryColor')?.value,
+            'secondary_color': document.getElementById('secondaryColor')?.value,
+            'logo_url': document.getElementById('logoUrl')?.value
         };
 
         showGlobalLoading('Saving settings...');
         
-        const response = await authenticatedFetch(`${API_BASE_URL}/api/settings`, {
+        const response = await authenticatedFetch(`${API_BASE_URL}/api/admin/settings/bulk`, {
             method: 'PUT',
-            body: JSON.stringify(settings)
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ settings })
         });
         
         const data = await handleApiResponse(response);
@@ -278,14 +348,51 @@ async function saveSettings() {
         hideGlobalLoading();
         
         if (data.success) {
-            showToast('Settings saved successfully', 'success');
+            showToast('✅ Settings saved successfully!', 'success');
+            // Reload settings to show the saved values
+            setTimeout(() => loadSettings(), 500);
         } else {
-            showToast('Failed to save settings', 'error');
+            showToast('❌ Failed to save settings: ' + (data.message || 'Unknown error'), 'error');
         }
     } catch (error) {
         hideGlobalLoading();
         const logger = window.adminUtils?.logger || console;
         logger.error('Error saving settings:', error);
-        showToast('Error saving settings. Please try again.', 'error');
+        showToast('❌ Error saving settings. Please try again.', 'error');
     }
+}
+
+// Test the map location by opening Google Maps with the coordinates
+function testMapLocation() {
+    const latitude = document.getElementById('storeLatitude')?.value;
+    const longitude = document.getElementById('storeLongitude')?.value;
+    
+    if (!latitude || !longitude) {
+        showToast('⚠️ Please enter both latitude and longitude first!', 'warning');
+        return;
+    }
+    
+    // Validate coordinates
+    const lat = parseFloat(latitude);
+    const lng = parseFloat(longitude);
+    
+    if (isNaN(lat) || isNaN(lng)) {
+        showToast('❌ Invalid coordinates! Please enter valid numbers.', 'error');
+        return;
+    }
+    
+    if (lat < -90 || lat > 90) {
+        showToast('❌ Latitude must be between -90 and 90!', 'error');
+        return;
+    }
+    
+    if (lng < -180 || lng > 180) {
+        showToast('❌ Longitude must be between -180 and 180!', 'error');
+        return;
+    }
+    
+    // Open Google Maps with the coordinates
+    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+    window.open(mapsUrl, '_blank');
+    showToast('✅ Opening Google Maps with your store location...', 'success');
 }

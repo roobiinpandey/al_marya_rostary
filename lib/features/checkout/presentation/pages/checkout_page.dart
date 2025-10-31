@@ -3,9 +3,10 @@ import 'package:provider/provider.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../cart/presentation/providers/cart_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../../services/reward_service.dart';
 import 'payment_page.dart';
 
-import '../widgets/order_summary_widget.dart';
+import '../widgets/enhanced_order_summary_widget.dart';
 
 /// CheckoutPage handles the complete checkout process
 class CheckoutPage extends StatefulWidget {
@@ -32,6 +33,12 @@ class _CheckoutPageState extends State<CheckoutPage> {
   DateTime? _selectedDeliveryDate;
   String? _selectedDeliveryTime;
 
+  // Reward Points
+  int _availablePoints = 0;
+  int _pointsToRedeem = 0;
+  double _pointsDiscount = 0.0;
+  bool _isLoadingPoints = false;
+
   final List<String> _deliveryTimes = [
     '9:00 AM - 12:00 PM',
     '12:00 PM - 3:00 PM',
@@ -53,6 +60,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
   void initState() {
     super.initState();
     _loadUserInfo();
+    _loadRewardPoints();
   }
 
   void _loadUserInfo() {
@@ -61,6 +69,32 @@ class _CheckoutPageState extends State<CheckoutPage> {
     if (user != null) {
       _nameController.text = user.name;
       // Load saved address if available from user preferences
+    }
+  }
+
+  Future<void> _loadRewardPoints() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    if (authProvider.user != null) {
+      setState(() {
+        _isLoadingPoints = true;
+      });
+
+      try {
+        final points = await RewardService.getUserRewardPoints();
+        setState(() {
+          _availablePoints = points;
+          _isLoadingPoints = false;
+        });
+      } catch (e) {
+        setState(() {
+          _isLoadingPoints = false;
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to load reward points: $e')),
+          );
+        }
+      }
     }
   }
 
@@ -530,8 +564,13 @@ class _CheckoutPageState extends State<CheckoutPage> {
           ),
           const SizedBox(height: 16),
 
+          // Reward Points Section
+          _buildRewardPointsSection(cartProvider),
+
+          const SizedBox(height: 16),
+
           // Order Summary
-          OrderSummaryWidget(cartProvider: cartProvider),
+          _buildEnhancedOrderSummary(cartProvider),
 
           const SizedBox(height: 16),
 
@@ -544,6 +583,131 @@ class _CheckoutPageState extends State<CheckoutPage> {
           _buildDeliverySummary(),
         ],
       ),
+    );
+  }
+
+  Widget _buildRewardPointsSection(CartProvider cartProvider) {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+    if (authProvider.user == null) {
+      return const SizedBox.shrink(); // Don't show for guests
+    }
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.stars, color: AppTheme.primaryBrown, size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  'Reward Points',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            if (_isLoadingPoints) ...[
+              const Row(
+                children: [
+                  SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                  SizedBox(width: 8),
+                  Text('Loading points...'),
+                ],
+              ),
+            ] else ...[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Available Points: $_availablePoints'),
+                  Text(
+                    'Value: AED ${(_availablePoints * 0.05).toStringAsFixed(2)}',
+                    style: TextStyle(
+                      color: AppTheme.primaryBrown,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+
+              if (_availablePoints > 0) ...[
+                const SizedBox(height: 16),
+                Text(
+                  'Redeem Points',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 8),
+
+                // Points Slider
+                SliderTheme(
+                  data: SliderTheme.of(context).copyWith(
+                    activeTrackColor: AppTheme.primaryBrown,
+                    thumbColor: AppTheme.primaryBrown,
+                    inactiveTrackColor: AppTheme.textLight,
+                  ),
+                  child: Slider(
+                    value: _pointsToRedeem.toDouble(),
+                    min: 0,
+                    max: _availablePoints.toDouble(),
+                    divisions: _availablePoints > 0 ? _availablePoints : 1,
+                    onChanged: (value) {
+                      setState(() {
+                        _pointsToRedeem = value.round();
+                        _pointsDiscount = _pointsToRedeem * 0.05;
+                      });
+                    },
+                  ),
+                ),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Redeeming: $_pointsToRedeem points'),
+                    Text(
+                      'Discount: AED ${_pointsDiscount.toStringAsFixed(2)}',
+                      style: TextStyle(
+                        color: AppTheme.primaryBrown,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEnhancedOrderSummary(CartProvider cartProvider) {
+    double deliveryFee = 0;
+    switch (_selectedDeliveryMethod) {
+      case 'express':
+        deliveryFee = 15;
+        break;
+      case 'same_day':
+        deliveryFee = 25;
+        break;
+    }
+
+    return EnhancedOrderSummaryWidget(
+      cartProvider: cartProvider,
+      deliveryFee: deliveryFee,
+      pointsUsed: _pointsToRedeem,
+      pointsDiscount: _pointsDiscount,
     );
   }
 
@@ -721,8 +885,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
     }
   }
 
-  void _proceedToPayment(CartProvider cartProvider) {
-    // Calculate final total including delivery charges
+  void _proceedToPayment(CartProvider cartProvider) async {
+    // Calculate final total including delivery charges and reward discount
     double deliveryFee = 0;
     switch (_selectedDeliveryMethod) {
       case 'express':
@@ -733,11 +897,54 @@ class _CheckoutPageState extends State<CheckoutPage> {
         break;
     }
 
+    final subtotal = cartProvider.totalPrice;
+    final totalBeforeDiscount = subtotal + deliveryFee;
+    final finalTotal = totalBeforeDiscount - _pointsDiscount;
+
+    // Process reward points redemption if points are being used
+    if (_pointsToRedeem > 0) {
+      try {
+        // Generate a transaction ID for this order
+        final transactionId = 'order_${DateTime.now().millisecondsSinceEpoch}';
+
+        await RewardService.redeemPoints(
+          pointsToRedeem: _pointsToRedeem,
+          totalAmount: finalTotal,
+          transactionId: transactionId,
+        );
+
+        // Show success message
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Successfully redeemed $_pointsToRedeem points for AED ${_pointsDiscount.toStringAsFixed(2)} discount!',
+              ),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to redeem points: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          return;
+        }
+      }
+    }
+
     final orderData = {
       'items': cartProvider.items,
-      'subtotal': cartProvider.totalPrice,
+      'subtotal': subtotal,
       'deliveryFee': deliveryFee,
-      'total': cartProvider.totalPrice + deliveryFee,
+      'rewardPointsUsed': _pointsToRedeem,
+      'pointsDiscount': _pointsDiscount,
+      'totalBeforeDiscount': totalBeforeDiscount,
+      'total': finalTotal,
       'shippingAddress': {
         'name': _nameController.text,
         'phone': _phoneController.text,

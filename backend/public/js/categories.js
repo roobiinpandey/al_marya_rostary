@@ -112,42 +112,69 @@ async function deleteCategory(categoryId) {
 }
 
 function showAddCategoryModal() {
-    const nameEn = prompt('Category Name (English):');
-    const nameAr = prompt('Category Name (Arabic):');
-    const descEn = prompt('Description (English):');
-    const descAr = prompt('Description (Arabic):');
-    const color = prompt('Color (hex code):', '#A89A6A');
+    // Open the modal
+    document.getElementById('categoryModal').style.display = 'flex';
+    document.getElementById('categoryForm').reset();
+    document.getElementById('categoryModalTitle').textContent = '📁 Create New Category';
+    document.getElementById('submitCategoryBtn').innerHTML = '<i class="fas fa-plus"></i> Create Category';
     
-    if (nameEn && nameAr) {
-        createCategory({
-            name: nameEn,
-            nameEn: nameEn,
-            nameAr: nameAr,
-            description: descEn || '',
-            descriptionEn: descEn || '',
-            descriptionAr: descAr || '',
-            color: color
-        });
-    }
+    // Clear the editing category ID
+    document.getElementById('categoryForm').dataset.editId = '';
+}
+
+function closeCategoryModal() {
+    document.getElementById('categoryModal').style.display = 'none';
 }
 
 function showEditCategoryModal(category) {
-    const nameEn = prompt('Category Name (English):', category.name?.en || category.name);
-    const nameAr = prompt('Category Name (Arabic):', category.name?.ar || '');
-    const descEn = prompt('Description (English):', category.description?.en || category.description);
-    const descAr = prompt('Description (Arabic):', category.description?.ar || '');
-    const color = prompt('Color (hex code):', category.color || '#A89A6A');
+    // Open the modal in edit mode
+    document.getElementById('categoryModal').style.display = 'flex';
+    document.getElementById('categoryModalTitle').textContent = '✏️ Edit Category';
+    document.getElementById('submitCategoryBtn').innerHTML = '<i class="fas fa-save"></i> Update Category';
     
-    if (nameEn) {
-        updateCategory(category._id || category.id, {
-            name: nameEn,
-            nameEn: nameEn,
-            nameAr: nameAr || nameEn,
-            description: descEn || '',
-            descriptionEn: descEn || '',
-            descriptionAr: descAr || descEn || '',
-            color: color
-        });
+    // Populate the form
+    document.getElementById('categoryNameEn').value = category.name?.en || category.name || '';
+    document.getElementById('categoryNameAr').value = category.name?.ar || '';
+    document.getElementById('categoryDescEn').value = category.description?.en || category.description || '';
+    document.getElementById('categoryDescAr').value = category.description?.ar || '';
+    document.getElementById('categoryColor').value = category.color || '#A89A6A';
+    document.getElementById('categoryOrder').value = category.displayOrder || 0;
+    document.getElementById('categoryIsActive').checked = category.isActive !== false;
+    
+    // Store the category ID for editing
+    document.getElementById('categoryForm').dataset.editId = category._id || category.id;
+}
+
+// Handle category form submission
+async function handleCategorySubmit(event) {
+    event.preventDefault();
+    
+    const form = event.target;
+    const editId = form.dataset.editId;
+    
+    const categoryData = {
+        name: form.nameEn.value,
+        nameEn: form.nameEn.value,
+        nameAr: form.nameAr.value,
+        description: form.descriptionEn.value || '',
+        descriptionEn: form.descriptionEn.value || '',
+        descriptionAr: form.descriptionAr.value || '',
+        color: form.color.value,
+        displayOrder: parseInt(form.displayOrder.value) || 0,
+        isActive: form.isActive.checked
+    };
+    
+    try {
+        if (editId) {
+            // Update existing category
+            await updateCategory(editId, categoryData);
+        } else {
+            // Create new category
+            await createCategory(categoryData);
+        }
+    } catch (error) {
+        console.error('Error submitting category:', error);
+        alert('Error saving category. Please try again.');
     }
 }
 
@@ -163,14 +190,15 @@ async function createCategory(categoryData) {
         
         const data = await response.json();
         if (data.success) {
-            alert('Category created successfully');
+            alert('✅ Category created successfully!');
+            closeCategoryModal();
             loadCategories();
         } else {
-            alert('Failed to create category: ' + data.message);
+            alert('❌ Failed to create category: ' + data.message);
         }
     } catch (error) {
         console.error('Error creating category:', error);
-        alert('Failed to create category');
+        alert('❌ Failed to create category');
     }
 }
 
@@ -186,13 +214,14 @@ async function updateCategory(categoryId, updates) {
         
         const data = await response.json();
         if (data.success) {
-            alert('Category updated successfully');
+            alert('✅ Category updated successfully!');
+            closeCategoryModal();
             loadCategories();
         } else {
-            alert('Failed to update category: ' + data.message);
+            alert('❌ Failed to update category: ' + data.message);
         }
     } catch (error) {
         console.error('Error updating category:', error);
-        alert('Failed to update category');
+        alert('❌ Failed to update category');
     }
 }

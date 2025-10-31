@@ -41,8 +41,8 @@ android {
             signingConfig = signingConfigs.getByName("debug")
             
             // Enable code shrinking and obfuscation for release builds
-            isMinifyEnabled = true
-            isShrinkResources = true
+            isMinifyEnabled = false
+            isShrinkResources = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -83,9 +83,18 @@ dependencies {
     // Add MultiDex support
     implementation("androidx.multidex:multidex:2.0.1")
     
-    // Firebase dependencies
-    implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
-    implementation("com.google.firebase:firebase-analytics-ktx")
-    implementation("com.google.firebase:firebase-auth-ktx")
-    implementation("com.google.android.gms:play-services-auth:21.3.0")
+    // Firebase BOM - Use version 32.8.0 which is compatible with our pubspec versions
+    implementation(platform("com.google.firebase:firebase-bom:32.8.0"))
+    
+    // Firebase dependencies (versions managed by BOM)
+    implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-database")
+    
+    // Google Play Services Auth for Google Sign-In
+    implementation("com.google.android.gms:play-services-auth:20.7.0")
+    
+    // Additional core dependencies
+    implementation("androidx.core:core-ktx:1.10.1")
+    implementation("androidx.appcompat:appcompat:1.6.1")
 }

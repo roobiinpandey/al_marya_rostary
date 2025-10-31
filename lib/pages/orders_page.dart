@@ -1,6 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import '../core/theme/app_theme.dart';
+import '../core/services/order_api_service.dart';
+import '../core/constants/app_constants.dart';
+import '../models/order.dart';
+import '../models/cart.dart';
+import '../features/auth/presentation/providers/auth_provider.dart';
 
 class OrdersPage extends StatefulWidget {
   const OrdersPage({super.key});
@@ -12,13 +21,16 @@ class OrdersPage extends StatefulWidget {
 class _OrdersPageState extends State<OrdersPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  List<OrderModel> _orders = [];
+  List<Order> _orders = [];
   bool _isLoading = true;
+  String? _errorMessage;
+  late OrderApiService _orderApiService;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
+    _orderApiService = OrderApiService();
     _loadOrders();
   }
 
@@ -28,101 +40,125 @@ class _OrdersPageState extends State<OrdersPage>
     super.dispose();
   }
 
-  void _loadOrders() {
-    // TODO: Load orders from API
-    // Mock data for now
+  Future<void> _loadOrders() async {
     setState(() {
-      _orders = [
-        OrderModel(
-          id: 'ORD-001',
-          items: [
-            OrderItem(
-              id: '1',
-              name: 'Emirati Qahwa',
-              quantity: 2,
-              price: 25.00,
-              imageUrl:
-                  'https://via.placeholder.com/100x100/A89A6A/FFFFFF?text=Qahwa',
-            ),
-            OrderItem(
-              id: '2',
-              name: 'Arabic Dates',
-              quantity: 1,
-              price: 15.00,
-              imageUrl:
-                  'https://via.placeholder.com/100x100/A89A6A/FFFFFF?text=Dates',
-            ),
-          ],
-          status: OrderStatus.delivered,
-          orderDate: DateTime.now().subtract(const Duration(days: 3)),
-          deliveryDate: DateTime.now().subtract(const Duration(days: 2)),
-          total: 65.00,
-          deliveryAddress: 'Dubai Marina, Dubai, UAE',
-          trackingNumber: 'TRK123456789',
-        ),
-        OrderModel(
-          id: 'ORD-002',
-          items: [
-            OrderItem(
-              id: '3',
-              name: 'Cold Brew',
-              quantity: 1,
-              price: 18.00,
-              imageUrl:
-                  'https://via.placeholder.com/100x100/A89A6A/FFFFFF?text=Cold+Brew',
-            ),
-          ],
-          status: OrderStatus.inProgress,
-          orderDate: DateTime.now().subtract(const Duration(hours: 6)),
-          deliveryDate: null,
-          total: 18.00,
-          deliveryAddress: 'Business Bay, Dubai, UAE',
-          trackingNumber: 'TRK987654321',
-        ),
-        OrderModel(
-          id: 'ORD-003',
-          items: [
-            OrderItem(
-              id: '4',
-              name: 'Arabic Mocha',
-              quantity: 3,
-              price: 22.00,
-              imageUrl:
-                  'https://via.placeholder.com/100x100/A89A6A/FFFFFF?text=Mocha',
-            ),
-          ],
-          status: OrderStatus.pending,
-          orderDate: DateTime.now().subtract(const Duration(minutes: 30)),
-          deliveryDate: null,
-          total: 66.00,
-          deliveryAddress: 'Downtown Dubai, UAE',
-          trackingNumber: null,
-        ),
-        OrderModel(
-          id: 'ORD-004',
-          items: [
-            OrderItem(
-              id: '5',
-              name: 'Turkish Coffee',
-              quantity: 1,
-              price: 20.00,
-              imageUrl:
-                  'https://via.placeholder.com/100x100/A89A6A/FFFFFF?text=Turkish',
-            ),
-          ],
-          status: OrderStatus.cancelled,
-          orderDate: DateTime.now().subtract(const Duration(days: 7)),
-          deliveryDate: null,
-          total: 20.00,
-          deliveryAddress: 'Jumeirah, Dubai, UAE',
-          trackingNumber: null,
-        ),
-      ];
-      _isLoading = false;
+      _isLoading = true;
+      _errorMessage = null;
     });
+
+    try {
+      // Get current user from auth provider
+      final authProvider = context.read<AuthProvider>();
+
+      // Check if user is authenticated
+      if (!authProvider.isAuthenticated || authProvider.user == null) {
+        setState(() {
+          _orders = [];
+          _isLoading = false;
+        });
+        return;
+      }
+
+      print('📝 User authenticated: ${authProvider.user!.email}');
+      print('🔑 User ID: ${authProvider.user!.id}');
+      print('🔥 Fetching Firebase ID token...');
+
+      // Get Firebase ID token for authentication
+      final firebaseUser = fb_auth.FirebaseAuth.instance.currentUser;
+      if (firebaseUser == null) {
+        throw Exception('Firebase user not found. Please login again.');
+      }
+
+      final idToken = await firebaseUser.getIdToken();
+      if (idToken == null) {
+        throw Exception('Failed to get authentication token');
+      }
+
+      print('✅ Firebase ID token obtained');
+      print(
+        '📡 Fetching orders from: ${AppConstants.baseUrl}/api/users/me/orders',
+      );
+
+      // Fetch user's orders from backend
+      final response = await http.get(
+        Uri.parse('${AppConstants.baseUrl}/api/users/me/orders'),
+        headers: {
+          'Authorization': 'Bearer $idToken',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      print('📦 Response status: ${response.statusCode}');
+      print('📦 Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        print('✅ Raw response data: $data');
+        print('✅ Orders count: ${data['count']}');
+
+        // Handle null or missing orders field
+        final ordersData = data['orders'];
+        if (ordersData == null) {
+          print('⚠️ Orders field is null, treating as empty list');
+          setState(() {
+            _orders = [];
+            _isLoading = false;
+          });
+          return;
+        }
+
+        // Safely cast to List
+        final ordersJson = ordersData as List;
+        print('📋 Processing ${ordersJson.length} orders...');
+
+        final userOrders = ordersJson
+            .map((json) {
+              try {
+                return Order.fromJson(json, json['_id']);
+              } catch (e) {
+                print('❌ Error parsing order: $e');
+                print('   Order data: $json');
+                return null;
+              }
+            })
+            .where((order) => order != null)
+            .cast<Order>()
+            .toList();
+
+        // Sort by creation date (newest first) - already sorted by backend but double-check
+        userOrders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+        setState(() {
+          _orders = userOrders;
+          _isLoading = false;
+        });
+
+        print('✅ Successfully loaded ${userOrders.length} orders');
+      } else if (response.statusCode == 401) {
+        throw Exception(
+          'Authentication failed. Please logout and login again.',
+        );
+      } else if (response.statusCode == 404) {
+        throw Exception(
+          'Orders service not available. Please try again later.',
+        );
+      } else {
+        final errorData = json.decode(response.body);
+        throw Exception(
+          errorData['message'] ??
+              'Failed to load orders: ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = e.toString().replaceAll('Exception: ', '');
+        _isLoading = false;
+      });
+      print('❌ Error loading orders: $e');
+    }
   }
 
-  List<OrderModel> get _filteredOrders {
+  List<Order> get _filteredOrders {
     switch (_tabController.index) {
       case 0: // All
         return _orders;
@@ -132,9 +168,14 @@ class _OrdersPageState extends State<OrdersPage>
             .toList();
       case 2: // In Progress
         return _orders
-            .where((order) => order.status == OrderStatus.inProgress)
+            .where(
+              (order) =>
+                  order.status == OrderStatus.confirmed ||
+                  order.status == OrderStatus.preparing ||
+                  order.status == OrderStatus.ready,
+            )
             .toList();
-      case 3: // Delivered
+      case 3: // Completed
         return _orders
             .where(
               (order) =>
@@ -149,13 +190,15 @@ class _OrdersPageState extends State<OrdersPage>
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = context.watch<AuthProvider>();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
           'Order History',
           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
-        backgroundColor: AppTheme.primaryBrown, // primaryBrown
+        backgroundColor: AppTheme.primaryBrown,
         foregroundColor: Colors.white,
         elevation: 0,
         bottom: TabBar(
@@ -174,11 +217,15 @@ class _OrdersPageState extends State<OrdersPage>
           },
         ),
       ),
-      backgroundColor: const Color(0xFFF5F5F5), // backgroundLight
-      body: _isLoading
+      backgroundColor: const Color(0xFFF5F5F5),
+      body: !authProvider.isAuthenticated
+          ? _buildGuestState()
+          : _isLoading
           ? const Center(
               child: CircularProgressIndicator(color: AppTheme.primaryBrown),
             )
+          : _errorMessage != null
+          ? _buildErrorState()
           : TabBarView(
               controller: _tabController,
               children: [
@@ -191,6 +238,109 @@ class _OrdersPageState extends State<OrdersPage>
     );
   }
 
+  Widget _buildGuestState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.login, size: 64, color: const Color(0xFF8C8C8C)),
+          const SizedBox(height: 16),
+          Text(
+            'Login Required',
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w500,
+              color: Color(0xFF5D5D5D),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Please login to view your order history',
+            style: const TextStyle(fontSize: 14, color: Color(0xFF8C8C8C)),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pushNamed(context, '/login');
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primaryBrown,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text('Login / Sign Up'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState() {
+    // Check if this is the "coming soon" message
+    final isComingSoon = _errorMessage?.contains('coming soon') ?? false;
+
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            isComingSoon ? Icons.construction : Icons.error_outline,
+            size: 64,
+            color: isComingSoon ? Colors.orange.shade300 : Colors.red.shade300,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            isComingSoon ? 'Coming Soon' : 'Error Loading Orders',
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w500,
+              color: Color(0xFF5D5D5D),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Text(
+              _errorMessage ?? 'Unknown error occurred',
+              style: const TextStyle(fontSize: 14, color: Color(0xFF8C8C8C)),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          const SizedBox(height: 24),
+          if (!isComingSoon)
+            ElevatedButton(
+              onPressed: _loadOrders,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryBrown,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text('Retry'),
+            ),
+          if (isComingSoon)
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/coffee');
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryBrown,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text('Browse Coffee'),
+            ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildOrdersList() {
     final filteredOrders = _filteredOrders;
 
@@ -198,12 +348,16 @@ class _OrdersPageState extends State<OrdersPage>
       return _buildEmptyState();
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: filteredOrders.length,
-      itemBuilder: (context, index) {
-        return _buildOrderCard(filteredOrders[index]);
-      },
+    return RefreshIndicator(
+      onRefresh: _loadOrders,
+      color: AppTheme.primaryBrown,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: filteredOrders.length,
+        itemBuilder: (context, index) {
+          return _buildOrderCard(filteredOrders[index]);
+        },
+      ),
     );
   }
 
@@ -211,6 +365,10 @@ class _OrdersPageState extends State<OrdersPage>
     String message = 'No orders found';
     String subtitle = 'Start browsing our coffee collection';
     IconData icon = Icons.receipt_long;
+    String buttonText = 'Go to Home';
+    VoidCallback onPressed = () {
+      Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+    };
 
     switch (_tabController.index) {
       case 1:
@@ -234,34 +392,25 @@ class _OrdersPageState extends State<OrdersPage>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            icon,
-            size: 64,
-            color: const Color(0xFF8C8C8C), // textLight
-          ),
+          Icon(icon, size: 64, color: const Color(0xFF8C8C8C)),
           const SizedBox(height: 16),
           Text(
             message,
             style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w500,
-              color: Color(0xFF5D5D5D), // textMedium
+              color: Color(0xFF5D5D5D),
             ),
           ),
           const SizedBox(height: 8),
           Text(
             subtitle,
-            style: const TextStyle(
-              fontSize: 14,
-              color: Color(0xFF8C8C8C), // textLight
-            ),
+            style: const TextStyle(fontSize: 14, color: Color(0xFF8C8C8C)),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
           ElevatedButton(
-            onPressed: () {
-              Navigator.pushNamed(context, '/coffee');
-            },
+            onPressed: onPressed,
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.primaryBrown,
               foregroundColor: Colors.white,
@@ -269,14 +418,14 @@ class _OrdersPageState extends State<OrdersPage>
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            child: const Text('Browse Coffee'),
+            child: Text(buttonText),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildOrderCard(OrderModel order) {
+  Widget _buildOrderCard(Order order) {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 2,
@@ -293,26 +442,28 @@ class _OrdersPageState extends State<OrdersPage>
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Order #${order.id}',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF2E2E2E), // textDark
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Order #${order.id.substring(0, 8).toUpperCase()}',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF2E2E2E),
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _formatDate(order.orderDate),
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Color(0xFF8C8C8C), // textLight
+                        const SizedBox(height: 4),
+                        Text(
+                          _formatDate(order.createdAt),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF8C8C8C),
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                   _buildStatusChip(order.status),
                 ],
@@ -349,7 +500,7 @@ class _OrdersPageState extends State<OrdersPage>
                         'Total',
                         style: TextStyle(
                           fontSize: 12,
-                          color: Color(0xFF8C8C8C), // textLight
+                          color: Color(0xFF8C8C8C),
                         ),
                       ),
                       Text(
@@ -357,18 +508,19 @@ class _OrdersPageState extends State<OrdersPage>
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: AppTheme.primaryBrown, // primaryBrown
+                          color: AppTheme.primaryBrown,
                         ),
                       ),
                     ],
                   ),
                   Row(
                     children: [
-                      if (order.status == OrderStatus.inProgress &&
-                          order.trackingNumber != null)
+                      if (order.status == OrderStatus.confirmed ||
+                          order.status == OrderStatus.preparing ||
+                          order.status == OrderStatus.ready)
                         TextButton(
                           onPressed: () => _trackOrder(order),
-                          child: const Text('Track Order'),
+                          child: const Text('Track'),
                         ),
                       if (order.status == OrderStatus.delivered)
                         TextButton(
@@ -394,39 +546,58 @@ class _OrdersPageState extends State<OrdersPage>
     );
   }
 
-  Widget _buildOrderItemRow(OrderItem item) {
+  Widget _buildOrderItemRow(CartItem item) {
+    // Get the full image URL with base URL prefix if needed
+    String imageUrl = item.imageUrl ?? '';
+    if (imageUrl.isNotEmpty &&
+        !imageUrl.startsWith('http://') &&
+        !imageUrl.startsWith('https://')) {
+      imageUrl = '${AppConstants.baseUrl}$imageUrl';
+    }
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(6),
-            child: CachedNetworkImage(
-              imageUrl: item.imageUrl,
-              width: 40,
-              height: 40,
-              fit: BoxFit.cover,
-              placeholder: (context, url) => Container(
-                width: 40,
-                height: 40,
-                color: const Color(0xFFF0F0F0),
-                child: const Icon(
-                  Icons.coffee,
-                  color: AppTheme.primaryBrown,
-                  size: 20,
-                ),
-              ),
-              errorWidget: (context, url, error) => Container(
-                width: 40,
-                height: 40,
-                color: const Color(0xFFF0F0F0),
-                child: const Icon(
-                  Icons.coffee,
-                  color: AppTheme.primaryBrown,
-                  size: 20,
-                ),
-              ),
-            ),
+            child: imageUrl.isEmpty
+                ? Container(
+                    width: 40,
+                    height: 40,
+                    color: const Color(0xFFF0F0F0),
+                    child: const Icon(
+                      Icons.coffee,
+                      color: AppTheme.primaryBrown,
+                      size: 20,
+                    ),
+                  )
+                : CachedNetworkImage(
+                    imageUrl: imageUrl,
+                    width: 40,
+                    height: 40,
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) => Container(
+                      width: 40,
+                      height: 40,
+                      color: const Color(0xFFF0F0F0),
+                      child: const Icon(
+                        Icons.coffee,
+                        color: AppTheme.primaryBrown,
+                        size: 20,
+                      ),
+                    ),
+                    errorWidget: (context, url, error) => Container(
+                      width: 40,
+                      height: 40,
+                      color: const Color(0xFFF0F0F0),
+                      child: const Icon(
+                        Icons.coffee,
+                        color: AppTheme.primaryBrown,
+                        size: 20,
+                      ),
+                    ),
+                  ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -434,18 +605,18 @@ class _OrdersPageState extends State<OrdersPage>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  item.name,
+                  item.coffeeName,
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
-                    color: Color(0xFF2E2E2E), // textDark
+                    color: Color(0xFF2E2E2E),
                   ),
                 ),
                 Text(
-                  'Qty: ${item.quantity}',
+                  'Qty: ${item.quantity} • ${item.size}',
                   style: const TextStyle(
                     fontSize: 12,
-                    color: Color(0xFF8C8C8C), // textLight
+                    color: Color(0xFF8C8C8C),
                   ),
                 ),
               ],
@@ -456,7 +627,7 @@ class _OrdersPageState extends State<OrdersPage>
             style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w500,
-              color: Color(0xFF5D5D5D), // textMedium
+              color: Color(0xFF5D5D5D),
             ),
           ),
         ],
@@ -477,11 +648,23 @@ class _OrdersPageState extends State<OrdersPage>
         label = 'Pending';
         icon = Icons.pending;
         break;
-      case OrderStatus.inProgress:
+      case OrderStatus.confirmed:
         backgroundColor = Colors.blue.withValues(alpha: 0.1);
         textColor = Colors.blue;
-        label = 'In Progress';
+        label = 'Confirmed';
+        icon = Icons.check_circle_outline;
+        break;
+      case OrderStatus.preparing:
+        backgroundColor = Colors.purple.withValues(alpha: 0.1);
+        textColor = Colors.purple;
+        label = 'Preparing';
         icon = Icons.hourglass_empty;
+        break;
+      case OrderStatus.ready:
+        backgroundColor = Colors.teal.withValues(alpha: 0.1);
+        textColor = Colors.teal;
+        label = 'Ready';
+        icon = Icons.done_all;
         break;
       case OrderStatus.delivered:
         backgroundColor = Colors.green.withValues(alpha: 0.1);
@@ -539,7 +722,7 @@ class _OrdersPageState extends State<OrdersPage>
     }
   }
 
-  void _showOrderDetails(OrderModel order) {
+  void _showOrderDetails(Order order) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -550,7 +733,18 @@ class _OrdersPageState extends State<OrdersPage>
     );
   }
 
-  Widget _buildOrderDetailsSheet(OrderModel order) {
+  Widget _buildOrderDetailsSheet(Order order) {
+    // Format delivery address
+    String deliveryAddress = 'No address provided';
+    if (order.deliveryAddress != null) {
+      deliveryAddress = [
+        order.deliveryAddress!['street'],
+        order.deliveryAddress!['city'],
+        order.deliveryAddress!['state'],
+        order.deliveryAddress!['country'],
+      ].where((part) => part != null && part.toString().isNotEmpty).join(', ');
+    }
+
     return DraggableScrollableSheet(
       initialChildSize: 0.7,
       maxChildSize: 0.9,
@@ -579,12 +773,14 @@ class _OrdersPageState extends State<OrdersPage>
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'Order #${order.id}',
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF2E2E2E),
+                  Expanded(
+                    child: Text(
+                      'Order #${order.id.substring(0, 8).toUpperCase()}',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF2E2E2E),
+                      ),
                     ),
                   ),
                   _buildStatusChip(order.status),
@@ -602,22 +798,11 @@ class _OrdersPageState extends State<OrdersPage>
                     children: [
                       _buildDetailSection(
                         'Order Date',
-                        _formatDate(order.orderDate),
+                        _formatDate(order.createdAt),
                       ),
-                      if (order.deliveryDate != null)
-                        _buildDetailSection(
-                          'Delivery Date',
-                          _formatDate(order.deliveryDate!),
-                        ),
-                      if (order.trackingNumber != null)
-                        _buildDetailSection(
-                          'Tracking Number',
-                          order.trackingNumber!,
-                        ),
-                      _buildDetailSection(
-                        'Delivery Address',
-                        order.deliveryAddress,
-                      ),
+                      if (order.notes != null && order.notes!.isNotEmpty)
+                        _buildDetailSection('Notes', order.notes!),
+                      _buildDetailSection('Delivery Address', deliveryAddress),
 
                       const SizedBox(height: 20),
 
@@ -650,106 +835,47 @@ class _OrdersPageState extends State<OrdersPage>
               // Action Buttons
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                child: Column(
+                child: Row(
                   children: [
-                    if (order.status == OrderStatus.pending ||
-                        order.status == OrderStatus.inProgress) ...[
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
+                    if (order.status == OrderStatus.pending) ...[
+                      Expanded(
+                        child: OutlinedButton(
                           onPressed: () {
                             Navigator.pop(context);
-                            _trackOrder(order);
+                            _cancelOrder(order);
                           },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppTheme.primaryBrown,
-                            foregroundColor: Colors.white,
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.red,
+                            side: const BorderSide(color: Colors.red),
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
                           child: const Text(
-                            'Track Order',
+                            'Cancel Order',
                             style: TextStyle(fontWeight: FontWeight.w600),
-                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(width: 12),
                     ],
-                    if (order.status == OrderStatus.delivered) ...[
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            _reorder(order);
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppTheme.primaryBrown,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.primaryBrown,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Text(
-                            'Reorder Items',
-                            style: TextStyle(fontWeight: FontWeight.w600),
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                        ),
+                        child: const Text(
+                          'Close',
+                          style: TextStyle(fontWeight: FontWeight.w600),
                         ),
                       ),
-                      const SizedBox(height: 12),
-                    ],
-                    Row(
-                      children: [
-                        if (order.status == OrderStatus.pending) ...[
-                          Expanded(
-                            child: OutlinedButton(
-                              onPressed: () {
-                                Navigator.pop(context);
-                                _cancelOrder(order);
-                              },
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: Colors.red,
-                                side: const BorderSide(color: Colors.red),
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 16,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                              child: const Text(
-                                'Cancel Order',
-                                style: TextStyle(fontWeight: FontWeight.w600),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                        ],
-                        Expanded(
-                          child: OutlinedButton(
-                            onPressed: () => Navigator.pop(context),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: const Color(0xFF8C8C8C),
-                              side: const BorderSide(color: Color(0xFF8C8C8C)),
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            child: const Text(
-                              'Close',
-                              style: TextStyle(fontWeight: FontWeight.w600),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ),
-                      ],
                     ),
                   ],
                 ),
@@ -799,7 +925,14 @@ class _OrdersPageState extends State<OrdersPage>
     );
   }
 
-  Widget _buildDetailOrderItem(OrderItem item) {
+  Widget _buildDetailOrderItem(CartItem item) {
+    String imageUrl = item.imageUrl ?? '';
+    if (imageUrl.isNotEmpty &&
+        !imageUrl.startsWith('http://') &&
+        !imageUrl.startsWith('https://')) {
+      imageUrl = '${AppConstants.baseUrl}$imageUrl';
+    }
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
@@ -811,24 +944,40 @@ class _OrdersPageState extends State<OrdersPage>
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(6),
-            child: CachedNetworkImage(
-              imageUrl: item.imageUrl,
-              width: 50,
-              height: 50,
-              fit: BoxFit.cover,
-              placeholder: (context, url) => Container(
-                width: 50,
-                height: 50,
-                color: const Color(0xFFF0F0F0),
-                child: const Icon(Icons.coffee, color: AppTheme.primaryBrown),
-              ),
-              errorWidget: (context, url, error) => Container(
-                width: 50,
-                height: 50,
-                color: const Color(0xFFF0F0F0),
-                child: const Icon(Icons.coffee, color: AppTheme.primaryBrown),
-              ),
-            ),
+            child: imageUrl.isEmpty
+                ? Container(
+                    width: 50,
+                    height: 50,
+                    color: const Color(0xFFF0F0F0),
+                    child: const Icon(
+                      Icons.coffee,
+                      color: AppTheme.primaryBrown,
+                    ),
+                  )
+                : CachedNetworkImage(
+                    imageUrl: imageUrl,
+                    width: 50,
+                    height: 50,
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) => Container(
+                      width: 50,
+                      height: 50,
+                      color: const Color(0xFFF0F0F0),
+                      child: const Icon(
+                        Icons.coffee,
+                        color: AppTheme.primaryBrown,
+                      ),
+                    ),
+                    errorWidget: (context, url, error) => Container(
+                      width: 50,
+                      height: 50,
+                      color: const Color(0xFFF0F0F0),
+                      child: const Icon(
+                        Icons.coffee,
+                        color: AppTheme.primaryBrown,
+                      ),
+                    ),
+                  ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -836,11 +985,18 @@ class _OrdersPageState extends State<OrdersPage>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  item.name,
+                  item.coffeeName,
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: Color(0xFF2E2E2E),
+                  ),
+                ),
+                Text(
+                  'Size: ${item.size}',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Color(0xFF8C8C8C),
                   ),
                 ),
                 Text(
@@ -873,159 +1029,102 @@ class _OrdersPageState extends State<OrdersPage>
     );
   }
 
-  void _trackOrder(OrderModel order) {
-    // TODO: Implement order tracking
+  void _trackOrder(Order order) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Tracking order #${order.id}...'),
+        content: Text(
+          'Tracking order #${order.id.substring(0, 8).toUpperCase()}...',
+        ),
         backgroundColor: AppTheme.primaryBrown,
       ),
     );
   }
 
-  void _reorder(OrderModel order) {
+  void _reorder(Order order) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Reorder Items'),
-        content: Text('Add all items from order #${order.id} to your cart?'),
+        content: Text(
+          'Add all items from order #${order.id.substring(0, 8).toUpperCase()} to your cart?',
+        ),
         actions: [
-          Flexible(
-            child: TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel', overflow: TextOverflow.ellipsis),
-            ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
           ),
-          Flexible(
-            child: ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Items added to cart!'),
-                    backgroundColor: Color(0xFF4CAF50),
-                  ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryBrown,
-                foregroundColor: Colors.white,
-              ),
-              child: const Text('Add to Cart', overflow: TextOverflow.ellipsis),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              // TODO: Implement add to cart logic
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Items added to cart!'),
+                  backgroundColor: Color(0xFF4CAF50),
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primaryBrown,
+              foregroundColor: Colors.white,
             ),
+            child: const Text('Add to Cart'),
           ),
         ],
       ),
     );
   }
 
-  void _cancelOrder(OrderModel order) {
+  void _cancelOrder(Order order) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Cancel Order'),
-        content: Text('Are you sure you want to cancel order #${order.id}?'),
+        content: Text(
+          'Are you sure you want to cancel order #${order.id.substring(0, 8).toUpperCase()}?',
+        ),
         actions: [
-          Flexible(
-            child: TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Keep Order', overflow: TextOverflow.ellipsis),
-            ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Keep Order'),
           ),
-          Flexible(
-            child: ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                setState(() {
-                  final index = _orders.indexWhere((o) => o.id == order.id);
-                  if (index != -1) {
-                    _orders[index] = order.copyWith(
-                      status: OrderStatus.cancelled,
-                    );
-                  }
-                });
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Order cancelled successfully'),
-                    backgroundColor: Colors.orange,
-                  ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-              ),
-              child: const Text(
-                'Cancel Order',
-                overflow: TextOverflow.ellipsis,
-              ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              try {
+                // Update order status to cancelled via API
+                await _orderApiService.updateOrderStatus(order.id, 'cancelled');
+
+                // Reload orders to reflect the change
+                await _loadOrders();
+
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Order cancelled successfully'),
+                      backgroundColor: Colors.orange,
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Failed to cancel order: $e'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
             ),
+            child: const Text('Cancel Order'),
           ),
         ],
       ),
     );
   }
-}
-
-// Data Models
-enum OrderStatus { pending, inProgress, delivered, cancelled }
-
-class OrderModel {
-  final String id;
-  final List<OrderItem> items;
-  final OrderStatus status;
-  final DateTime orderDate;
-  final DateTime? deliveryDate;
-  final double total;
-  final String deliveryAddress;
-  final String? trackingNumber;
-
-  OrderModel({
-    required this.id,
-    required this.items,
-    required this.status,
-    required this.orderDate,
-    this.deliveryDate,
-    required this.total,
-    required this.deliveryAddress,
-    this.trackingNumber,
-  });
-
-  OrderModel copyWith({
-    String? id,
-    List<OrderItem>? items,
-    OrderStatus? status,
-    DateTime? orderDate,
-    DateTime? deliveryDate,
-    double? total,
-    String? deliveryAddress,
-    String? trackingNumber,
-  }) {
-    return OrderModel(
-      id: id ?? this.id,
-      items: items ?? this.items,
-      status: status ?? this.status,
-      orderDate: orderDate ?? this.orderDate,
-      deliveryDate: deliveryDate ?? this.deliveryDate,
-      total: total ?? this.total,
-      deliveryAddress: deliveryAddress ?? this.deliveryAddress,
-      trackingNumber: trackingNumber ?? this.trackingNumber,
-    );
-  }
-}
-
-class OrderItem {
-  final String id;
-  final String name;
-  final int quantity;
-  final double price;
-  final String imageUrl;
-
-  OrderItem({
-    required this.id,
-    required this.name,
-    required this.quantity,
-    required this.price,
-    required this.imageUrl,
-  });
 }

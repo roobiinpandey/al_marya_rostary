@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../../../core/theme/app_theme.dart';
+import '../../../../../core/services/slider_api_service.dart';
+import '../../../../../data/models/slider_model.dart';
+import '../../../../../core/constants/app_constants.dart';
 
 /// Hero banner carousel widget with auto-scrolling and navigation
 class HeroBannerCarousel extends StatefulWidget {
@@ -11,35 +14,101 @@ class HeroBannerCarousel extends StatefulWidget {
 
 class _HeroBannerCarouselState extends State<HeroBannerCarousel> {
   final PageController _pageController = PageController();
+  final SliderApiService _sliderService = SliderApiService();
   int _currentPage = 0;
-  late List<BannerItem> _banners;
+  List<SliderModel> _banners = [];
+  bool _isLoading = true;
+  String? _error;
 
   @override
   void initState() {
     super.initState();
-    _banners = [
-      BannerItem(
-        title: 'Premium Arabica Beans',
-        subtitle: 'Fresh from the mountains of Yemen',
-        imageUrl: 'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=800',
-        backgroundColor: AppTheme.primaryBrown.withValues(alpha: 0.8),
-      ),
-      BannerItem(
-        title: 'Single Origin Excellence',
-        subtitle: 'Ethiopian Yirgacheffe - Light & Bright',
-        imageUrl: 'https://images.unsplash.com/photo-1497935586351-b67a49e012bf?w=800',
-        backgroundColor: AppTheme.accentAmber.withValues(alpha: 0.8),
-      ),
-      BannerItem(
-        title: 'Artisan Roasted',
-        subtitle: 'Master roasters, perfect extraction',
-        imageUrl: 'https://images.unsplash.com/photo-1459755486867-b55449bb39ff?w=800',
-        backgroundColor: AppTheme.primaryLightBrown.withValues(alpha: 0.8),
-      ),
-    ];
+    _loadBannersFromBackend();
+  }
 
-    // Auto-scroll functionality
+  /// Load banners from backend API
+  Future<void> _loadBannersFromBackend() async {
+    try {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+
+      final result = await _sliderService.fetchAllSliders(
+        isActive: true, // Only fetch active banners
+        sortBy: 'displayOrder',
+        sortOrder: 'asc',
+      );
+
+      final sliders = result['sliders'] as List<SliderModel>;
+
+      if (sliders.isEmpty) {
+        // If no banners in backend, use fallback mockup banners
+        _loadFallbackBanners();
+      } else {
+        setState(() {
+          _banners = sliders;
+          _isLoading = false;
+        });
+        _startAutoScroll();
+      }
+
+      debugPrint('✅ Loaded ${_banners.length} banners from backend');
+    } catch (e) {
+      debugPrint('❌ Error loading banners: $e');
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+      // Use fallback banners if API fails
+      _loadFallbackBanners();
+    }
+  }
+
+  /// Fallback to mockup banners if backend is unavailable
+  void _loadFallbackBanners() {
+    final now = DateTime.now();
+
+    setState(() {
+      _banners = [
+        SliderModel(
+          id: 'fallback_1',
+          title: 'Premium Arabica Beans',
+          description: 'Fresh from the mountains of Yemen',
+          image:
+              'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=800',
+          isActive: true,
+          displayOrder: 1,
+          createdAt: now,
+          updatedAt: now,
+        ),
+        SliderModel(
+          id: 'fallback_2',
+          title: 'Single Origin Excellence',
+          description: 'Ethiopian Yirgacheffe - Light & Bright',
+          image:
+              'https://images.unsplash.com/photo-1497935586351-b67a49e012bf?w=800',
+          isActive: true,
+          displayOrder: 2,
+          createdAt: now,
+          updatedAt: now,
+        ),
+        SliderModel(
+          id: 'fallback_3',
+          title: 'Artisan Roasted',
+          description: 'Master roasters, perfect extraction',
+          image:
+              'https://images.unsplash.com/photo-1459755486867-b55449bb39ff?w=800',
+          isActive: true,
+          displayOrder: 3,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      ];
+      _isLoading = false;
+    });
     _startAutoScroll();
+    debugPrint('⚠️ Using fallback mockup banners (backend unavailable)');
   }
 
   void _startAutoScroll() {
@@ -64,6 +133,45 @@ class _HeroBannerCarouselState extends State<HeroBannerCarousel> {
 
   @override
   Widget build(BuildContext context) {
+    // Show loading indicator while fetching banners
+    if (_isLoading) {
+      return SizedBox(
+        height: 250,
+        child: Center(
+          child: CircularProgressIndicator(color: AppTheme.accentAmber),
+        ),
+      );
+    }
+
+    // Show error message if banners failed to load and no fallback
+    if (_banners.isEmpty) {
+      return SizedBox(
+        height: 250,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.error_outline, size: 48, color: Colors.grey),
+              const SizedBox(height: 8),
+              Text(
+                'No banners available',
+                style: TextStyle(color: Colors.grey),
+              ),
+              if (_error != null)
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    _error!,
+                    style: TextStyle(color: Colors.grey, fontSize: 12),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return SizedBox(
       height: 250,
       child: Stack(
@@ -90,7 +198,9 @@ class _HeroBannerCarouselState extends State<HeroBannerCarousel> {
             child: Center(
               child: IconButton(
                 onPressed: () {
-                  final prevPage = _currentPage > 0 ? _currentPage - 1 : _banners.length - 1;
+                  final prevPage = _currentPage > 0
+                      ? _currentPage - 1
+                      : _banners.length - 1;
                   _pageController.animateToPage(
                     prevPage,
                     duration: const Duration(milliseconds: 300),
@@ -166,109 +276,185 @@ class _HeroBannerCarouselState extends State<HeroBannerCarousel> {
     );
   }
 
-  Widget _buildBannerItem(BannerItem banner) {
+  /// Get full image URL from relative path
+  String _getFullImageUrl(String? imageUrl) {
+    if (imageUrl == null || imageUrl.isEmpty) {
+      return 'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=800'; // Fallback image
+    }
+
+    // If already a full URL, return as is
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+      return imageUrl;
+    }
+
+    // Otherwise, prepend base URL
+    return '${AppConstants.baseUrl}$imageUrl';
+  }
+
+  Widget _buildBannerItem(SliderModel banner) {
+    final imageUrl = _getFullImageUrl(banner.mobileImage ?? banner.image);
+
+    debugPrint('🖼️ Loading banner image: $imageUrl');
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
+      child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
-        image: DecorationImage(
-          image: NetworkImage(banner.imageUrl),
-          fit: BoxFit.cover,
-          colorFilter: ColorFilter.mode(
-            banner.backgroundColor,
-            BlendMode.multiply,
-          ),
-        ),
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          gradient: LinearGradient(
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
-            colors: [
-              Colors.black.withValues(alpha: 0.6),
-              Colors.transparent,
-            ],
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                banner.title,
-                style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  shadows: [
-                    Shadow(
-                      color: Colors.black.withValues(alpha: 0.3),
-                      offset: const Offset(0, 2),
-                      blurRadius: 4,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // Background image
+            Image.network(
+              imageUrl,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                debugPrint('❌ Error loading banner image: $imageUrl');
+                debugPrint('Error: $error');
+                // Fallback to a placeholder
+                return Container(
+                  color: AppTheme.primaryBrown.withValues(alpha: 0.3),
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.image_not_supported,
+                          size: 48,
+                          color: Colors.white.withValues(alpha: 0.5),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Image unavailable',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.7),
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                banner.subtitle,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: Colors.white.withValues(alpha: 0.9),
-                  shadows: [
-                    Shadow(
-                      color: Colors.black.withValues(alpha: 0.3),
-                      offset: const Offset(0, 1),
-                      blurRadius: 2,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () {
-                  // TODO: Navigate to product details or category
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Exploring ${banner.title}'),
-                      backgroundColor: AppTheme.primaryBrown,
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.accentAmber,
-                  foregroundColor: AppTheme.textDark,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
                   ),
-                ),
-                child: const Text(
-                  'Explore Now',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                );
+              },
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) return child;
+                return Container(
+                  color: AppTheme.primaryBrown.withValues(alpha: 0.2),
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      value: loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded /
+                                loadingProgress.expectedTotalBytes!
+                          : null,
+                      color: AppTheme.accentAmber,
+                    ),
+                  ),
+                );
+              },
+            ),
+            // Color overlay
+            Container(
+              decoration: BoxDecoration(
+                color: AppTheme.primaryBrown.withValues(alpha: 0.3),
+              ),
+            ),
+            // Gradient overlay for text readability
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                  colors: [
+                    Colors.black.withValues(alpha: 0.6),
+                    Colors.transparent,
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+            // Content
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    banner.title,
+                    style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      shadows: [
+                        Shadow(
+                          color: Colors.black.withValues(alpha: 0.3),
+                          offset: const Offset(0, 2),
+                          blurRadius: 4,
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (banner.description != null &&
+                      banner.description!.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      banner.description!,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        color: Colors.white.withValues(alpha: 0.9),
+                        shadows: [
+                          Shadow(
+                            color: Colors.black.withValues(alpha: 0.3),
+                            offset: const Offset(0, 1),
+                            blurRadius: 2,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      // Track banner click
+                      _sliderService.trackClick(banner.id);
+
+                      // Navigate based on buttonLink if available
+                      if (banner.buttonLink != null &&
+                          banner.buttonLink!.isNotEmpty) {
+                        // TODO: Implement navigation based on linkType
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Opening: ${banner.buttonLink}'),
+                            backgroundColor: AppTheme.primaryBrown,
+                          ),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Exploring ${banner.title}'),
+                            backgroundColor: AppTheme.primaryBrown,
+                          ),
+                        );
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.accentAmber,
+                      foregroundColor: AppTheme.textDark,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: Text(
+                      banner.buttonText ?? 'Explore Now',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
-}
-
-/// Data model for banner items
-class BannerItem {
-  final String title;
-  final String subtitle;
-  final String imageUrl;
-  final Color backgroundColor;
-
-  BannerItem({
-    required this.title,
-    required this.subtitle,
-    required this.imageUrl,
-    required this.backgroundColor,
-  });
 }

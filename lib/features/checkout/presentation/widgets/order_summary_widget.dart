@@ -47,11 +47,13 @@ class OrderSummaryWidget extends StatelessWidget {
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(8),
                         child: Image.network(
-                          item.product.imageUrl,
+                          item.imageUrl,
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
-                            return const Icon(
-                              Icons.coffee,
+                            return Icon(
+                              item.itemType == CartItemType.coffee
+                                  ? Icons.coffee
+                                  : Icons.shopping_bag,
                               color: AppTheme.primaryBrown,
                             );
                           },
@@ -64,7 +66,7 @@ class OrderSummaryWidget extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            item.product.name,
+                            item.name,
                             style: Theme.of(context).textTheme.bodyMedium
                                 ?.copyWith(fontWeight: FontWeight.w600),
                             maxLines: 1,

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:qahwat_al_emarat/domain/repositories/auth_repository.dart';
 import 'package:qahwat_al_emarat/domain/models/auth_models.dart';
+import '../../../../services/reward_service.dart';
 
 enum AuthState { initial, loading, authenticated, unauthenticated, error }
 
@@ -101,6 +102,10 @@ class AuthProvider extends ChangeNotifier {
       _user = response.user;
       _refreshToken = response.refreshToken;
       _startSessionTimer();
+
+      // Ensure user has QR code (background task)
+      _ensureUserQRCode();
+
       _setState(AuthState.authenticated);
     } catch (e) {
       _handleAuthError(e);
@@ -142,6 +147,10 @@ class AuthProvider extends ChangeNotifier {
       _user = response.user;
       _refreshToken = response.refreshToken;
       _startSessionTimer();
+
+      // Initialize QR code for new user (background task)
+      _initializeNewUserQRCode();
+
       _setState(AuthState.authenticated);
     } catch (e) {
       _handleAuthError(e);
@@ -402,15 +411,25 @@ class AuthProvider extends ChangeNotifier {
 
   Future<void> signInWithGoogle() async {
     try {
+      debugPrint('AuthProvider: Starting Google Sign-In...');
       _setState(AuthState.loading);
       _clearError();
 
+      debugPrint('AuthProvider: Calling repository signInWithGoogle...');
       final response = await _authRepository.signInWithGoogle();
+
+      debugPrint('AuthProvider: Google Sign-In response received');
       _user = response.user;
       _refreshToken = response.refreshToken;
       _startSessionTimer();
+
+      // Ensure user has QR code (background task)
+      _ensureUserQRCode();
+
+      debugPrint('AuthProvider: Setting authenticated state');
       _setState(AuthState.authenticated);
     } catch (e) {
+      debugPrint('AuthProvider: Google Sign-In error: $e');
       _handleAuthError(e);
     }
   }
@@ -467,4 +486,31 @@ class AuthProvider extends ChangeNotifier {
   bool get canUpdateProfile => _user != null;
   bool get needsEmailVerification =>
       _user != null && !_user!.isEmailVerified && !_user!.isAnonymous;
+
+  // QR Code management methods
+  void _ensureUserQRCode() {
+    // Run in background, don't block authentication
+    Future.microtask(() async {
+      try {
+        await RewardService.ensureUserHasQRCode();
+      } catch (e) {
+        // Log error but don't affect auth flow
+        debugPrint('Failed to ensure QR code: $e');
+      }
+    });
+  }
+
+  void _initializeNewUserQRCode() {
+    // Run in background for new users
+    Future.microtask(() async {
+      try {
+        if (_user?.id != null) {
+          await RewardService.initializeUserQRCode(_user!.id);
+        }
+      } catch (e) {
+        // Log error but don't affect auth flow
+        debugPrint('Failed to initialize QR code for new user: $e');
+      }
+    });
+  }
 }

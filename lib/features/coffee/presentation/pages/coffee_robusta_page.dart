@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../../../../widgets/common/app_drawer.dart';
 
 class CoffeeRobustaPage extends StatelessWidget {
   const CoffeeRobustaPage({super.key});
@@ -18,7 +17,6 @@ class CoffeeRobustaPage extends StatelessWidget {
         ),
         elevation: 2,
       ),
-      drawer: const AppDrawer(),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(

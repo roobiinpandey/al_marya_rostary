@@ -142,12 +142,18 @@ const getCoffees = async (req, res) => {
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
-      .select('-__v');
+      .select('-__v')
+      .lean(); // Convert to plain JavaScript objects
 
     const total = await Coffee.countDocuments(filter);
 
-    // Localize coffee data
-    const localizedCoffees = coffees.map(coffee => coffee.getLocalizedContent(language));
+    // Localize coffee data - manual localization for lean objects
+    const lang = ['en', 'ar'].includes(language) ? language : 'en';
+    const localizedCoffees = coffees.map(coffee => ({
+      ...coffee,
+      localizedName: coffee.name?.[lang] || coffee.name?.en,
+      localizedDescription: coffee.description?.[lang] || coffee.description?.en
+    }));
 
     res.json({
       success: true,
@@ -176,7 +182,7 @@ const getCoffees = async (req, res) => {
 const getCoffee = async (req, res) => {
   try {
     const language = req.query.lang || req.headers['accept-language']?.split(',')[0]?.split('-')[0] || 'en';
-    const coffee = await Coffee.findById(req.params.id);
+    const coffee = await Coffee.findById(req.params.id).lean(); // Convert to plain object
 
     if (!coffee) {
       return res.status(404).json({
@@ -185,7 +191,13 @@ const getCoffee = async (req, res) => {
       });
     }
 
-    const localizedCoffee = coffee.getLocalizedContent(language);
+    // Manual localization for lean object
+    const lang = ['en', 'ar'].includes(language) ? language : 'en';
+    const localizedCoffee = {
+      ...coffee,
+      localizedName: coffee.name?.[lang] || coffee.name?.en,
+      localizedDescription: coffee.description?.[lang] || coffee.description?.en
+    };
 
     res.json({
       success: true,
@@ -256,7 +268,7 @@ const createCoffee = async (req, res) => {
       isFeatured: req.body.isFeatured !== undefined ? req.body.isFeatured : false
     };
 
-    const coffee = await Coffee.create(coffeeData);
+    const coffee = (await Coffee.create(coffeeData)).toObject(); // Convert to plain object
 
     res.status(201).json({
       success: true,
@@ -286,8 +298,15 @@ const createCoffee = async (req, res) => {
 // @access  Private/Admin
 const updateCoffee = async (req, res) => {
   try {
+    console.log('=== UPDATE COFFEE REQUEST ===');
+    console.log('Product ID:', req.params.id);
+    console.log('Request body:', req.body);
+    console.log('Has file:', !!req.file);
+    console.log('============================');
+    
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.error('Validation errors:', errors.array());
       return res.status(400).json({
         success: false,
         message: 'Validation errors',
@@ -297,18 +316,27 @@ const updateCoffee = async (req, res) => {
 
     let updateData = {};
 
+    // Get existing product to preserve fields if partial update
+    const existingCoffee = await Coffee.findById(req.params.id);
+    if (!existingCoffee) {
+      return res.status(404).json({
+        success: false,
+        message: 'Coffee not found'
+      });
+    }
+
     // Handle bilingual name and description
     if (req.body.nameEn || req.body.nameAr) {
       updateData.name = {
-        en: req.body.nameEn || req.body.name,
-        ar: req.body.nameAr || req.body.name
+        en: req.body.nameEn || existingCoffee.name?.en || req.body.name,
+        ar: req.body.nameAr || existingCoffee.name?.ar || req.body.name
       };
     }
     
     if (req.body.descriptionEn || req.body.descriptionAr) {
       updateData.description = {
-        en: req.body.descriptionEn || req.body.description,
-        ar: req.body.descriptionAr || req.body.description
+        en: req.body.descriptionEn || existingCoffee.description?.en || req.body.description,
+        ar: req.body.descriptionAr || existingCoffee.description?.ar || req.body.description
       };
     }
 
@@ -324,11 +352,10 @@ const updateCoffee = async (req, res) => {
       updateData.image = `/uploads/${req.file.filename}`;
 
       // Delete old image file
-      const oldCoffee = await Coffee.findById(req.params.id);
-      if (oldCoffee && oldCoffee.image) {
+      if (existingCoffee && existingCoffee.image) {
         const fs = require('fs');
         const path = require('path');
-        const oldImagePath = path.join(__dirname, '..', oldCoffee.image);
+        const oldImagePath = path.join(__dirname, '..', existingCoffee.image);
         if (fs.existsSync(oldImagePath)) {
           fs.unlinkSync(oldImagePath);
         }
@@ -347,7 +374,7 @@ const updateCoffee = async (req, res) => {
       req.params.id,
       updateData,
       { new: true, runValidators: true }
-    );
+    ).lean(); // Convert to plain JavaScript object
 
     if (!coffee) {
       return res.status(404).json({

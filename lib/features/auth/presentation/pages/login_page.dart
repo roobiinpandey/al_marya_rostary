@@ -1,5 +1,5 @@
-// import 'dart:io' show Platform;  // Temporarily disabled
-// import 'package:flutter/foundation.dart' show kIsWeb;  // Temporarily disabled
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 // import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;  // Temporarily disabled
 // import 'package:google_sign_in/google_sign_in.dart';  // Temporarily disabled
@@ -579,18 +579,62 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _loginWithGoogle() async {
-    final authProvider = context.read<AuthProvider>();
-    await authProvider.signInWithGoogle();
+    try {
+      final authProvider = context.read<AuthProvider>();
 
-    if (authProvider.isAuthenticated && mounted) {
-      Navigator.of(context).pushReplacementNamed('/home');
-    } else if (authProvider.hasError && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(authProvider.errorMessage!),
-          backgroundColor: Colors.red,
-        ),
-      );
+      // Warning for iOS Simulator users
+      if (Platform.isIOS && !kIsWeb) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                '⚠️ Google Sign-In may not work on iOS Simulator. Test on a real device for best results.',
+              ),
+              duration: Duration(seconds: 4),
+              backgroundColor: Colors.orange,
+            ),
+          );
+          await Future.delayed(const Duration(milliseconds: 500));
+        }
+      }
+
+      // Show loading indicator
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Signing in with Google...'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+
+      await authProvider.signInWithGoogle();
+
+      // Wait a bit for state to settle
+      await Future.delayed(const Duration(milliseconds: 300));
+
+      if (authProvider.isAuthenticated && mounted) {
+        Navigator.of(context).pushReplacementNamed('/home');
+      } else if (authProvider.hasError && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(authProvider.errorMessage ?? 'Google Sign-In failed'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Google Sign-In error: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+      debugPrint('Google Sign-In error: $e');
     }
     /*
     try {

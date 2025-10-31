@@ -1,9 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../widgets/common/app_drawer.dart';
+import '../providers/coffee_provider.dart';
 
-class NewArrivalsPage extends StatelessWidget {
+class NewArrivalsPage extends StatefulWidget {
   const NewArrivalsPage({super.key});
+
+  @override
+  State<NewArrivalsPage> createState() => _NewArrivalsPageState();
+}
+
+class _NewArrivalsPageState extends State<NewArrivalsPage> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadNewArrivals();
+    });
+  }
+
+  void _loadNewArrivals() {
+    final coffeeProvider = Provider.of<CoffeeProvider>(context, listen: false);
+    coffeeProvider.loadCoffees();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -73,53 +93,221 @@ class NewArrivalsPage extends StatelessWidget {
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            _buildNewArrivalCard(
-              context,
-              'Colombian Huila Reserve',
-              'Limited seasonal harvest',
-              'Just arrived - January 2024',
-              Icons.inventory,
-              Colors.green,
-              isNew: true,
-            ),
-            const SizedBox(height: 12),
-            _buildNewArrivalCard(
-              context,
-              'Guatemala Antigua Volcanic',
-              'High altitude grown beans',
-              'Added this week',
-              Icons.terrain,
-              Colors.brown,
-              isNew: true,
-            ),
-            const SizedBox(height: 12),
-            _buildNewArrivalCard(
-              context,
-              'Winter Spice Blend',
-              'Seasonal warming spices',
-              'Limited time only',
-              Icons.ac_unit,
-              Colors.orange,
-              isLimited: true,
-            ),
-            const SizedBox(height: 12),
-            _buildNewArrivalCard(
-              context,
-              'Brazilian Santos Smooth',
-              'Creamy and balanced',
-              'Back in stock',
-              Icons.waves,
-              Colors.blue,
-            ),
-            const SizedBox(height: 12),
-            _buildNewArrivalCard(
-              context,
-              'Cold Brew Concentrate',
-              'Ready-to-drink option',
-              'New product line',
-              Icons.local_drink,
-              Colors.indigo,
-              isNew: true,
+
+            // Real products section
+            Consumer<CoffeeProvider>(
+              builder: (context, coffeeProvider, child) {
+                if (coffeeProvider.isLoading) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(32.0),
+                      child: CircularProgressIndicator(
+                        color: AppTheme.primaryBrown,
+                      ),
+                    ),
+                  );
+                }
+
+                if (coffeeProvider.hasError) {
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(32.0),
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.error_outline,
+                            size: 48,
+                            color: Colors.red.shade400,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Unable to load new arrivals',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.textDark,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            coffeeProvider.error ?? 'Please try again later',
+                            style: TextStyle(color: AppTheme.textMedium),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 16),
+                          ElevatedButton(
+                            onPressed: _loadNewArrivals,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.primaryBrown,
+                              foregroundColor: Colors.white,
+                            ),
+                            child: const Text('Retry'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+
+                // Get newest products (assuming they're sorted by creation date or showing first few)
+                final newArrivals = coffeeProvider.coffees.take(6).toList();
+
+                if (newArrivals.isEmpty) {
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(32.0),
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.coffee_outlined,
+                            size: 48,
+                            color: AppTheme.textMedium,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'No new arrivals found',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.textDark,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Check back soon for new products',
+                            style: TextStyle(color: AppTheme.textMedium),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+
+                return GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                    childAspectRatio: 0.75,
+                  ),
+                  itemCount: newArrivals.length,
+                  itemBuilder: (context, index) {
+                    final coffee = newArrivals[index];
+                    return Card(
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.pushNamed(
+                            context,
+                            '/product',
+                            arguments: coffee,
+                          );
+                        },
+                        borderRadius: BorderRadius.circular(12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              flex: 3,
+                              child: Stack(
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: const BorderRadius.vertical(
+                                      top: Radius.circular(12),
+                                    ),
+                                    child: Image.network(
+                                      coffee.imageUrl,
+                                      width: double.infinity,
+                                      fit: BoxFit.cover,
+                                      errorBuilder:
+                                          (context, error, stackTrace) =>
+                                              Container(
+                                                color: AppTheme.backgroundCream,
+                                                child: const Icon(
+                                                  Icons.coffee,
+                                                  size: 48,
+                                                  color: AppTheme.primaryBrown,
+                                                ),
+                                              ),
+                                    ),
+                                  ),
+                                  Positioned(
+                                    top: 8,
+                                    right: 8,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.lightBlue,
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: const Text(
+                                        'NEW',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: Padding(
+                                padding: const EdgeInsets.all(12),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      coffee.name,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      coffee.origin,
+                                      style: TextStyle(
+                                        color: AppTheme.textMedium,
+                                        fontSize: 12,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const Spacer(),
+                                    Text(
+                                      '\$${coffee.price.toStringAsFixed(2)}',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: AppTheme.primaryBrown,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
             ),
             const SizedBox(height: 24),
             const Text(
@@ -197,123 +385,6 @@ class NewArrivalsPage extends StatelessWidget {
                     ),
                   ],
                 ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNewArrivalCard(
-    BuildContext context,
-    String title,
-    String description,
-    String status,
-    IconData icon,
-    Color color, {
-    bool isNew = false,
-    bool isLimited = false,
-  }) {
-    return Card(
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: color, size: 24),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          title,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      if (isNew)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.green,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Text(
-                            'NEW',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      if (isLimited)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.orange,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Text(
-                            'LIMITED',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    description,
-                    style: const TextStyle(fontSize: 14, color: Colors.grey),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    status,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: color,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            IconButton(
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Added $title to cart'),
-                    backgroundColor: AppTheme.primaryBrown,
-                  ),
-                );
-              },
-              icon: const Icon(
-                Icons.add_shopping_cart,
-                color: Colors.lightBlue,
               ),
             ),
           ],

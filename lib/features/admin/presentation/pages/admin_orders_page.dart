@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:qahwat_al_emarat/models/order.dart';
 import 'package:qahwat_al_emarat/core/theme/theme_extensions.dart';
+import 'package:qahwat_al_emarat/core/services/order_api_service.dart';
 
 /// AdminOrdersPage displays all orders for admin management
 class AdminOrdersPage extends StatefulWidget {
@@ -15,11 +16,20 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
   bool _isLoading = false;
   String? _error;
   OrderStatus? _filterStatus;
+  late OrderApiService _orderApiService;
 
   @override
   void initState() {
     super.initState();
-    _loadOrders();
+    _orderApiService = OrderApiService();
+    _initAndLoadOrders();
+  }
+
+  Future<void> _initAndLoadOrders() async {
+    // Initialize the API service (loads auth token)
+    await _orderApiService.init();
+    // Load orders
+    await _loadOrders();
   }
 
   Future<void> _loadOrders() async {
@@ -29,17 +39,15 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
     });
 
     try {
-      // TODO: Replace with actual API call to fetch all orders
-      // For now, using mock data
-      await Future.delayed(const Duration(seconds: 1));
-
-      // Mock orders for demonstration
-      _orders = [];
+      // Fetch orders from API with optional status filter
+      final String? statusFilter = _filterStatus?.toString().split('.').last;
+      _orders = await _orderApiService.fetchAllOrders(status: statusFilter);
 
       setState(() {
         _isLoading = false;
       });
     } catch (e) {
+      print('Error loading orders: $e');
       setState(() {
         _error = e.toString();
         _isLoading = false;
@@ -90,13 +98,17 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
 
   Future<void> _updateOrderStatus(Order order, OrderStatus newStatus) async {
     try {
-      // TODO: Replace with actual API call to update order status
-      await Future.delayed(const Duration(milliseconds: 500));
+      // Update order status via API
+      final String statusString = newStatus.toString().split('.').last;
+      final updatedOrder = await _orderApiService.updateOrderStatus(
+        order.id,
+        statusString,
+      );
 
       setState(() {
         final index = _orders.indexWhere((o) => o.id == order.id);
         if (index != -1) {
-          _orders[index] = order.copyWith(status: newStatus);
+          _orders[index] = updatedOrder;
         }
       });
 
@@ -111,6 +123,7 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
         );
       }
     } catch (e) {
+      print('Error updating order status: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -360,7 +373,9 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                         backgroundColor: _getStatusColor(
                           status,
                         ).withValues(alpha: 0.2),
-                        selectedColor: _getStatusColor(status).withValues(alpha: 0.4),
+                        selectedColor: _getStatusColor(
+                          status,
+                        ).withValues(alpha: 0.4),
                         onSelected: (selected) {
                           setState(() {
                             _filterStatus = selected ? status : null;

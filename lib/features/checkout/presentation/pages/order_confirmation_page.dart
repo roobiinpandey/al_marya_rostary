@@ -4,13 +4,83 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../cart/presentation/providers/cart_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../../services/reward_service.dart';
 import 'order_tracking_page.dart';
 
 /// OrderConfirmationPage displays successful order confirmation
-class OrderConfirmationPage extends StatelessWidget {
+class OrderConfirmationPage extends StatefulWidget {
   final Map<String, dynamic> orderData;
 
   const OrderConfirmationPage({super.key, required this.orderData});
+
+  @override
+  State<OrderConfirmationPage> createState() => _OrderConfirmationPageState();
+}
+
+class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
+  int _earnedPoints = 0;
+  bool _isProcessingRewards = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _processRewardPoints();
+  }
+
+  Future<void> _processRewardPoints() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    if (authProvider.user != null) {
+      setState(() {
+        _isProcessingRewards = true;
+      });
+
+      try {
+        // Calculate earned points (1 point per AED)
+        final totalAmount = widget.orderData['total'] as double? ?? 0.0;
+        final pointsToEarn = totalAmount.floor();
+
+        // Generate transaction ID
+        final transactionId = 'order_${DateTime.now().millisecondsSinceEpoch}';
+
+        // Award points for the purchase
+        await RewardService.earnPoints(
+          amountSpent: totalAmount,
+          transactionId: transactionId,
+        );
+
+        setState(() {
+          _earnedPoints = pointsToEarn;
+          _isProcessingRewards = false;
+        });
+
+        // Show success message
+        if (mounted && pointsToEarn > 0) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Congratulations! You earned $_earnedPoints reward points!',
+              ),
+              backgroundColor: AppTheme.primaryBrown,
+              duration: const Duration(seconds: 4),
+            ),
+          );
+        }
+      } catch (e) {
+        setState(() {
+          _isProcessingRewards = false;
+        });
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to process reward points: $e'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,6 +111,11 @@ class OrderConfirmationPage extends StatelessWidget {
             // Success Animation/Icon
             _buildSuccessHeader(),
 
+            const SizedBox(height: 16),
+
+            // Reward Points Section
+            _buildRewardPointsSection(),
+
             const SizedBox(height: 32),
 
             // Order Details Card
@@ -70,6 +145,122 @@ class OrderConfirmationPage extends StatelessWidget {
 
             // Additional Info
             _buildAdditionalInfo(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRewardPointsSection() {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+    // Don't show for guests
+    if (authProvider.user == null) {
+      return const SizedBox.shrink();
+    }
+
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          gradient: LinearGradient(
+            colors: [
+              AppTheme.primaryBrown.withValues(alpha: 0.8),
+              AppTheme.primaryLightBrown,
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.stars,
+                    color: AppTheme.primaryBrown,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Reward Points Earned!',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      if (_isProcessingRewards) ...[
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Processing...',
+                              style: TextStyle(color: Colors.white70),
+                            ),
+                          ],
+                        ),
+                      ] else if (_earnedPoints > 0) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          'You earned $_earnedPoints points worth AED ${(_earnedPoints * 0.05).toStringAsFixed(2)}',
+                          style: TextStyle(color: Colors.white70, fontSize: 14),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
+
+            if (!_isProcessingRewards && _earnedPoints > 0) ...[
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.info_outline, color: Colors.white, size: 16),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Use your points on your next order for instant discounts!',
+                        style: TextStyle(color: Colors.white, fontSize: 12),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -122,8 +313,8 @@ class OrderConfirmationPage extends StatelessWidget {
   }
 
   Widget _buildOrderDetailsCard() {
-    final orderNumber = orderData['orderNumber'] as String;
-    final createdAt = DateTime.parse(orderData['createdAt'] as String);
+    final orderNumber = widget.orderData['orderNumber'] as String;
+    final createdAt = DateTime.parse(widget.orderData['createdAt'] as String);
 
     return Card(
       child: Padding(
@@ -171,7 +362,7 @@ class OrderConfirmationPage extends StatelessWidget {
   }
 
   Widget _buildItemsSummary() {
-    final items = orderData['items'] as List;
+    final items = widget.orderData['items'] as List;
 
     return Card(
       child: Padding(
@@ -258,19 +449,55 @@ class OrderConfirmationPage extends StatelessWidget {
             const Divider(),
 
             // Order Total
-            _buildTotalRow('Subtotal', orderData['subtotal'] as double),
-            if ((orderData['deliveryFee'] as double) > 0)
+            _buildTotalRow('Subtotal', widget.orderData['subtotal'] as double),
+            if ((widget.orderData['deliveryFee'] as double) > 0)
               _buildTotalRow(
                 'Delivery Fee',
-                orderData['deliveryFee'] as double,
+                widget.orderData['deliveryFee'] as double,
               ),
-            if (orderData['paymentMethod'] == 'cash')
+            // Reward Points Discount
+            if ((widget.orderData['pointsDiscount'] as double? ?? 0.0) > 0)
+              _buildRewardDiscountRow(
+                'Reward Points (${widget.orderData['rewardPointsUsed'] as int? ?? 0} pts)',
+                -(widget.orderData['pointsDiscount'] as double),
+              ),
+            if (widget.orderData['paymentMethod'] == 'cash')
               _buildTotalRow('COD Fee', 5.0),
 
             const SizedBox(height: 8),
             _buildTotalRow('Total', _calculateFinalTotal(), isTotal: true),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildRewardDiscountRow(String label, double amount) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.stars, size: 16, color: AppTheme.primaryBrown),
+              const SizedBox(width: 4),
+              Text(
+                label,
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: AppTheme.primaryBrown),
+              ),
+            ],
+          ),
+          Text(
+            '${AppConstants.currencySymbol}${amount.toStringAsFixed(2)}',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: AppTheme.primaryBrown,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -303,9 +530,9 @@ class OrderConfirmationPage extends StatelessWidget {
   }
 
   Widget _buildDeliveryInfo() {
-    final delivery = orderData['delivery'] as Map<String, dynamic>;
+    final delivery = widget.orderData['delivery'] as Map<String, dynamic>;
     final shippingAddress =
-        orderData['shippingAddress'] as Map<String, dynamic>;
+        widget.orderData['shippingAddress'] as Map<String, dynamic>;
 
     return Card(
       child: Padding(
@@ -386,7 +613,7 @@ class OrderConfirmationPage extends StatelessWidget {
   }
 
   Widget _buildPaymentInfo() {
-    final paymentMethod = orderData['paymentMethod'] as String;
+    final paymentMethod = widget.orderData['paymentMethod'] as String;
 
     return Card(
       child: Padding(
@@ -421,8 +648,8 @@ class OrderConfirmationPage extends StatelessWidget {
                         style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
                       if (paymentMethod == 'card' &&
-                          orderData['cardLast4'] != null)
-                        Text('•••• •••• •••• ${orderData['cardLast4']}'),
+                          widget.orderData['cardLast4'] != null)
+                        Text('•••• •••• •••• ${widget.orderData['cardLast4']}'),
                       if (paymentMethod == 'cash')
                         const Text('Pay when your order arrives'),
                     ],
@@ -466,8 +693,8 @@ class OrderConfirmationPage extends StatelessWidget {
               Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (context) => OrderTrackingPage(
-                    orderNumber: orderData['orderNumber'] as String,
-                    orderData: orderData, // Pass the full order data
+                    orderNumber: widget.orderData['orderNumber'] as String,
+                    orderData: widget.orderData, // Pass the full order data
                   ),
                 ),
               );
@@ -494,9 +721,11 @@ class OrderConfirmationPage extends StatelessWidget {
           width: double.infinity,
           child: OutlinedButton(
             onPressed: () {
-              Navigator.of(
-                context,
-              ).pushNamedAndRemoveUntil('/home', (route) => false);
+              Navigator.of(context).pushNamedAndRemoveUntil(
+                '/main-navigation',
+                (route) => false,
+                arguments: {'initialIndex': 0}, // Home tab
+              );
             },
             style: OutlinedButton.styleFrom(
               side: const BorderSide(color: AppTheme.primaryBrown),
@@ -643,7 +872,7 @@ class OrderConfirmationPage extends StatelessWidget {
   }
 
   String _getEstimatedDelivery() {
-    final delivery = orderData['delivery'] as Map<String, dynamic>;
+    final delivery = widget.orderData['delivery'] as Map<String, dynamic>;
     final method = delivery['method'] as String;
 
     switch (method) {
@@ -698,8 +927,8 @@ class OrderConfirmationPage extends StatelessWidget {
   }
 
   double _calculateFinalTotal() {
-    double total = orderData['total'] as double;
-    if (orderData['paymentMethod'] == 'cash') {
+    double total = widget.orderData['total'] as double;
+    if (widget.orderData['paymentMethod'] == 'cash') {
       total += 5.0; // COD fee
     }
     return total;

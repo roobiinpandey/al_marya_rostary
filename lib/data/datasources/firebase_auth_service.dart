@@ -13,7 +13,15 @@ class FirebaseAuthService {
 
   FirebaseAuthService({FirebaseAuth? firebaseAuth, GoogleSignIn? googleSignIn})
     : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance,
-      _googleSignIn = googleSignIn ?? GoogleSignIn();
+      _googleSignIn =
+          googleSignIn ??
+          GoogleSignIn(
+            // Server client ID from Firebase Console (Web client ID)
+            // This is required for iOS to work properly
+            serverClientId:
+                '446607982003-30k0be0oqccmk2q7fk7li0drirhulsls.apps.googleusercontent.com',
+            scopes: ['email', 'profile'],
+          );
 
   /// Convert Firebase User to our domain User model
   auth_models.User? _convertFirebaseUser(User? firebaseUser) {
@@ -156,22 +164,31 @@ class FirebaseAuthService {
   /// Sign in with Google
   Future<auth_models.AuthResponse> signInWithGoogle() async {
     try {
+      debugPrint('Starting Google Sign-In process...');
+
       // Trigger the authentication flow
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
 
       if (googleUser == null) {
+        debugPrint('Google Sign-In was cancelled by user');
         throw auth_models.AuthException('Google Sign-In was cancelled');
       }
+
+      debugPrint('Google user selected: ${googleUser.email}');
 
       // Obtain the auth details from the request
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
+
+      debugPrint('Google authentication tokens obtained');
 
       // Create a new credential
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
+
+      debugPrint('Firebase credential created, signing in...');
 
       // Sign in to Firebase with the Google credentials
       final userCredential = await _firebaseAuth.signInWithCredential(
@@ -180,18 +197,25 @@ class FirebaseAuthService {
 
       final user = userCredential.user;
       if (user == null) {
+        debugPrint('Firebase sign-in failed: No user returned');
         throw auth_models.AuthException(
           'Google Sign-In failed: No user returned',
         );
       }
+
+      debugPrint('Google Sign-In successful for user: ${user.email}');
 
       return await _createAuthResponse(
         user,
         message: 'Google Sign-In successful',
       );
     } on FirebaseAuthException catch (e) {
+      debugPrint(
+        'Firebase Auth error during Google Sign-In: ${e.code} - ${e.message}',
+      );
       throw auth_models.AuthException(_getErrorMessage(e.code), e.code);
     } catch (e) {
+      debugPrint('General error during Google Sign-In: $e');
       if (e is auth_models.AuthException) rethrow;
       throw auth_models.AuthException('Google Sign-In failed: $e');
     }

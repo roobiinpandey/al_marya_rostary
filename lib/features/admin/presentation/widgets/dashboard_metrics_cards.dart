@@ -15,6 +15,53 @@ class DashboardMetricsCards extends StatelessWidget {
 
     return Consumer<AdminProvider>(
       builder: (context, adminProvider, child) {
+        // Show loading state
+        if (adminProvider.isLoading) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(32.0),
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+
+        // Show error state
+        if (adminProvider.error != null) {
+          return Container(
+            padding: const EdgeInsets.all(16),
+            margin: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.red.shade50,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.red.shade200),
+            ),
+            child: Column(
+              children: [
+                Icon(Icons.error_outline, color: Colors.red.shade700, size: 32),
+                const SizedBox(height: 8),
+                Text(
+                  'Error loading admin data',
+                  style: TextStyle(
+                    color: Colors.red.shade700,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  adminProvider.error!,
+                  style: TextStyle(color: Colors.red.shade600, fontSize: 12),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                ElevatedButton(
+                  onPressed: () => adminProvider.refreshDashboard(),
+                  child: const Text('Retry'),
+                ),
+              ],
+            ),
+          );
+        }
+
         if (isMobile) {
           // Mobile layout: Column of cards
           return Column(
@@ -146,7 +193,7 @@ class DashboardMetricsCards extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha:0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 12,
             offset: const Offset(0, 6),
           ),
@@ -161,23 +208,19 @@ class DashboardMetricsCards extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: color.withValues(alpha:0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(
-                  icon,
-                  color: color,
-                  size: 24,
-                ),
+                child: Icon(icon, color: color, size: 24),
               ),
               const SizedBox(width: 16),
               Expanded(
                 child: Text(
                   title,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: AppTheme.textMedium,
-                        fontWeight: FontWeight.w500,
-                      ),
+                    color: AppTheme.textMedium,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
             ],
@@ -189,9 +232,9 @@ class DashboardMetricsCards extends StatelessWidget {
           Text(
             value,
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: AppTheme.textDark,
-                  fontWeight: FontWeight.bold,
-                ),
+              color: AppTheme.textDark,
+              fontWeight: FontWeight.bold,
+            ),
           ),
 
           const SizedBox(height: 8),
@@ -211,17 +254,16 @@ class DashboardMetricsCards extends StatelessWidget {
                 Text(
                   change,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color:
-                            change.startsWith('+') ? Colors.green : Colors.red,
-                        fontWeight: FontWeight.w500,
-                      ),
+                    color: change.startsWith('+') ? Colors.green : Colors.red,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
                 const SizedBox(width: 8),
                 Text(
                   'vs last month',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppTheme.textLight,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: AppTheme.textLight),
                 ),
               ],
             )
@@ -229,15 +271,15 @@ class DashboardMetricsCards extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: color.withValues(alpha:0.1),
+                color: color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
                 change,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: color,
-                      fontWeight: FontWeight.w500,
-                    ),
+                  color: color,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
         ],

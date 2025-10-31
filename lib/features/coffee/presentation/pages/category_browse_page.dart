@@ -17,33 +17,63 @@ class _CategoryBrowsePageState extends State<CategoryBrowsePage> {
   String? _selectedCategory;
   final List<Map<String, dynamic>> _categories = [
     {'name': 'All', 'icon': Icons.grid_view, 'color': AppTheme.primaryBrown},
+
+    // Origin-based categories
     {
-      'name': 'Espresso',
-      'icon': Icons.local_cafe,
-      'color': AppTheme.primaryBrown,
+      'name': 'Asia',
+      'icon': Icons.public,
+      'color': const Color(0xFF8B4513), // Saddle Brown
     },
-    {'name': 'Arabica', 'icon': Icons.coffee, 'color': AppTheme.primaryBrown},
     {
-      'name': 'Robusta',
-      'icon': Icons.coffee_maker,
-      'color': AppTheme.primaryBrown,
+      'name': 'Africa',
+      'icon': Icons.terrain,
+      'color': const Color(0xFFCD853F), // Peru
     },
-    {'name': 'Specialty', 'icon': Icons.star, 'color': Colors.amber.shade800},
-    {'name': 'Organic', 'icon': Icons.eco, 'color': Colors.green.shade700},
+    {
+      'name': 'Latin America',
+      'icon': Icons.language,
+      'color': const Color(0xFFA0522D), // Sienna
+    },
+
+    // Premium category
+    {
+      'name': 'Premium',
+      'icon': Icons.diamond,
+      'color': const Color(0xFFDAA520), // Goldenrod
+    },
+
+    // Roast levels
     {
       'name': 'Dark Roast',
       'icon': Icons.nights_stay,
-      'color': AppTheme.primaryBrown,
+      'color': const Color(0xFF2F1B14), // Very Dark Brown
+    },
+    {
+      'name': 'Medium Dark Roast',
+      'icon': Icons.wb_twilight,
+      'color': const Color(0xFF5D4037), // Brown 700
     },
     {
       'name': 'Medium Roast',
-      'icon': Icons.wb_twilight,
-      'color': AppTheme.primaryLightBrown,
+      'icon': Icons.wb_sunny,
+      'color': const Color(0xFF8D6E63), // Brown 400
+    },
+
+    // Additional categories
+    {
+      'name': 'Single Origin',
+      'icon': Icons.place,
+      'color': const Color(0xFF795548), // Brown 500
     },
     {
-      'name': 'Light Roast',
-      'icon': Icons.wb_sunny,
-      'color': Colors.orange.shade300,
+      'name': 'Blends',
+      'icon': Icons.grain,
+      'color': const Color(0xFF6D4C41), // Brown 600
+    },
+    {
+      'name': 'Organic',
+      'icon': Icons.eco,
+      'color': const Color(0xFF689F38), // Light Green 700
     },
   ];
 

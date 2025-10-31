@@ -1,5 +1,7 @@
 const admin = require('firebase-admin');
 const User = require('../models/User');
+const fs = require('fs');
+const path = require('path');
 
 /**
  * Firebase User Sync Service
@@ -12,24 +14,77 @@ class FirebaseUserSyncService {
   }
 
   /**
-   * Initialize Firebase Admin SDK
+   * Initialize Firebase Admin SDK with multiple fallback methods
    */
   initializeFirebase() {
     try {
       if (admin.apps.length === 0) {
-        const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
-        const projectId = process.env.FIREBASE_PROJECT_ID;
+        let serviceAccount = null;
+        let loadMethod = '';
 
-        if (serviceAccountKey) {
-          const serviceAccount = JSON.parse(serviceAccountKey);
+        // Method 1: Try loading from secret file (Render Secret Files)
+        const secretFilePath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH || 
+                              '/etc/secrets/firebase-service-account.json';
+        
+        if (fs.existsSync(secretFilePath)) {
+          try {
+            const fileContent = fs.readFileSync(secretFilePath, 'utf8');
+            serviceAccount = JSON.parse(fileContent);
+            loadMethod = 'secret file';
+            console.log('✅ Loaded Firebase credentials from secret file');
+          } catch (fileError) {
+            console.warn('⚠️ Failed to parse secret file:', fileError.message);
+          }
+        }
+
+        // Method 2: Try loading from environment variable
+        if (!serviceAccount) {
+          const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+          if (serviceAccountKey) {
+            try {
+              // Trim whitespace and validate
+              const trimmedKey = serviceAccountKey.trim();
+              if (trimmedKey.startsWith('{') && trimmedKey.endsWith('}')) {
+                serviceAccount = JSON.parse(trimmedKey);
+                loadMethod = 'environment variable';
+                console.log('✅ Loaded Firebase credentials from environment variable');
+              } else {
+                console.error('❌ FIREBASE_SERVICE_ACCOUNT_KEY is not valid JSON (missing braces)');
+              }
+            } catch (parseError) {
+              console.error('❌ Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY:', parseError.message);
+              console.error('   First 50 chars:', serviceAccountKey.substring(0, 50));
+              console.error('   Last 50 chars:', serviceAccountKey.substring(serviceAccountKey.length - 50));
+            }
+          }
+        }
+
+        // Initialize Firebase if we have valid credentials
+        if (serviceAccount) {
+          // Validate required fields
+          const requiredFields = ['project_id', 'private_key', 'client_email'];
+          const missingFields = requiredFields.filter(field => !serviceAccount[field]);
+          
+          if (missingFields.length > 0) {
+            console.error('❌ Service account missing required fields:', missingFields.join(', '));
+            this.initialized = false;
+            return;
+          }
+
+          const projectId = process.env.FIREBASE_PROJECT_ID || serviceAccount.project_id;
+          
           admin.initializeApp({
             credential: admin.credential.cert(serviceAccount),
-            projectId: serviceAccount.project_id || projectId
+            projectId: projectId
           });
+          
           this.initialized = true;
-          console.log('✅ Firebase User Sync Service initialized');
+          console.log(`✅ Firebase User Sync Service initialized via ${loadMethod}`);
+          console.log(`   Project ID: ${projectId}`);
         } else {
           console.warn('⚠️ Firebase not configured for User Sync Service');
+          console.warn('   - No secret file found at:', secretFilePath);
+          console.warn('   - FIREBASE_SERVICE_ACCOUNT_KEY not set or invalid');
           this.initialized = false;
         }
       } else {
@@ -38,6 +93,7 @@ class FirebaseUserSyncService {
       }
     } catch (error) {
       console.error('❌ Firebase User Sync Service initialization error:', error.message);
+      console.error('   Error details:', error);
       this.initialized = false;
     }
   }

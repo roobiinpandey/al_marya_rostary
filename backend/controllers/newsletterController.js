@@ -505,6 +505,153 @@ const getReadyToSend = async (req, res) => {
   }
 };
 
+// @desc    Get newsletter subscribers
+// @route   GET /api/newsletters/subscribers
+// @access  Private/Admin
+const getSubscribers = async (req, res) => {
+  try {
+    const User = require('../models/User');
+    
+    // Get all users who have opted in for newsletters
+    const subscribers = await User.find({
+      'preferences.newsletter': true,
+      isActive: true
+    })
+    .select('name email preferences.newsletter createdAt')
+    .sort({ createdAt: -1 })
+    .lean();
+
+    const subscriberData = subscribers.map(user => ({
+      _id: user._id,
+      name: user.name || 'N/A',
+      email: user.email,
+      isActive: user.preferences?.newsletter || false,
+      subscribedAt: user.createdAt,
+      source: 'Website'
+    }));
+
+    res.json({
+      success: true,
+      data: subscriberData
+    });
+  } catch (error) {
+    console.error('Get subscribers error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// @desc    Unsubscribe user from newsletter
+// @route   POST /api/newsletters/subscribers/:id/unsubscribe
+// @access  Private/Admin
+const unsubscribeUser = async (req, res) => {
+  try {
+    const User = require('../models/User');
+    const userId = req.params.id;
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { 'preferences.newsletter': false },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'User unsubscribed successfully'
+    });
+  } catch (error) {
+    console.error('Unsubscribe user error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// @desc    Resubscribe user to newsletter
+// @route   POST /api/newsletters/subscribers/:id/resubscribe
+// @access  Private/Admin
+const resubscribeUser = async (req, res) => {
+  try {
+    const User = require('../models/User');
+    const userId = req.params.id;
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { 'preferences.newsletter': true },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'User resubscribed successfully'
+    });
+  } catch (error) {
+    console.error('Resubscribe user error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// @desc    Delete subscriber
+// @route   DELETE /api/newsletters/subscribers/:id
+// @access  Private/Admin
+const deleteSubscriber = async (req, res) => {
+  try {
+    const User = require('../models/User');
+    const userId = req.params.id;
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { 
+        'preferences.newsletter': false,
+        'preferences.marketingEmails': false
+      },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Subscriber removed successfully'
+    });
+  } catch (error) {
+    console.error('Delete subscriber error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
 module.exports = {
   getNewsletters,
   getNewsletter,
@@ -514,5 +661,9 @@ module.exports = {
   sendNewsletter,
   sendTestNewsletter,
   getNewsletterStats,
-  getReadyToSend
+  getReadyToSend,
+  getSubscribers,
+  unsubscribeUser,
+  resubscribeUser,
+  deleteSubscriber
 };

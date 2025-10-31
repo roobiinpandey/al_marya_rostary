@@ -30,12 +30,18 @@ const getCategories = async (req, res) => {
       .sort({ displayOrder: 1, 'name.en': 1 })
       .skip(skip)
       .limit(limit)
-      .select('-__v');
+      .select('-__v')
+      .lean(); // Convert to plain JavaScript objects
 
     const total = await Category.countDocuments(filter);
 
-    // Localize category data
-    const localizedCategories = categories.map(category => category.getLocalizedContent(language));
+    // Localize category data - manual localization for lean objects
+    const lang = ['en', 'ar'].includes(language) ? language : 'en';
+    const localizedCategories = categories.map(category => ({
+      ...category,
+      localizedName: category.name?.[lang] || category.name?.en,
+      localizedDescription: category.description?.[lang] || category.description?.en
+    }));
 
     res.json({
       success: true,
@@ -64,7 +70,7 @@ const getCategories = async (req, res) => {
 const getCategory = async (req, res) => {
   try {
     const language = req.query.lang || req.headers['accept-language']?.split(',')[0]?.split('-')[0] || 'en';
-    const category = await Category.findById(req.params.id);
+    const category = await Category.findById(req.params.id).lean(); // Convert to plain object
 
     if (!category) {
       return res.status(404).json({
@@ -73,7 +79,13 @@ const getCategory = async (req, res) => {
       });
     }
 
-    const localizedCategory = category.getLocalizedContent(language);
+    // Manual localization for lean object
+    const lang = ['en', 'ar'].includes(language) ? language : 'en';
+    const localizedCategory = {
+      ...category,
+      localizedName: category.name?.[lang] || category.name?.en,
+      localizedDescription: category.description?.[lang] || category.description?.en
+    };
 
     res.json({
       success: true,
@@ -126,7 +138,7 @@ const createCategory = async (req, res) => {
       categoryData.parentCategory = null;
     }
 
-    const category = await Category.create(categoryData);
+    const category = (await Category.create(categoryData)).toObject(); // Convert to plain object
 
     res.status(201).json({
       success: true,
@@ -198,7 +210,7 @@ const updateCategory = async (req, res) => {
       req.params.id,
       updateData,
       { new: true, runValidators: true }
-    );
+    ).lean(); // Convert to plain JavaScript object
 
     if (!category) {
       return res.status(404).json({

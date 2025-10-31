@@ -538,7 +538,8 @@ const exportUsers = async (req, res) => {
 
     const users = await User.find(filter)
       .select('-password')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean(); // Convert to plain JavaScript objects
 
     // Log export action
     await logAdminAction(

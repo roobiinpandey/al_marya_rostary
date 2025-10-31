@@ -112,7 +112,11 @@ class AppDrawerDebug extends StatelessWidget {
                     bottom: 0,
                     right: 0,
                     child: GestureDetector(
-                      onTap: () => Navigator.pushNamed(context, '/profile'),
+                      onTap: () => Navigator.pushNamed(
+                        context,
+                        '/main-navigation',
+                        arguments: {'initialIndex': 3}, // Profile tab
+                      ),
                       child: Container(
                         padding: const EdgeInsets.all(4),
                         decoration: const BoxDecoration(
@@ -304,7 +308,10 @@ class AppDrawerDebug extends StatelessWidget {
               icon: Icons.shopping_cart,
               title: 'Cart',
               subtitle: 'View cart items',
-              onTap: () => _navigateTo(context, '/cart'),
+              onTap: () => Navigator.of(context).pushNamed(
+                '/main-navigation',
+                arguments: {'initialIndex': 2}, // Cart tab
+              ),
             ),
             if (authProvider.isAuthenticated) ...[
               _buildNavItem(
@@ -313,6 +320,16 @@ class AppDrawerDebug extends StatelessWidget {
                 title: 'Favorites',
                 subtitle: 'Your favorite items',
                 onTap: () => _navigateTo(context, '/favorites'),
+              ),
+              _buildNavItem(
+                context,
+                icon: Icons.stars,
+                title: 'Reward Points',
+                subtitle: 'Earn and redeem points',
+                onTap: () => Navigator.of(context).pushNamed(
+                  '/main-navigation',
+                  arguments: {'initialIndex': 1}, // Rewards tab
+                ),
               ),
             ],
 

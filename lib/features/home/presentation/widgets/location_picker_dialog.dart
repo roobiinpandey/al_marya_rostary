@@ -15,34 +15,8 @@ class _LocationPickerDialogState extends State<LocationPickerDialog> {
   String _selectedLocationType = 'current'; // current, home, work, other
   Address? _selectedAddress;
 
-  // Mock addresses - In real app, get from user provider/address service
-  final List<Address> _savedAddresses = [
-    Address(
-      id: '1',
-      title: 'Home',
-      fullName: 'Ahmed Al Mansouri',
-      phoneNumber: '+971 50 123 4567',
-      emirate: 'Dubai',
-      area: 'Business Bay',
-      street: 'Sheikh Zayed Road',
-      building: 'Executive Heights, Tower A',
-      apartment: '2304',
-      landmark: 'Near Metro Station',
-      isDefault: true,
-    ),
-    Address(
-      id: '2',
-      title: 'Work',
-      fullName: 'Ahmed Al Mansouri',
-      phoneNumber: '+971 50 123 4567',
-      emirate: 'Dubai',
-      area: 'DIFC',
-      street: 'Gate Avenue',
-      building: 'ICD Brookfield Place',
-      apartment: '1205',
-      isDefault: false,
-    ),
-  ];
+  // No mock addresses - get from actual user provider/address service
+  final List<Address> _savedAddresses = [];
 
   @override
   Widget build(BuildContext context) {

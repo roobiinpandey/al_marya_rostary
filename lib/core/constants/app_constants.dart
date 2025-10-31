@@ -4,11 +4,11 @@ class AppConstants {
   // Set _useProduction to true for production Render.com backend (connects to MongoDB Atlas)
   // Set _useProduction to false for local development backend
   static const bool _useProduction =
-      true; // Change to false for local development
+      false; // Change to false for local development
 
   static String get baseUrl => _useProduction
       ? 'https://al-marya-rostary.onrender.com' // Production Render.com backend (connects to MongoDB Atlas)
-      : 'http://localhost:5001'; // Local development backend
+      : 'http://192.168.0.148:5001'; // Local development backend (use your computer's IP, not localhost)
 
   // Environment info for debugging
   static String get environment => _useProduction
@@ -21,6 +21,12 @@ class AppConstants {
   static const String cartEndpoint = '/cart';
   static const String ordersEndpoint = '/orders';
   static const String authEndpoint = '/api/auth';
+
+  // New Feature Endpoints
+  static const String reviewsEndpoint = '/api/reviews';
+  static const String loyaltyEndpoint = '/api/loyalty';
+  static const String referralsEndpoint = '/api/referrals';
+  static const String subscriptionsEndpoint = '/api/subscriptions';
 
   // App Info
   static const String appName = 'ALMARYAH ROSTERY';

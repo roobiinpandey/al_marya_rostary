@@ -160,6 +160,9 @@ sliderSchema.statics.findByCategory = function(category) {
 
 // Pre-save middleware to set default alt text
 sliderSchema.pre('save', function(next) {
+  if (!this.seo) {
+    this.seo = {};
+  }
   if (!this.seo.altText && this.title) {
     this.seo.altText = this.title;
   }

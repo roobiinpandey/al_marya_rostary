@@ -1,50 +1,66 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import '../../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../../data/models/quick_category_model.dart';
+import '../../../../core/services/quick_category_api_service.dart';
 
 /// Quick categories widget with horizontal scrolling
-class QuickCategoriesWidget extends StatelessWidget {
+class QuickCategoriesWidget extends StatefulWidget {
   const QuickCategoriesWidget({super.key});
 
   @override
+  State<QuickCategoriesWidget> createState() => _QuickCategoriesWidgetState();
+}
+
+class _QuickCategoriesWidgetState extends State<QuickCategoriesWidget> {
+  final QuickCategoryApiService _apiService = QuickCategoryApiService();
+  List<QuickCategoryModel> _categories = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadQuickCategories();
+  }
+
+  Future<void> _loadQuickCategories() async {
+    try {
+      setState(() {
+        _isLoading = true;
+      });
+
+      final categories = await _apiService.fetchActiveQuickCategories(
+        limit: 10,
+      );
+
+      if (mounted) {
+        setState(() {
+          _categories = categories;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          // Hide section on error instead of showing fallback
+          _categories = [];
+        });
+        // Log error for debugging
+        debugPrint('Error loading quick categories: $e');
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final categories = [
-      CategoryItem(
-        title: 'Arabica',
-        subtitle: 'Premium Quality',
-        imageUrl: 'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=300',
-        color: AppTheme.primaryBrown,
-      ),
-      CategoryItem(
-        title: 'Robusta',
-        subtitle: 'Bold & Strong',
-        imageUrl: 'https://images.unsplash.com/photo-1497935586351-b67a49e012bf?w=300',
-        color: AppTheme.accentAmber,
-      ),
-      CategoryItem(
-        title: 'Single Origin',
-        subtitle: 'Unique Flavors',
-        imageUrl: 'https://images.unsplash.com/photo-1459755486867-b55449bb39ff?w=300',
-        color: AppTheme.primaryLightBrown,
-      ),
-      CategoryItem(
-        title: 'Blends',
-        subtitle: 'Perfect Balance',
-        imageUrl: 'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=300',
-        color: AppTheme.primaryBrown.withValues(alpha: 0.8),
-      ),
-      CategoryItem(
-        title: 'Light Roast',
-        subtitle: 'Bright & Acidic',
-        imageUrl: 'https://images.unsplash.com/photo-1497935586351-b67a49e012bf?w=300',
-        color: AppTheme.accentAmber.withValues(alpha: 0.8),
-      ),
-      CategoryItem(
-        title: 'Dark Roast',
-        subtitle: 'Rich & Smoky',
-        imageUrl: 'https://images.unsplash.com/photo-1459755486867-b55449bb39ff?w=300',
-        color: AppTheme.primaryLightBrown.withValues(alpha: 0.8),
-      ),
-    ];
+    if (_isLoading) {
+      return _buildLoadingState();
+    }
+
+    if (_categories.isEmpty) {
+      return _buildEmptyState();
+    }
 
     return Container(
       height: 120,
@@ -52,15 +68,54 @@ class QuickCategoriesWidget extends StatelessWidget {
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount: categories.length,
+        itemCount: _categories.length,
         itemBuilder: (context, index) {
-          return _buildCategoryItem(context, categories[index]);
+          return _buildCategoryItem(context, _categories[index]);
         },
       ),
     );
   }
 
-  Widget _buildCategoryItem(BuildContext context, CategoryItem category) {
+  Widget _buildLoadingState() {
+    return Container(
+      height: 120,
+      margin: const EdgeInsets.symmetric(vertical: 16),
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        itemCount: 4, // Show 4 loading placeholders
+        itemBuilder: (context, index) {
+          return Container(
+            width: 100,
+            margin: const EdgeInsets.only(right: 12),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              color: Colors.grey[300],
+            ),
+            child: const Center(
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  AppTheme.primaryBrown,
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    // Return empty SizedBox when no categories to avoid empty space
+    return const SizedBox.shrink();
+  }
+
+  Widget _buildCategoryItem(BuildContext context, QuickCategoryModel category) {
+    final categoryColor = Color(
+      int.parse(category.color.substring(1), radix: 16) + 0xFF000000,
+    );
+
     return Container(
       width: 100,
       margin: const EdgeInsets.only(right: 12),
@@ -69,25 +124,31 @@ class QuickCategoriesWidget extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
-          onTap: () {
-            // TODO: Navigate to category page
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Exploring ${category.title} category'),
-                backgroundColor: AppTheme.primaryBrown,
-              ),
-            );
+          onTap: () async {
+            // Track category click
+            try {
+              await _apiService.trackQuickCategoryClick(category.id);
+            } catch (e) {
+              // Don't fail user experience for analytics
+              debugPrint('Failed to track click: $e');
+            }
+
+            // Navigate based on category configuration
+            _handleCategoryNavigation(context, category);
           },
           child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12),
               image: DecorationImage(
-                image: NetworkImage(category.imageUrl),
+                image: NetworkImage(category.safeImageUrl),
                 fit: BoxFit.cover,
                 colorFilter: ColorFilter.mode(
-                  category.color.withValues(alpha: 0.7),
+                  categoryColor.withValues(alpha: 0.7),
                   BlendMode.multiply,
                 ),
+                onError: (exception, stackTrace) {
+                  debugPrint('Failed to load image: ${category.imageUrl}');
+                },
               ),
             ),
             child: Container(
@@ -122,6 +183,8 @@ class QuickCategoriesWidget extends StatelessWidget {
                           ),
                         ],
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 2),
                     Text(
@@ -137,6 +200,8 @@ class QuickCategoriesWidget extends StatelessWidget {
                           ),
                         ],
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
@@ -147,19 +212,101 @@ class QuickCategoriesWidget extends StatelessWidget {
       ),
     );
   }
-}
 
-/// Data model for category items
-class CategoryItem {
-  final String title;
-  final String subtitle;
-  final String imageUrl;
-  final Color color;
+  /// Handle navigation based on quick category configuration
+  void _handleCategoryNavigation(
+    BuildContext context,
+    QuickCategoryModel category,
+  ) {
+    switch (category.linkTo.toLowerCase()) {
+      case 'category':
+        // Navigate to category browse page with specific category
+        Navigator.pushNamed(
+          context,
+          '/category-browse',
+          arguments: category.linkValue,
+        );
+        break;
 
-  CategoryItem({
-    required this.title,
-    required this.subtitle,
-    required this.imageUrl,
-    required this.color,
-  });
+      case 'product':
+        // Navigate to specific product detail page
+        // Note: You might need to fetch the product by ID first
+        _navigateToProduct(context, category.linkValue);
+        break;
+
+      case 'external':
+        // Navigate to external URL (implement if needed)
+        _showExternalLinkDialog(context, category.linkValue);
+        break;
+
+      case 'none':
+      default:
+        // Show default category browse or feedback
+        _showDefaultNavigation(context, category);
+        break;
+    }
+  }
+
+  /// Navigate to specific product
+  void _navigateToProduct(BuildContext context, String productId) {
+    // For now, show a message. You can implement product fetch and navigation
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Opening product: $productId'),
+        backgroundColor: AppTheme.primaryBrown,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+
+    // TODO: Implement product navigation
+    // 1. Fetch product by ID from API
+    // 2. Navigate to ProductDetailPage
+    // Example:
+    // final product = await ProductApiService().fetchProduct(productId);
+    // if (product != null) {
+    //   Navigator.pushNamed(context, '/product', arguments: product);
+    // }
+  }
+
+  /// Show external link dialog
+  void _showExternalLinkDialog(BuildContext context, String url) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('External Link'),
+          content: Text('This will open:\n$url'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                // TODO: Implement URL launcher
+                // launch(url);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Would open: $url'),
+                    backgroundColor: AppTheme.primaryBrown,
+                  ),
+                );
+              },
+              child: const Text('Open'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// Show default navigation for categories without specific links
+  void _showDefaultNavigation(
+    BuildContext context,
+    QuickCategoryModel category,
+  ) {
+    // Default: Navigate to category browse page with category title as filter
+    Navigator.pushNamed(context, '/category-browse', arguments: category.title);
+  }
 }
