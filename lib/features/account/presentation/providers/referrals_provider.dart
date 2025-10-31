@@ -46,10 +46,12 @@ class ReferralsProvider with ChangeNotifier {
       notifyListeners();
     } catch (e) {
       debugPrint('❌ Error loading user referrals: $e');
-      _setError('Failed to load referrals: ${e.toString()}');
-
-      // Load fallback mock data if API fails
-      _loadMockUserReferrals(userId);
+      _setError(
+        'Unable to load referral information. Please check your connection and try again.',
+      );
+      _userReferrals = [];
+      _activeReferralCode = null;
+      notifyListeners();
     } finally {
       _setLoading(false);
     }
@@ -67,7 +69,9 @@ class ReferralsProvider with ChangeNotifier {
       notifyListeners();
     } catch (e) {
       debugPrint('❌ Error loading referral stats: $e');
-      _loadMockReferralStats();
+      _setError('Unable to load referral statistics. Please try again.');
+      _referralStats = null;
+      notifyListeners();
     }
   }
 
@@ -101,7 +105,9 @@ class ReferralsProvider with ChangeNotifier {
       notifyListeners();
     } catch (e) {
       debugPrint('❌ Error loading program info: $e');
-      _loadMockProgramInfo();
+      _setError('Unable to load program information. Please try again.');
+      _programInfo = null;
+      notifyListeners();
     }
   }
 
@@ -202,123 +208,7 @@ class ReferralsProvider with ChangeNotifier {
       await loadProgramInfo();
     }
   }
-
-  // Mock data methods for fallback
-  void _loadMockUserReferrals(String userId) {
-    _userReferrals = [
-      {
-        '_id': 'ref_1',
-        'referrerId': userId,
-        'code': 'COFFEE2024',
-        'refereeName': 'Ahmed Hassan',
-        'refereeEmail': 'ahmed@example.com',
-        'status': 'completed',
-        'pointsEarned': 500,
-        'createdAt': DateTime.now()
-            .subtract(const Duration(days: 5))
-            .toIso8601String(),
-        'completedAt': DateTime.now()
-            .subtract(const Duration(days: 3))
-            .toIso8601String(),
-      },
-      {
-        '_id': 'ref_2',
-        'referrerId': userId,
-        'code': 'COFFEE2024',
-        'refereeName': 'Fatima Al-Rashid',
-        'refereeEmail': 'fatima@example.com',
-        'status': 'completed',
-        'pointsEarned': 500,
-        'createdAt': DateTime.now()
-            .subtract(const Duration(days: 10))
-            .toIso8601String(),
-        'completedAt': DateTime.now()
-            .subtract(const Duration(days: 8))
-            .toIso8601String(),
-      },
-      {
-        '_id': 'ref_3',
-        'referrerId': userId,
-        'code': 'COFFEE2024',
-        'refereeName': 'Mohammed Ali',
-        'refereeEmail': 'mohammed@example.com',
-        'status': 'pending',
-        'pointsEarned': 0,
-        'createdAt': DateTime.now()
-            .subtract(const Duration(days: 12))
-            .toIso8601String(),
-      },
-      {
-        '_id': 'ref_4',
-        'referrerId': userId,
-        'code': 'COFFEE2024',
-        'refereeName': 'Sara Abdullah',
-        'refereeEmail': 'sara@example.com',
-        'status': 'completed',
-        'pointsEarned': 500,
-        'createdAt': DateTime.now()
-            .subtract(const Duration(days: 20))
-            .toIso8601String(),
-        'completedAt': DateTime.now()
-            .subtract(const Duration(days: 18))
-            .toIso8601String(),
-      },
-      {
-        '_id': 'ref_5',
-        'referrerId': userId,
-        'code': 'COFFEE2024',
-        'refereeName': 'Omar Khalid',
-        'refereeEmail': 'omar@example.com',
-        'status': 'pending',
-        'pointsEarned': 0,
-        'createdAt': DateTime.now()
-            .subtract(const Duration(days: 25))
-            .toIso8601String(),
-      },
-    ];
-
-    _activeReferralCode = 'COFFEE2024';
-
-    debugPrint('📱 Loaded mock user referrals');
-    notifyListeners();
-  }
-
-  void _loadMockReferralStats() {
-    _referralStats = {
-      'totalReferrals': 5,
-      'completedReferrals': 3,
-      'pendingReferrals': 2,
-      'totalPointsEarned': 1500,
-      'conversionRate': 0.6,
-      'averageTimeToComplete': '3 days',
-    };
-
-    debugPrint('📱 Loaded mock referral stats');
-  }
-
-  void _loadMockProgramInfo() {
-    _programInfo = {
-      'name': 'Al Marya Referral Program',
-      'description': 'Refer friends and earn rewards for both of you',
-      'referrerReward': 500,
-      'refereeReward': 200,
-      'currency': 'points',
-      'terms': [
-        'Both referrer and referee must be verified users',
-        'Referee must make their first purchase within 30 days',
-        'Rewards are credited after successful purchase',
-        'Maximum 10 referrals per user per month',
-      ],
-      'howItWorks': [
-        'Share your unique referral code with friends',
-        'Your friend signs up using your code',
-        'They make their first purchase',
-        'Both of you earn rewards!',
-      ],
-    };
-
-    debugPrint('📱 Loaded mock program info');
-  }
+  // All mock data removed - app now relies entirely on backend API
 
   // Private helper methods
   void _setLoading(bool loading) {

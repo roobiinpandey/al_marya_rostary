@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../data/models/slider_model.dart';
 import '../constants/app_constants.dart';
+import '../utils/app_logger.dart';
 
 /// Slider API Service
 /// Handles all slider/banner-related API calls
@@ -39,10 +40,10 @@ class SliderApiService {
           return handler.next(options);
         },
         onError: (error, handler) {
-          print('❌ API Error: ${error.message}');
+          AppLogger.error('❌ API Error: ${error.message}');
           if (error.response != null) {
-            print('📛 Status: ${error.response?.statusCode}');
-            print('📛 Data: ${error.response?.data}');
+            AppLogger.error('📛 Status: ${error.response?.statusCode}');
+            AppLogger.error('📛 Data: ${error.response?.data}');
           }
           return handler.next(error);
         },
@@ -77,14 +78,14 @@ class SliderApiService {
         queryParams['sortOrder'] = sortOrder;
       }
 
-      print('🌐 SliderApiService: Fetching sliders with params: $queryParams');
+      AppLogger.network('🌐 SliderApiService: Fetching sliders with params: $queryParams');
 
       final response = await _dio.get(
         '/api/sliders',
         queryParameters: queryParams,
       );
 
-      print('✅ SliderApiService: Response status: ${response.statusCode}');
+      AppLogger.success('✅ SliderApiService: Response status: ${response.statusCode}');
 
       if (response.statusCode == 200 && response.data['success'] == true) {
         final data = response.data['data'] as List;
@@ -92,7 +93,7 @@ class SliderApiService {
             .map((json) => SliderModel.fromJson(json as Map<String, dynamic>))
             .toList();
 
-        print(
+        AppLogger.debug(
           '✅ SliderApiService: Successfully parsed ${sliders.length} sliders',
         );
 
@@ -106,10 +107,10 @@ class SliderApiService {
         throw Exception('Failed to fetch sliders: ${response.data['message']}');
       }
     } on DioException catch (e) {
-      print('❌ DioException in fetchAllSliders: ${e.message}');
+      AppLogger.error('❌ DioException in fetchAllSliders: ${e.message}');
       throw Exception('Network error: ${e.message}');
     } catch (e) {
-      print('❌ Exception in fetchAllSliders: $e');
+      AppLogger.error('❌ Exception in fetchAllSliders: $e');
       throw Exception('Error fetching sliders: $e');
     }
   }
@@ -117,7 +118,7 @@ class SliderApiService {
   /// Fetch a single slider by ID
   Future<SliderModel> fetchSlider(String id) async {
     try {
-      print('🌐 SliderApiService: Fetching slider $id');
+      AppLogger.network('🌐 SliderApiService: Fetching slider $id');
 
       final response = await _dio.get('/api/sliders/$id');
 
@@ -138,7 +139,7 @@ class SliderApiService {
   /// Fetch active sliders only
   Future<List<SliderModel>> fetchActiveSliders({int limit = 10}) async {
     try {
-      print('🌐 SliderApiService: Fetching active sliders');
+      AppLogger.network('🌐 SliderApiService: Fetching active sliders');
 
       final response = await _dio.get(
         '/api/sliders',
@@ -154,7 +155,7 @@ class SliderApiService {
         throw Exception('Failed to fetch active sliders');
       }
     } catch (e) {
-      print('❌ Error fetching active sliders: $e');
+      AppLogger.error('❌ Error fetching active sliders: $e');
       return [];
     }
   }
@@ -182,7 +183,7 @@ class SliderApiService {
     String? altText,
   }) async {
     try {
-      print('🌐 SliderApiService: Creating slider');
+      AppLogger.network('🌐 SliderApiService: Creating slider');
 
       // Create FormData for file upload
       final formData = FormData.fromMap({
@@ -211,7 +212,7 @@ class SliderApiService {
       final response = await _dio.post('/api/sliders', data: formData);
 
       if (response.statusCode == 201 && response.data['success'] == true) {
-        print('✅ SliderApiService: Slider created successfully');
+        AppLogger.success('✅ SliderApiService: Slider created successfully');
         return SliderModel.fromJson(
           response.data['data'] as Map<String, dynamic>,
         );
@@ -221,7 +222,7 @@ class SliderApiService {
     } on DioException catch (e) {
       throw Exception('Network error: ${e.message}');
     } catch (e) {
-      print('❌ Exception in createSlider: $e');
+      AppLogger.error('❌ Exception in createSlider: $e');
       throw Exception('Error creating slider: $e');
     }
   }
@@ -250,7 +251,7 @@ class SliderApiService {
     String? altText,
   }) async {
     try {
-      print('🌐 SliderApiService: Updating slider $id');
+      AppLogger.network('🌐 SliderApiService: Updating slider $id');
 
       final formData = FormData.fromMap({
         if (title != null) 'title': title,
@@ -276,7 +277,7 @@ class SliderApiService {
       final response = await _dio.put('/api/sliders/$id', data: formData);
 
       if (response.statusCode == 200 && response.data['success'] == true) {
-        print('✅ SliderApiService: Slider updated successfully');
+        AppLogger.success('✅ SliderApiService: Slider updated successfully');
         return SliderModel.fromJson(
           response.data['data'] as Map<String, dynamic>,
         );
@@ -286,7 +287,7 @@ class SliderApiService {
     } on DioException catch (e) {
       throw Exception('Network error: ${e.message}');
     } catch (e) {
-      print('❌ Exception in updateSlider: $e');
+      AppLogger.error('❌ Exception in updateSlider: $e');
       throw Exception('Error updating slider: $e');
     }
   }
@@ -296,12 +297,12 @@ class SliderApiService {
   /// Delete a slider
   Future<bool> deleteSlider(String id) async {
     try {
-      print('🌐 SliderApiService: Deleting slider $id');
+      AppLogger.network('🌐 SliderApiService: Deleting slider $id');
 
       final response = await _dio.delete('/api/sliders/$id');
 
       if (response.statusCode == 200 && response.data['success'] == true) {
-        print('✅ SliderApiService: Slider deleted successfully');
+        AppLogger.success('✅ SliderApiService: Slider deleted successfully');
         return true;
       } else {
         throw Exception('Failed to delete slider: ${response.data['message']}');
@@ -309,7 +310,7 @@ class SliderApiService {
     } on DioException catch (e) {
       throw Exception('Network error: ${e.message}');
     } catch (e) {
-      print('❌ Exception in deleteSlider: $e');
+      AppLogger.error('❌ Exception in deleteSlider: $e');
       throw Exception('Error deleting slider: $e');
     }
   }
@@ -319,7 +320,7 @@ class SliderApiService {
   /// Toggle slider active status
   Future<bool> toggleActiveStatus(String id, bool isActive) async {
     try {
-      print('🌐 SliderApiService: Toggling slider $id to $isActive');
+      AppLogger.network('🌐 SliderApiService: Toggling slider $id to $isActive');
 
       final response = await _dio.patch(
         '/api/sliders/$id',
@@ -327,13 +328,13 @@ class SliderApiService {
       );
 
       if (response.statusCode == 200 && response.data['success'] == true) {
-        print('✅ SliderApiService: Status toggled successfully');
+        AppLogger.success('✅ SliderApiService: Status toggled successfully');
         return true;
       } else {
         throw Exception('Failed to toggle status: ${response.data['message']}');
       }
     } catch (e) {
-      print('❌ Exception in toggleActiveStatus: $e');
+      AppLogger.error('❌ Exception in toggleActiveStatus: $e');
       return false;
     }
   }
@@ -346,7 +347,7 @@ class SliderApiService {
       await _dio.post('/api/sliders/$id/click');
       return true;
     } catch (e) {
-      print('❌ Exception in trackClick: $e');
+      AppLogger.error('❌ Exception in trackClick: $e');
       return false;
     }
   }
@@ -357,7 +358,7 @@ class SliderApiService {
       await _dio.post('/api/sliders/$id/view');
       return true;
     } catch (e) {
-      print('❌ Exception in trackView: $e');
+      AppLogger.error('❌ Exception in trackView: $e');
       return false;
     }
   }
@@ -367,7 +368,7 @@ class SliderApiService {
   /// Get slider statistics
   Future<Map<String, dynamic>> getSliderStats() async {
     try {
-      print('🌐 SliderApiService: Fetching slider statistics');
+      AppLogger.network('🌐 SliderApiService: Fetching slider statistics');
 
       final response = await _dio.get('/api/sliders/stats');
 
@@ -377,7 +378,7 @@ class SliderApiService {
         throw Exception('Failed to fetch stats');
       }
     } catch (e) {
-      print('❌ Exception in getSliderStats: $e');
+      AppLogger.error('❌ Exception in getSliderStats: $e');
       return {
         'total': 0,
         'active': 0,
@@ -393,7 +394,7 @@ class SliderApiService {
   /// Update display order of multiple sliders
   Future<bool> updateDisplayOrder(List<Map<String, dynamic>> updates) async {
     try {
-      print(
+      AppLogger.debug(
         '🌐 SliderApiService: Updating display order for ${updates.length} sliders',
       );
 
@@ -403,13 +404,13 @@ class SliderApiService {
       );
 
       if (response.statusCode == 200) {
-        print('✅ SliderApiService: Display order updated successfully');
+        AppLogger.success('✅ SliderApiService: Display order updated successfully');
         return true;
       } else {
         return false;
       }
     } catch (e) {
-      print('❌ Exception in updateDisplayOrder: $e');
+      AppLogger.error('❌ Exception in updateDisplayOrder: $e');
       return false;
     }
   }

@@ -36,7 +36,9 @@ class CoffeeProvider with ChangeNotifier {
       debugPrint('✅ Successfully loaded data from backend');
     } catch (e) {
       debugPrint('❌ Failed to initialize: $e');
-      _setError('Unable to connect to server. Please check your connection and try again.');
+      _setError(
+        'Unable to connect to server. Please check your connection and try again.',
+      );
     }
   }
 
@@ -67,7 +69,9 @@ class CoffeeProvider with ChangeNotifier {
 
       notifyListeners();
     } catch (e) {
-      _setError('Unable to load products. Please check your connection and try again.');
+      _setError(
+        'Unable to load products. Please check your connection and try again.',
+      );
       debugPrint('❌ Error loading coffees: $e');
       // Clear products on error
       _coffees = [];
@@ -162,5 +166,6 @@ class CoffeeProvider with ChangeNotifier {
   void _clearError() {
     _error = null;
   }
+
   // All fallback mock data removed - app now relies entirely on backend API
 }

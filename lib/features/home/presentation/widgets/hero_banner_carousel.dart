@@ -55,7 +55,8 @@ class _HeroBannerCarouselState extends State<HeroBannerCarousel> {
     } catch (e) {
       debugPrint('❌ Error loading banners: $e');
       setState(() {
-        _error = 'Unable to load banners. Please check your connection and try again.';
+        _error =
+            'Unable to load banners. Please check your connection and try again.';
         _isLoading = false;
         _banners = []; // Clear any existing banners
       });
@@ -386,46 +387,32 @@ class _HeroBannerCarouselState extends State<HeroBannerCarousel> {
                     ),
                   ],
                   const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () {
-                      // Track banner click
-                      _sliderService.trackClick(banner.id);
-
-                      // Navigate based on buttonLink if available
-                      if (banner.buttonLink != null &&
-                          banner.buttonLink!.isNotEmpty) {
-                        // TODO: Implement navigation based on linkType
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Opening: ${banner.buttonLink}'),
-                            backgroundColor: AppTheme.primaryBrown,
-                          ),
-                        );
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Exploring ${banner.title}'),
-                            backgroundColor: AppTheme.primaryBrown,
-                          ),
-                        );
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.accentAmber,
-                      foregroundColor: AppTheme.textDark,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
+                  // Only show button if actionType is not 'none'
+                  if (banner.actionType != null && banner.actionType != 'none')
+                    ElevatedButton(
+                      onPressed: () {
+                        // Track banner click
+                        _sliderService.trackClick(banner.id);
+                        // Handle action based on type
+                        _handleBannerAction(context, banner);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.accentAmber,
+                        foregroundColor: AppTheme.textDark,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                      child: Text(
+                        banner.buttonText ??
+                            _getDefaultButtonText(banner.actionType ?? 'none'),
+                        style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),
-                    child: Text(
-                      banner.buttonText ?? 'Explore Now',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
                 ],
               ),
             ),
@@ -433,5 +420,68 @@ class _HeroBannerCarouselState extends State<HeroBannerCarousel> {
         ),
       ),
     );
+  }
+
+  /// Handle banner action based on actionType
+  void _handleBannerAction(BuildContext context, SliderModel banner) {
+    final actionType = banner.actionType;
+    final actionValue = banner.actionValue;
+
+    switch (actionType) {
+      case 'category':
+        // Navigate to category page
+        if (actionValue != null && actionValue.isNotEmpty) {
+          Navigator.pushNamed(
+            context,
+            '/category-products',
+            arguments: {'categoryId': actionValue},
+          );
+        }
+        break;
+
+      case 'products':
+        // Navigate to all products page
+        Navigator.pushNamed(context, '/products');
+        break;
+
+      case 'offers':
+        // Navigate to offers/promotions page
+        Navigator.pushNamed(context, '/offers');
+        break;
+
+      case 'url':
+        // Open external URL
+        if (actionValue != null && actionValue.isNotEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Opening: $actionValue'),
+              backgroundColor: AppTheme.primaryBrown,
+            ),
+          );
+          // TODO: Use url_launcher package to open external URLs
+          // launchUrl(Uri.parse(actionValue));
+        }
+        break;
+
+      default:
+        // Do nothing for 'none' or unknown types
+        break;
+    }
+  }
+
+  /// Get default button text based on action type
+  String _getDefaultButtonText(String actionType) {
+    switch (actionType) {
+      case 'category':
+        return 'View Category';
+      case 'products':
+        return 'Shop Now';
+      case 'offers':
+        return 'View Offers';
+      case 'url':
+        return 'Learn More';
+      default:
+        return 'Explore Now';
+    }
   }
 }

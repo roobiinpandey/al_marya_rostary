@@ -157,10 +157,15 @@ class ReviewsProvider with ChangeNotifier {
       debugPrint('✅ Loaded ${_reviews.length} reviews for product $productId');
     } catch (e) {
       debugPrint('❌ Error loading product reviews: $e');
-      _setError('Failed to load reviews: ${e.toString()}');
-
-      // Load fallback mock data if API fails
-      _loadMockReviews(productId);
+      _setError(
+        'Unable to load reviews. Please check your connection and try again.',
+      );
+      _reviews = [];
+      _reviewStats = ReviewStats(
+        totalReviews: 0,
+        averageRating: 0.0,
+        ratingDistribution: {5: 0, 4: 0, 3: 0, 2: 0, 1: 0},
+      );
     } finally {
       _setLoadingState(false);
     }
@@ -295,62 +300,7 @@ class ReviewsProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  /// Load mock reviews as fallback
-  void _loadMockReviews(String productId) {
-    final mockReviewsData = [
-      {
-        '_id': 'mock_1',
-        'productId': productId,
-        'userId': 'user_1',
-        'userName': 'Ahmed Al-Mansoori',
-        'rating': 5,
-        'comment':
-            'Excellent coffee! The aroma is amazing and the taste is rich and smooth. Highly recommend!',
-        'helpfulCount': 12,
-        'status': 'approved',
-        'createdAt': DateTime.now()
-            .subtract(const Duration(days: 2))
-            .toIso8601String(),
-      },
-      {
-        '_id': 'mock_2',
-        'productId': productId,
-        'userId': 'user_2',
-        'userName': 'Fatima Hassan',
-        'rating': 4,
-        'comment': 'Great quality coffee. Perfect for my morning routine.',
-        'helpfulCount': 8,
-        'status': 'approved',
-        'createdAt': DateTime.now()
-            .subtract(const Duration(days: 5))
-            .toIso8601String(),
-      },
-      {
-        '_id': 'mock_3',
-        'productId': productId,
-        'userId': 'user_3',
-        'userName': 'Mohammed Al-Rashid',
-        'rating': 5,
-        'comment': 'Best coffee I\'ve ever purchased! Fresh and flavorful.',
-        'helpfulCount': 15,
-        'status': 'approved',
-        'createdAt': DateTime.now()
-            .subtract(const Duration(days: 10))
-            .toIso8601String(),
-      },
-    ];
-
-    _reviews = mockReviewsData.map((data) => Review.fromMap(data)).toList();
-
-    _reviewStats = ReviewStats(
-      averageRating: 4.7,
-      totalReviews: 3,
-      ratingDistribution: {5: 2, 4: 1, 3: 0, 2: 0, 1: 0},
-    );
-
-    debugPrint('📱 Loaded mock reviews as fallback');
-    notifyListeners();
-  }
+  // All mock data removed - app now relies entirely on backend API
 
   /// Clear all reviews and stats
   void clearReviews() {

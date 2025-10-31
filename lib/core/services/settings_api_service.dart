@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../constants/app_constants.dart';
+import '../utils/app_logger.dart';
 
 class SettingsApiService {
   final String baseUrl = AppConstants.baseUrl;
@@ -23,7 +24,7 @@ class SettingsApiService {
         throw Exception('Server error: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error fetching public settings: $e');
+      AppLogger.error('fetching public settings: $e');
       throw Exception('Failed to fetch settings: $e');
     }
   }
@@ -42,7 +43,7 @@ class SettingsApiService {
 
       return defaultValue;
     } catch (e) {
-      print('Error getting setting value for $key: $e');
+      AppLogger.error('getting setting value for $key: $e');
       return defaultValue;
     }
   }
@@ -75,7 +76,7 @@ class SettingsApiService {
         ),
       );
     } catch (e) {
-      print('Error getting contact info: $e');
+      AppLogger.error('getting contact info: $e');
       // Return default values on error
       return ContactInfo(
         email: 'info@almaryarostery.ae',

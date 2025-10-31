@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../../../../core/services/category_api_service.dart';
 import '../../../../data/models/category_model.dart';
+import '../../../../core/utils/app_logger.dart';
 
 /// Provider for managing category state and operations
 /// Handles all category-related business logic and state management
@@ -94,7 +95,7 @@ class CategoryProvider with ChangeNotifier {
       await _fetchStatistics();
     } catch (e) {
       _errorMessage = e.toString();
-      print('Error fetching categories: $e');
+      AppLogger.error('fetching categories: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -114,7 +115,7 @@ class CategoryProvider with ChangeNotifier {
     try {
       _statistics = await _categoryApiService.getCategoryStats();
     } catch (e) {
-      print('Error fetching statistics: $e');
+      AppLogger.error('fetching statistics: $e');
       _statistics = {
         'total': _categories.length,
         'active': _categories.where((c) => c.isActive).length,
@@ -166,7 +167,7 @@ class CategoryProvider with ChangeNotifier {
       return true;
     } catch (e) {
       _errorMessage = e.toString();
-      print('Error creating category: $e');
+      AppLogger.error('creating category: $e');
       _isSubmitting = false;
       notifyListeners();
       return false;
@@ -221,7 +222,7 @@ class CategoryProvider with ChangeNotifier {
       return true;
     } catch (e) {
       _errorMessage = e.toString();
-      print('Error updating category: $e');
+      AppLogger.error('updating category: $e');
       _isSubmitting = false;
       notifyListeners();
       return false;
@@ -253,7 +254,7 @@ class CategoryProvider with ChangeNotifier {
       return true;
     } catch (e) {
       _errorMessage = e.toString();
-      print('Error deleting category: $e');
+      AppLogger.error('deleting category: $e');
       _isSubmitting = false;
       notifyListeners();
       return false;
@@ -281,7 +282,7 @@ class CategoryProvider with ChangeNotifier {
       return true;
     } catch (e) {
       _errorMessage = e.toString();
-      print('Error toggling active status: $e');
+      AppLogger.error('toggling active status: $e');
       notifyListeners();
       return false;
     }
@@ -307,7 +308,7 @@ class CategoryProvider with ChangeNotifier {
       return true;
     } catch (e) {
       _errorMessage = e.toString();
-      print('Error updating display order: $e');
+      AppLogger.error('updating display order: $e');
       notifyListeners();
       return false;
     }

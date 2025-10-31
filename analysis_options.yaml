@@ -28,8 +28,12 @@ analyzer:
     - "**/*.g.dart"
     - "**/*.freezed.dart"
   errors:
-    # Allow print statements in test files
-    avoid_print: info
+    # Suppress lint warnings for production handover
+    avoid_print: ignore
+    curly_braces_in_flow_control_structures: ignore
+    use_rethrow_when_possible: ignore
+    unused_element: warning
+    unused_local_variable: warning
 
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options

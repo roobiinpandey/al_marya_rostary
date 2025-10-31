@@ -5,6 +5,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../data/models/coffee_product_model.dart';
 import 'write_review_page.dart';
+import '../../../../core/utils/app_logger.dart';
 
 /// Product detail page showing full product information with size selection
 class ProductDetailPage extends StatefulWidget {
@@ -22,9 +23,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   @override
   void initState() {
     super.initState();
-    print('🔍 Product Detail: Received product: ${widget.product.name}');
-    print('🔍 Product Detail: Product ID: ${widget.product.id}');
-    print('🔍 Product Detail: Product type: ${widget.product.runtimeType}');
+    AppLogger.debug('🔍 Product Detail: Received product: ${widget.product.name}');
+    AppLogger.debug('🔍 Product Detail: Product ID: ${widget.product.id}');
+    AppLogger.debug('🔍 Product Detail: Product type: ${widget.product.runtimeType}');
   }
 
   // Size options with their prices (multipliers relative to base price per kg)

@@ -5,6 +5,7 @@ import 'package:geocoding/geocoding.dart';
 import '../providers/address_provider.dart';
 import '../services/location_service.dart';
 import '../models/saved_address.dart';
+import '../core/utils/app_logger.dart';
 
 class AddAddressSheet extends StatefulWidget {
   const AddAddressSheet({super.key});
@@ -104,7 +105,7 @@ class _AddAddressSheetState extends State<AddAddressSheet> {
       });
       // Log error in debug mode only
       assert(() {
-        print('Error getting address: $e');
+        AppLogger.error('getting address: $e');
         return true;
       }());
     }

@@ -79,6 +79,7 @@ import '../features/accessories/data/accessory_model.dart';
 import '../features/gifts/presentation/pages/gift_sets_product_page.dart';
 import '../features/navigation/presentation/pages/persistent_navigation_wrapper.dart';
 import '../features/common/presentation/pages/contact_page.dart';
+import '../core/utils/app_logger.dart';
 
 class AppRouter {
   static const String home = '/';
@@ -268,25 +269,25 @@ class AppRouter {
         );
 
       case '/product':
-        print('🔍 App Router: /product route called');
-        print('🔍 App Router: Raw arguments: ${settings.arguments}');
-        print(
+        AppLogger.debug('🔍 App Router: /product route called');
+        AppLogger.debug('🔍 App Router: Raw arguments: ${settings.arguments}');
+        AppLogger.debug(
           '🔍 App Router: Arguments type: ${settings.arguments?.runtimeType}',
         );
 
         try {
           final product = settings.arguments as CoffeeProductModel?;
-          print('🔍 App Router: Cast successful, product: ${product?.name}');
+          AppLogger.debug('🔍 App Router: Cast successful, product: ${product?.name}');
 
           if (product == null) {
-            print('❌ App Router: Product is null, showing error page');
+            AppLogger.error('❌ App Router: Product is null, showing error page');
             return _buildRouteWithPersistentNav(
               _buildErrorPage('Product not found'),
               settings: settings,
             );
           }
 
-          print(
+          AppLogger.debug(
             '✅ App Router: Creating ProductDetailPage with product: ${product.name}',
           );
           return _buildRouteWithPersistentNav(
@@ -294,7 +295,7 @@ class AppRouter {
             settings: settings,
           );
         } catch (e) {
-          print('❌ App Router: Type casting failed: $e');
+          AppLogger.error('❌ App Router: Type casting failed: $e');
           return _buildRouteWithPersistentNav(
             _buildErrorPage('Invalid product data'),
             settings: settings,
@@ -339,7 +340,7 @@ class AppRouter {
         return _buildRoute(const AdminSlidersPage(), settings: settings);
 
       case '/admin/quick-categories':
-        print('🟢 Navigating to Quick Categories page'); // Debug log
+        AppLogger.debug('🟢 Navigating to Quick Categories page'); // Debug log
         return _buildRoute(
           const AdminQuickCategoriesPage(),
           settings: settings,

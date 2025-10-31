@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/saved_address.dart';
 import '../services/address_service.dart';
+import '../core/utils/app_logger.dart';
 
 class AddressProvider extends ChangeNotifier {
   final AddressService _addressService = AddressService();
@@ -71,7 +72,7 @@ class AddressProvider extends ChangeNotifier {
     } catch (e) {
       // Log error loading default address in debug mode only
       assert(() {
-        print('Error loading default address: $e');
+        AppLogger.error('loading default address: $e');
         return true;
       }());
     }

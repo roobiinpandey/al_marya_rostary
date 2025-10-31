@@ -120,6 +120,10 @@ function showAddSliderModal() {
     
     // Make image required for new banner
     document.getElementById('sliderImage').required = true;
+    
+    // Reset action type fields
+    document.getElementById('sliderActionType').value = 'none';
+    handleActionTypeChange();
 }
 
 function closeSliderModal() {
@@ -163,8 +167,19 @@ async function handleSliderSubmit(event) {
     // Add form fields
     formData.append('title', form.title.value);
     formData.append('description', form.description.value || '');
-    formData.append('link', form.link.value || '');
-    formData.append('linkType', form.linkType.value);
+    formData.append('buttonText', form.buttonText.value || '');
+    formData.append('actionType', form.actionType.value);
+    
+    // Add action value based on action type
+    const actionType = form.actionType.value;
+    if (actionType === 'category') {
+        formData.append('actionValue', document.getElementById('sliderCategory').value);
+    } else if (actionType === 'url') {
+        formData.append('actionValue', form.actionValue.value);
+    } else {
+        formData.append('actionValue', '');
+    }
+    
     formData.append('displayOrder', form.displayOrder.value || 0);
     formData.append('isActive', form.isActive.checked);
     
@@ -332,5 +347,65 @@ async function deleteSlider(sliderId) {
         const logger = window.adminUtils?.logger || console;
         logger.error('Error deleting banner:', error);
         showToast('Error deleting banner', 'error');
+    }
+}
+
+// Handle action type change to show/hide relevant fields
+function handleActionTypeChange() {
+    const actionType = document.getElementById('sliderActionType').value;
+    const actionValueGroup = document.getElementById('sliderActionValueGroup');
+    const categoryGroup = document.getElementById('sliderCategoryGroup');
+    const actionValueInput = document.getElementById('sliderActionValue');
+    const actionValueLabel = document.getElementById('sliderActionValueLabel');
+    const actionValueHelp = document.getElementById('sliderActionValueHelp');
+    
+    // Hide all conditional fields by default
+    actionValueGroup.style.display = 'none';
+    categoryGroup.style.display = 'none';
+    actionValueInput.removeAttribute('required');
+    
+    // Show relevant fields based on action type
+    switch(actionType) {
+        case 'category':
+            categoryGroup.style.display = 'block';
+            loadCategoriesForSlider();
+            break;
+        case 'url':
+            actionValueGroup.style.display = 'block';
+            actionValueLabel.textContent = 'External URL *';
+            actionValueInput.placeholder = 'https://example.com';
+            actionValueHelp.textContent = 'Enter the full URL to open';
+            actionValueInput.setAttribute('required', 'required');
+            break;
+        case 'none':
+        case 'products':
+        case 'offers':
+            // No additional fields needed
+            break;
+    }
+}
+
+// Load categories for dropdown
+async function loadCategoriesForSlider() {
+    try {
+        const response = await authenticatedFetch(`${API_BASE_URL}/api/categories`);
+        const data = await handleApiResponse(response);
+        
+        const categorySelect = document.getElementById('sliderCategory');
+        
+        if (data.success && data.data && data.data.length > 0) {
+            categorySelect.innerHTML = '<option value="">Select a category...</option>';
+            data.data.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category._id;
+                option.textContent = category.name;
+                categorySelect.appendChild(option);
+            });
+        } else {
+            categorySelect.innerHTML = '<option value="">No categories available</option>';
+        }
+    } catch (error) {
+        console.error('Error loading categories:', error);
+        document.getElementById('sliderCategory').innerHTML = '<option value="">Error loading categories</option>';
     }
 }

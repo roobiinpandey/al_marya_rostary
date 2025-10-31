@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:math' show sin, cos, atan2, sqrt, pi;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/saved_address.dart';
+import '../core/utils/app_logger.dart';
 
 class AddressService {
   static const String _addressesKey = 'saved_addresses';
@@ -31,7 +32,7 @@ class AddressService {
     } catch (e) {
       // Log error in debug mode only
       assert(() {
-        print('Error loading saved addresses: $e');
+        AppLogger.error('loading saved addresses: $e');
         return true;
       }());
       return [];
@@ -82,7 +83,7 @@ class AddressService {
     } catch (e) {
       // Log error in debug mode only
       assert(() {
-        print('Error saving address: $e');
+        AppLogger.error('saving address: $e');
         return true;
       }());
       return false;
@@ -116,7 +117,7 @@ class AddressService {
     } catch (e) {
       // Log error in debug mode only
       assert(() {
-        print('Error deleting address: $e');
+        AppLogger.error('deleting address: $e');
         return true;
       }());
       return false;
@@ -132,7 +133,7 @@ class AddressService {
     } catch (e) {
       // Log error in debug mode only
       assert(() {
-        print('Error setting default address: $e');
+        AppLogger.error('setting default address: $e');
         return true;
       }());
     }
@@ -164,7 +165,7 @@ class AddressService {
     } catch (e) {
       // Log error in debug mode only
       assert(() {
-        print('Error getting default address: $e');
+        AppLogger.error('getting default address: $e');
         return true;
       }());
       return null;
@@ -228,7 +229,7 @@ class AddressService {
     } catch (e) {
       // Log error in debug mode only
       assert(() {
-        print('Error clearing addresses: $e');
+        AppLogger.error('clearing addresses: $e');
         return true;
       }());
     }

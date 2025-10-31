@@ -8,6 +8,8 @@ class SliderModel {
   final String? mobileImage;
   final String? buttonText;
   final String? buttonLink;
+  final String? actionType; // none, category, products, url, offers
+  final String? actionValue; // category ID, URL, etc.
   final String backgroundColor;
   final String textColor;
   final String position; // left, center, right
@@ -32,6 +34,8 @@ class SliderModel {
     this.mobileImage,
     this.buttonText,
     this.buttonLink,
+    this.actionType,
+    this.actionValue,
     this.backgroundColor = '#A89A6A',
     this.textColor = '#FFFFFF',
     this.position = 'center',
@@ -59,6 +63,8 @@ class SliderModel {
       mobileImage: json['mobileImage']?.toString(),
       buttonText: json['buttonText']?.toString(),
       buttonLink: json['buttonLink']?.toString(),
+      actionType: json['actionType']?.toString(),
+      actionValue: json['actionValue']?.toString(),
       backgroundColor: json['backgroundColor']?.toString() ?? '#A89A6A',
       textColor: json['textColor']?.toString() ?? '#FFFFFF',
       position: json['position']?.toString() ?? 'center',
@@ -107,6 +113,8 @@ class SliderModel {
       if (mobileImage != null) 'mobileImage': mobileImage,
       if (buttonText != null) 'buttonText': buttonText,
       if (buttonLink != null) 'buttonLink': buttonLink,
+      if (actionType != null) 'actionType': actionType,
+      if (actionValue != null) 'actionValue': actionValue,
       'backgroundColor': backgroundColor,
       'textColor': textColor,
       'position': position,

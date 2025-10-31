@@ -10,6 +10,7 @@ import '../core/constants/app_constants.dart';
 import '../models/order.dart';
 import '../models/cart.dart';
 import '../features/auth/presentation/providers/auth_provider.dart';
+import '../core/utils/app_logger.dart';
 
 class OrdersPage extends StatefulWidget {
   const OrdersPage({super.key});
@@ -59,9 +60,9 @@ class _OrdersPageState extends State<OrdersPage>
         return;
       }
 
-      print('📝 User authenticated: ${authProvider.user!.email}');
-      print('🔑 User ID: ${authProvider.user!.id}');
-      print('🔥 Fetching Firebase ID token...');
+      AppLogger.debug('📝 User authenticated: ${authProvider.user!.email}');
+      AppLogger.debug('🔑 User ID: ${authProvider.user!.id}');
+      AppLogger.debug('🔥 Fetching Firebase ID token...');
 
       // Get Firebase ID token for authentication
       final firebaseUser = fb_auth.FirebaseAuth.instance.currentUser;
@@ -74,8 +75,8 @@ class _OrdersPageState extends State<OrdersPage>
         throw Exception('Failed to get authentication token');
       }
 
-      print('✅ Firebase ID token obtained');
-      print(
+      AppLogger.success('✅ Firebase ID token obtained');
+      AppLogger.debug(
         '📡 Fetching orders from: ${AppConstants.baseUrl}/api/users/me/orders',
       );
 
@@ -88,18 +89,18 @@ class _OrdersPageState extends State<OrdersPage>
         },
       );
 
-      print('📦 Response status: ${response.statusCode}');
-      print('📦 Response body: ${response.body}');
+      AppLogger.debug('📦 Response status: ${response.statusCode}');
+      AppLogger.debug('📦 Response body: ${response.body}');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        print('✅ Raw response data: $data');
-        print('✅ Orders count: ${data['count']}');
+        AppLogger.success('✅ Raw response data: $data');
+        AppLogger.success('✅ Orders count: ${data['count']}');
 
         // Handle null or missing orders field
         final ordersData = data['orders'];
         if (ordersData == null) {
-          print('⚠️ Orders field is null, treating as empty list');
+          AppLogger.warning('⚠️ Orders field is null, treating as empty list');
           setState(() {
             _orders = [];
             _isLoading = false;
@@ -109,15 +110,15 @@ class _OrdersPageState extends State<OrdersPage>
 
         // Safely cast to List
         final ordersJson = ordersData as List;
-        print('📋 Processing ${ordersJson.length} orders...');
+        AppLogger.debug('📋 Processing ${ordersJson.length} orders...');
 
         final userOrders = ordersJson
             .map((json) {
               try {
                 return Order.fromJson(json, json['_id']);
               } catch (e) {
-                print('❌ Error parsing order: $e');
-                print('   Order data: $json');
+                AppLogger.error('❌ Error parsing order: $e');
+                AppLogger.debug('   Order data: $json');
                 return null;
               }
             })
@@ -133,7 +134,7 @@ class _OrdersPageState extends State<OrdersPage>
           _isLoading = false;
         });
 
-        print('✅ Successfully loaded ${userOrders.length} orders');
+        AppLogger.success('✅ Successfully loaded ${userOrders.length} orders');
       } else if (response.statusCode == 401) {
         throw Exception(
           'Authentication failed. Please logout and login again.',
@@ -154,7 +155,7 @@ class _OrdersPageState extends State<OrdersPage>
         _errorMessage = e.toString().replaceAll('Exception: ', '');
         _isLoading = false;
       });
-      print('❌ Error loading orders: $e');
+      AppLogger.error('❌ Error loading orders: $e');
     }
   }
 

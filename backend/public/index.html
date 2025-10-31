@@ -2594,21 +2594,38 @@
                         <textarea id="sliderDescription" name="description" rows="2" placeholder="Brief description of the banner"></textarea>
                     </div>
 
-                    <!-- Link/Action -->
+                    <!-- Button Text (Optional) -->
                     <div class="form-group">
-                        <label for="sliderLink">Link/Action URL</label>
-                        <input type="text" id="sliderLink" name="link" placeholder="e.g., /products/summer-blend">
-                        <small>Where should users go when they click the banner?</small>
+                        <label for="sliderButtonText">Button Text (Optional)</label>
+                        <input type="text" id="sliderButtonText" name="buttonText" placeholder="e.g., Shop Now, View Offers">
+                        <small>Leave empty to use default text based on action type</small>
                     </div>
 
-                    <!-- Link Type -->
+                    <!-- Action Type -->
                     <div class="form-group">
-                        <label for="sliderLinkType">Link Type</label>
-                        <select id="sliderLinkType" name="linkType">
-                            <option value="internal">Internal (App Screen)</option>
-                            <option value="external">External (Web URL)</option>
-                            <option value="product">Product Detail</option>
-                            <option value="category">Category</option>
+                        <label for="sliderActionType">Banner Action *</label>
+                        <select id="sliderActionType" name="actionType" onchange="handleActionTypeChange()" required>
+                            <option value="none">No Action (Hide Button)</option>
+                            <option value="products">Navigate to Products Page</option>
+                            <option value="category">Navigate to Specific Category</option>
+                            <option value="offers">Navigate to Offers Page</option>
+                            <option value="url">Open External URL</option>
+                        </select>
+                        <small>Choose what happens when users click the banner button</small>
+                    </div>
+
+                    <!-- Action Value (Conditional) -->
+                    <div class="form-group" id="sliderActionValueGroup" style="display: none;">
+                        <label for="sliderActionValue" id="sliderActionValueLabel">Action Value</label>
+                        <input type="text" id="sliderActionValue" name="actionValue" placeholder="">
+                        <small id="sliderActionValueHelp"></small>
+                    </div>
+
+                    <!-- Category Selector (shown when actionType is 'category') -->
+                    <div class="form-group" id="sliderCategoryGroup" style="display: none;">
+                        <label for="sliderCategory">Select Category *</label>
+                        <select id="sliderCategory" name="categoryId">
+                            <option value="">Loading categories...</option>
                         </select>
                     </div>
 

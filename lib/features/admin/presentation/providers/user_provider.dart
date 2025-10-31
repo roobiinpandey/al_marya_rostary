@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/services/user_api_service.dart';
 import '../../../../data/models/user_model.dart';
+import '../../../../core/utils/app_logger.dart';
 
 /// User Provider
 /// Manages state for user/customer management
@@ -105,7 +106,7 @@ class UserProvider with ChangeNotifier {
       _updateStatistics();
     } catch (e) {
       _errorMessage = e.toString();
-      print('Error fetching users: $e');
+      AppLogger.error('fetching users: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -130,7 +131,7 @@ class UserProvider with ChangeNotifier {
       _errorMessage = null;
     } catch (e) {
       _errorMessage = e.toString();
-      print('Error fetching user details: $e');
+      AppLogger.error('fetching user details: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -198,7 +199,7 @@ class UserProvider with ChangeNotifier {
       _errorMessage = e.toString();
       _isLoading = false;
       notifyListeners();
-      print('Error updating user: $e');
+      AppLogger.error('updating user: $e');
       return false;
     }
   }
@@ -225,7 +226,7 @@ class UserProvider with ChangeNotifier {
       return success;
     } catch (e) {
       _errorMessage = e.toString();
-      print('Error toggling status: $e');
+      AppLogger.error('toggling status: $e');
       return false;
     }
   }
@@ -250,7 +251,7 @@ class UserProvider with ChangeNotifier {
       return true;
     } catch (e) {
       _errorMessage = e.toString();
-      print('Error updating roles: $e');
+      AppLogger.error('updating roles: $e');
       return false;
     }
   }
@@ -281,7 +282,7 @@ class UserProvider with ChangeNotifier {
       return true;
     } catch (e) {
       _errorMessage = e.toString();
-      print('Error updating loyalty points: $e');
+      AppLogger.error('updating loyalty points: $e');
       return false;
     }
   }
@@ -311,7 +312,7 @@ class UserProvider with ChangeNotifier {
       _errorMessage = e.toString();
       _isLoading = false;
       notifyListeners();
-      print('Error deleting user: $e');
+      AppLogger.error('deleting user: $e');
       return false;
     }
   }
@@ -369,7 +370,7 @@ class UserProvider with ChangeNotifier {
       return await _userApiService.fetchUserOrders(userId);
     } catch (e) {
       _errorMessage = e.toString();
-      print('Error fetching user orders: $e');
+      AppLogger.error('fetching user orders: $e');
       return [];
     }
   }
@@ -412,7 +413,7 @@ class UserProvider with ChangeNotifier {
       return await _userApiService.searchUsers(query);
     } catch (e) {
       _errorMessage = e.toString();
-      print('Error searching users: $e');
+      AppLogger.error('searching users: $e');
       return [];
     }
   }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:qahwat_al_emarat/models/order.dart';
 import 'package:qahwat_al_emarat/core/theme/theme_extensions.dart';
 import 'package:qahwat_al_emarat/core/services/order_api_service.dart';
+import '../../../../core/utils/app_logger.dart';
 
 /// AdminOrdersPage displays all orders for admin management
 class AdminOrdersPage extends StatefulWidget {
@@ -47,7 +48,7 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
         _isLoading = false;
       });
     } catch (e) {
-      print('Error loading orders: $e');
+      AppLogger.error('loading orders: $e');
       setState(() {
         _error = e.toString();
         _isLoading = false;
@@ -123,7 +124,7 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
         );
       }
     } catch (e) {
-      print('Error updating order status: $e');
+      AppLogger.error('updating order status: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
