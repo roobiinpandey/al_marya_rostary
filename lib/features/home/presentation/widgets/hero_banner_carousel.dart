@@ -42,14 +42,12 @@ class _HeroBannerCarouselState extends State<HeroBannerCarousel> {
 
       final sliders = result['sliders'] as List<SliderModel>;
 
-      if (sliders.isEmpty) {
-        // If no banners in backend, use fallback mockup banners
-        _loadFallbackBanners();
-      } else {
-        setState(() {
-          _banners = sliders;
-          _isLoading = false;
-        });
+      setState(() {
+        _banners = sliders;
+        _isLoading = false;
+      });
+
+      if (_banners.isNotEmpty) {
         _startAutoScroll();
       }
 
@@ -57,58 +55,11 @@ class _HeroBannerCarouselState extends State<HeroBannerCarousel> {
     } catch (e) {
       debugPrint('❌ Error loading banners: $e');
       setState(() {
-        _error = e.toString();
+        _error = 'Unable to load banners. Please check your connection and try again.';
         _isLoading = false;
+        _banners = []; // Clear any existing banners
       });
-      // Use fallback banners if API fails
-      _loadFallbackBanners();
     }
-  }
-
-  /// Fallback to mockup banners if backend is unavailable
-  void _loadFallbackBanners() {
-    final now = DateTime.now();
-
-    setState(() {
-      _banners = [
-        SliderModel(
-          id: 'fallback_1',
-          title: 'Premium Arabica Beans',
-          description: 'Fresh from the mountains of Yemen',
-          image:
-              'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=800',
-          isActive: true,
-          displayOrder: 1,
-          createdAt: now,
-          updatedAt: now,
-        ),
-        SliderModel(
-          id: 'fallback_2',
-          title: 'Single Origin Excellence',
-          description: 'Ethiopian Yirgacheffe - Light & Bright',
-          image:
-              'https://images.unsplash.com/photo-1497935586351-b67a49e012bf?w=800',
-          isActive: true,
-          displayOrder: 2,
-          createdAt: now,
-          updatedAt: now,
-        ),
-        SliderModel(
-          id: 'fallback_3',
-          title: 'Artisan Roasted',
-          description: 'Master roasters, perfect extraction',
-          image:
-              'https://images.unsplash.com/photo-1459755486867-b55449bb39ff?w=800',
-          isActive: true,
-          displayOrder: 3,
-          createdAt: now,
-          updatedAt: now,
-        ),
-      ];
-      _isLoading = false;
-    });
-    _startAutoScroll();
-    debugPrint('⚠️ Using fallback mockup banners (backend unavailable)');
   }
 
   void _startAutoScroll() {
@@ -143,30 +94,56 @@ class _HeroBannerCarouselState extends State<HeroBannerCarousel> {
       );
     }
 
-    // Show error message if banners failed to load and no fallback
+    // Show friendly error message if banners failed to load
     if (_banners.isEmpty) {
-      return SizedBox(
+      return Container(
         height: 250,
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: AppTheme.primaryBrown.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: AppTheme.primaryBrown.withValues(alpha: 0.1),
+            width: 1,
+          ),
+        ),
         child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.error_outline, size: 48, color: Colors.grey),
-              const SizedBox(height: 8),
-              Text(
-                'No banners available',
-                style: TextStyle(color: Colors.grey),
-              ),
-              if (_error != null)
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Text(
-                    _error!,
-                    style: TextStyle(color: Colors.grey, fontSize: 12),
-                    textAlign: TextAlign.center,
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.wifi_off_rounded,
+                  size: 56,
+                  color: AppTheme.primaryBrown.withValues(alpha: 0.3),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  _error ?? 'No banners available',
+                  style: TextStyle(
+                    color: AppTheme.primaryBrown.withValues(alpha: 0.6),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: _loadBannersFromBackend,
+                  icon: const Icon(Icons.refresh_rounded, size: 18),
+                  label: const Text('Retry'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppTheme.primaryBrown,
+                    side: BorderSide(color: AppTheme.primaryBrown),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
                   ),
                 ),
-            ],
+              ],
+            ),
           ),
         ),
       );

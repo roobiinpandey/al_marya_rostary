@@ -30,15 +30,13 @@ class CoffeeProvider with ChangeNotifier {
   // Initialize the provider
   Future<void> _init() async {
     try {
-      // Try to load real data from MongoDB first
       await _coffeeApiService.init();
       await loadCoffees();
       await loadCategories();
-      debugPrint('✅ Successfully loaded real MongoDB data');
+      debugPrint('✅ Successfully loaded data from backend');
     } catch (e) {
-      debugPrint('⚠️ MongoDB failed, using fallback data: $e');
-      // Only use fallback if MongoDB completely fails
-      _loadMockDataFallback();
+      debugPrint('❌ Failed to initialize: $e');
+      _setError('Unable to connect to server. Please check your connection and try again.');
     }
   }
 
@@ -65,15 +63,16 @@ class CoffeeProvider with ChangeNotifier {
       _coffees = coffees;
       // Set featured coffees (first 4 or those marked as featured)
       _featuredCoffees = coffees.take(4).toList();
-      debugPrint('✅ Loaded ${coffees.length} real coffees from MongoDB API');
+      debugPrint('✅ Loaded ${coffees.length} coffees from backend');
 
       notifyListeners();
     } catch (e) {
-      _setError('Failed to load coffees: ${e.toString()}');
+      _setError('Unable to load products. Please check your connection and try again.');
       debugPrint('❌ Error loading coffees: $e');
-
-      // Fallback to mock data if API fails
-      _loadMockDataFallback();
+      // Clear products on error
+      _coffees = [];
+      _featuredCoffees = [];
+      notifyListeners();
     } finally {
       _setLoading(false);
     }
@@ -163,54 +162,5 @@ class CoffeeProvider with ChangeNotifier {
   void _clearError() {
     _error = null;
   }
-
-  // Minimal fallback mock data when API is completely unavailable
-  void _loadMockDataFallback() {
-    debugPrint('📦 Loading minimal fallback data due to API unavailability...');
-
-    // Minimal fallback data - just to prevent empty state when API is down
-    _coffees = [
-      const CoffeeProductModel(
-        id: 'fallback-1',
-        name: 'Al Marya House Blend',
-        description:
-            'Our signature coffee blend - temporarily using offline data',
-        price: 45.0,
-        imageUrl: 'assets/images/default-coffee.jpg', // Use local asset instead
-        origin: 'Multi-Origin',
-        roastLevel: 'Medium',
-        stock: 100,
-        variants: [
-          CoffeeVariant(size: '250g', price: 45.0, stock: 30),
-          CoffeeVariant(size: '500g', price: 85.0, stock: 25),
-        ],
-        categories: ['House Blend'],
-        isActive: true,
-        isFeatured: true,
-      ),
-      const CoffeeProductModel(
-        id: 'fallback-2',
-        name: 'Arabic Traditional',
-        description:
-            'Traditional Arabic coffee - temporarily using offline data',
-        price: 50.0,
-        imageUrl: 'assets/images/default-coffee.jpg', // Use local asset instead
-        origin: 'Yemen',
-        roastLevel: 'Dark',
-        stock: 80,
-        variants: [CoffeeVariant(size: '250g', price: 50.0, stock: 20)],
-        categories: ['Traditional'],
-        isActive: true,
-        isFeatured: true,
-      ),
-    ];
-
-    _featuredCoffees = _coffees;
-    _categories = ['House Blend', 'Traditional'];
-
-    // Show a clear message to the user that they're viewing offline data
-    _setError('Using offline data - connect to internet for latest products');
-
-    notifyListeners();
-  }
+  // All fallback mock data removed - app now relies entirely on backend API
 }
