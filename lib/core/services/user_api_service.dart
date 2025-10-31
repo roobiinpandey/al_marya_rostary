@@ -2,16 +2,16 @@ import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../data/models/user_model.dart';
 import '../utils/app_logger.dart';
+import '../constants/app_constants.dart';
 
 /// User API Service
 /// Handles all user/customer management API calls
 class UserApiService {
   final Dio _dio;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
-  static const String baseUrl = 'http://localhost:5001/api';
 
   UserApiService() : _dio = Dio() {
-    _dio.options.baseUrl = baseUrl;
+    _dio.options.baseUrl = '${AppConstants.baseUrl}/api';
     _dio.options.connectTimeout = const Duration(seconds: 10);
     _dio.options.receiveTimeout = const Duration(seconds: 10);
 
@@ -329,6 +329,71 @@ class UserApiService {
       throw Exception('Network error: ${e.message}');
     } catch (e) {
       throw Exception('Error exporting users: $e');
+    }
+  }
+
+  /// Update current user's profile with optional avatar
+  Future<UserModel> updateMyProfile({
+    String? name,
+    String? phone,
+    String? avatarPath, // Local file path for upload
+    required String firebaseToken,
+  }) async {
+    try {
+      AppLogger.network('Updating profile...', tag: 'UserAPI');
+
+      // Create FormData for multipart upload
+      final formData = FormData();
+
+      if (name != null && name.isNotEmpty) {
+        formData.fields.add(MapEntry('name', name));
+      }
+
+      if (phone != null) {
+        formData.fields.add(MapEntry('phone', phone));
+      }
+
+      // Add avatar file if provided
+      if (avatarPath != null && avatarPath.isNotEmpty) {
+        formData.files.add(
+          MapEntry(
+            'avatar',
+            await MultipartFile.fromFile(avatarPath, filename: 'profile.jpg'),
+          ),
+        );
+        AppLogger.info('Avatar file added to upload', tag: 'UserAPI');
+      }
+
+      final response = await _dio.put(
+        '/users/me/profile',
+        data: formData,
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $firebaseToken',
+            'Content-Type': 'multipart/form-data',
+          },
+        ),
+      );
+
+      if (response.data['success'] == true) {
+        AppLogger.success('Profile updated successfully', tag: 'UserAPI');
+        return UserModel.fromJson(response.data['user']);
+      } else {
+        throw Exception(response.data['message'] ?? 'Failed to update profile');
+      }
+    } on DioException catch (e) {
+      AppLogger.error(
+        'Network error updating profile',
+        tag: 'UserAPI',
+        error: e,
+      );
+      if (e.response?.statusCode == 401) {
+        throw Exception('Session expired. Please sign in again.');
+      }
+      throw Exception('Network error: ${e.message}');
+    } catch (e) {
+      AppLogger.error('Error updating profile', tag: 'UserAPI', error: e);
+      throw Exception('Error updating profile: $e');
     }
   }
 }

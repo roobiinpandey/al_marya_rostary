@@ -227,14 +227,18 @@ class _OrdersPageState extends State<OrdersPage>
             )
           : _errorMessage != null
           ? _buildErrorState()
-          : TabBarView(
-              controller: _tabController,
-              children: [
-                _buildOrdersList(),
-                _buildOrdersList(),
-                _buildOrdersList(),
-                _buildOrdersList(),
-              ],
+          : RefreshIndicator(
+              onRefresh: _loadOrders,
+              color: AppTheme.primaryBrown,
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  _buildOrdersList(),
+                  _buildOrdersList(),
+                  _buildOrdersList(),
+                  _buildOrdersList(),
+                ],
+              ),
             ),
     );
   }

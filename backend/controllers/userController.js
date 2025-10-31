@@ -591,6 +591,87 @@ const exportUsers = async (req, res) => {
   }
 };
 
+// @desc    Update current user's profile
+// @route   PUT /api/users/me/profile
+// @access  Private (Firebase authenticated users)
+const updateMyProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { name, phone } = req.body;
+
+    console.log(`👤 Updating profile for user ID: ${userId}`);
+    console.log(`📝 Update data:`, { name, phone, hasAvatar: !!req.file });
+
+    // Find user in MongoDB
+    const user = await User.findById(userId);
+
+    if (!user) {
+      console.error(`❌ User not found: ${userId}`);
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Update fields
+    if (name && name.trim()) {
+      user.name = name.trim();
+    }
+
+    if (phone !== undefined) {
+      user.phone = phone && phone.trim() ? phone.trim() : null;
+    }
+
+    // Update avatar if uploaded
+    if (req.file) {
+      const avatarUrl = req.file.path; // Cloudinary URL
+      console.log(`📸 New avatar uploaded: ${avatarUrl}`);
+      
+      // Delete old avatar from Cloudinary if exists
+      if (user.avatar && user.avatar.includes('cloudinary')) {
+        try {
+          const { deleteImage } = require('../config/cloudinary');
+          await deleteImage(user.avatar);
+          console.log(`🗑️ Deleted old avatar from Cloudinary`);
+        } catch (deleteError) {
+          console.error('Failed to delete old avatar:', deleteError);
+          // Continue anyway, don't fail the request
+        }
+      }
+      
+      user.avatar = avatarUrl;
+    }
+
+    await user.save();
+
+    console.log(`✅ Profile updated successfully for ${user.email}`);
+
+    // Return updated user data
+    res.json({
+      success: true,
+      message: 'Profile updated successfully',
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        avatar: user.avatar,
+        isEmailVerified: user.isEmailVerified,
+        roles: user.roles,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt
+      }
+    });
+  } catch (error) {
+    console.error('❌ Error updating profile:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update profile',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
 module.exports = {
   getUsers,
   getUser,
@@ -602,5 +683,6 @@ module.exports = {
   toggleUserStatus,
   updateUserRoles,
   getUserActivity,
-  exportUsers
+  exportUsers,
+  updateMyProfile
 };

@@ -5,6 +5,7 @@ class UserModel {
   final String name;
   final String email;
   final String? phone;
+  final String? avatar; // Profile picture URL
   final List<String> roles;
   final String? firebaseUid;
   final String? firebaseSyncStatus;
@@ -32,6 +33,7 @@ class UserModel {
     required this.name,
     required this.email,
     this.phone,
+    this.avatar,
     required this.roles,
     this.firebaseUid,
     this.firebaseSyncStatus,
@@ -55,6 +57,7 @@ class UserModel {
       name: json['name'] ?? 'Unknown',
       email: json['email'] ?? '',
       phone: json['phone'],
+      avatar: json['avatar'],
       roles: List<String>.from(json['roles'] ?? ['customer']),
       firebaseUid: json['firebaseUid'],
       firebaseSyncStatus: json['firebaseSyncStatus'],
@@ -98,6 +101,7 @@ class UserModel {
       'name': name,
       'email': email,
       'phone': phone,
+      'avatar': avatar,
       'roles': roles,
       'firebaseUid': firebaseUid,
       'firebaseSyncStatus': firebaseSyncStatus,
