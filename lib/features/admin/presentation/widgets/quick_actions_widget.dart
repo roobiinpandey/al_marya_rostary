@@ -32,9 +32,8 @@ class QuickActionsWidget extends StatelessWidget {
               subtitle: 'Create new coffee item',
               color: AppTheme.primaryBrown,
               onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Add Product - Coming Soon')),
-                );
+                // Navigate to Products page where user can add product
+                Navigator.pushNamed(context, '/admin/products');
               },
             ),
             _buildActionCard(
@@ -44,11 +43,8 @@ class QuickActionsWidget extends StatelessWidget {
               subtitle: 'Update stock levels',
               color: AppTheme.accentBrown,
               onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Manage Inventory - Coming Soon'),
-                  ),
-                );
+                // Navigate to Products page to manage inventory
+                Navigator.pushNamed(context, '/admin/products');
               },
             ),
             _buildActionCard(

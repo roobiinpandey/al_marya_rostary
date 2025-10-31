@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../widgets/admin_sidebar.dart';
 import '../widgets/dashboard_metrics_cards.dart';
 import '../widgets/recent_orders_widget.dart';
 import '../widgets/sales_chart_widget.dart';
 import '../widgets/quick_actions_widget.dart';
+import '../providers/admin_provider.dart';
 import '../../../../core/theme/app_theme.dart';
 
 /// Admin dashboard page showing key metrics and business overview
@@ -18,39 +20,59 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   bool _sidebarOpen = true;
 
   @override
+  void initState() {
+    super.initState();
+    // Initialize dashboard data when page loads
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final adminProvider = Provider.of<AdminProvider>(context, listen: false);
+      adminProvider.fetchDashboardData();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isMobile = screenWidth < 768; // Mobile breakpoint
 
     return Scaffold(
-      appBar: isMobile ? AppBar(
-        backgroundColor: AppTheme.primaryBrown,
-        title: const Text(
-          'Admin Dashboard',
-          style: TextStyle(color: Colors.white),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.menu, color: Colors.white),
-          onPressed: () => setState(() => _sidebarOpen = !_sidebarOpen),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.white),
-            onPressed: () {
-              // TODO: Refresh dashboard data
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Dashboard refreshed')),
-              );
-            },
-          ),
-        ],
-      ) : null,
-      drawer: isMobile ? Drawer(
-        child: AdminSidebar(
-          isOpen: true,
-          onToggle: () => setState(() => _sidebarOpen = !_sidebarOpen),
-        ),
-      ) : null,
+      appBar: isMobile
+          ? AppBar(
+              backgroundColor: AppTheme.primaryBrown,
+              title: const Text(
+                'Admin Dashboard',
+                style: TextStyle(color: Colors.white),
+              ),
+              leading: IconButton(
+                icon: const Icon(Icons.menu, color: Colors.white),
+                onPressed: () => setState(() => _sidebarOpen = !_sidebarOpen),
+              ),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.refresh, color: Colors.white),
+                  onPressed: () async {
+                    final adminProvider = Provider.of<AdminProvider>(
+                      context,
+                      listen: false,
+                    );
+                    await adminProvider.refreshDashboard();
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Dashboard refreshed')),
+                      );
+                    }
+                  },
+                ),
+              ],
+            )
+          : null,
+      drawer: isMobile
+          ? Drawer(
+              child: AdminSidebar(
+                isOpen: true,
+                onToggle: () => setState(() => _sidebarOpen = !_sidebarOpen),
+              ),
+            )
+          : null,
       body: isMobile ? _buildMobileLayout() : _buildDesktopLayout(),
     );
   }
@@ -96,16 +118,16 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                         children: [
                           Text(
                             'Dashboard',
-                            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                              color: AppTheme.textDark,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: Theme.of(context).textTheme.headlineMedium
+                                ?.copyWith(
+                                  color: AppTheme.textDark,
+                                  fontWeight: FontWeight.bold,
+                                ),
                           ),
                           Text(
                             'Welcome back, Admin',
-                            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              color: AppTheme.textMedium,
-                            ),
+                            style: Theme.of(context).textTheme.bodyLarge
+                                ?.copyWith(color: AppTheme.textMedium),
                           ),
                         ],
                       ),
@@ -116,7 +138,9 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                         onPressed: () {
                           // TODO: Refresh dashboard data
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Dashboard refreshed')),
+                            const SnackBar(
+                              content: Text('Dashboard refreshed'),
+                            ),
                           );
                         },
                         tooltip: 'Refresh',
@@ -177,7 +201,9 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                                   borderRadius: BorderRadius.circular(12),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.black.withValues(alpha: 0.05),
+                                      color: Colors.black.withValues(
+                                        alpha: 0.05,
+                                      ),
                                       blurRadius: 8,
                                       offset: const Offset(0, 4),
                                     ),
@@ -200,7 +226,9 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                                   borderRadius: BorderRadius.circular(12),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.black.withValues(alpha: 0.05),
+                                      color: Colors.black.withValues(
+                                        alpha: 0.05,
+                                      ),
                                       blurRadius: 8,
                                       offset: const Offset(0, 4),
                                     ),
@@ -259,10 +287,11 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   children: [
                     Text(
                       'Dashboard',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: AppTheme.textDark,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(
+                            color: AppTheme.textDark,
+                            fontWeight: FontWeight.bold,
+                          ),
                     ),
                     Text(
                       'Welcome back, Admin',

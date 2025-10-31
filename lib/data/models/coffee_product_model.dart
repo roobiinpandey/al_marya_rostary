@@ -64,16 +64,41 @@ class CoffeeProductModel extends CoffeeProduct {
       return json['_id'] as String;
     }
 
-    // Priority 3: If _id is an object (MongoDB ObjectId), convert it
+    // Priority 3: If _id is an object (MongoDB buffer format)
     if (json['_id'] is Map) {
-      // MongoDB might return _id as {buffer: {...}}
-      // In this case, the backend should have added 'id' field, so this shouldn't happen
-      // But we'll handle it gracefully by generating a placeholder
-      return 'temp_${DateTime.now().millisecondsSinceEpoch}';
+      final idMap = json['_id'] as Map<String, dynamic>;
+
+      // Handle buffer format: {buffer: {0: 104, 1: 240, ...}}
+      if (idMap.containsKey('buffer') && idMap['buffer'] is Map) {
+        return _bufferToHexString(idMap['buffer'] as Map<String, dynamic>);
+      }
+
+      // Handle direct buffer format: {0: 104, 1: 240, ...}
+      if (idMap.containsKey('0')) {
+        return _bufferToHexString(idMap);
+      }
     }
 
-    // Fallback: Generate temporary ID
-    return 'temp_${DateTime.now().millisecondsSinceEpoch}';
+    // Fallback: Return empty string and let backend handle error
+    print('⚠️ Warning: Could not parse product ID from: ${json['_id']}');
+    return '';
+  }
+
+  /// Convert MongoDB buffer format to hex string
+  static String _bufferToHexString(Map<String, dynamic> buffer) {
+    final bytes = <int>[];
+    for (var i = 0; i < 12; i++) {
+      if (buffer.containsKey(i.toString())) {
+        bytes.add(buffer[i.toString()] as int);
+      }
+    }
+
+    if (bytes.length != 12) {
+      print('⚠️ Warning: Invalid buffer length: ${bytes.length}');
+      return '';
+    }
+
+    return bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join('');
   }
 
   factory CoffeeProductModel.fromJson(Map<String, dynamic> json) {

@@ -26,6 +26,7 @@ const auditLogSchema = new mongoose.Schema({
       'ORDER_CREATED',
       'ORDER_UPDATED',
       'SETTINGS_UPDATED',
+      'BULK_UPDATE_SETTING',
       'ADMIN_LOGIN',
       'ADMIN_LOGOUT'
     ]

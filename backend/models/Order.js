@@ -34,7 +34,7 @@ const orderItemSchema = new mongoose.Schema({
 const orderSchema = new mongoose.Schema({
   orderNumber: {
     type: String,
-    unique: true,
+    unique: true, // This automatically creates an index
     required: true
   },
   user: {
@@ -143,16 +143,11 @@ const orderSchema = new mongoose.Schema({
 }, {
   timestamps: true,
   toJSON: { virtuals: true },
-  toObject: { virtuals: true }
+  toObject: { virtuals: true },
+  autoIndex: true // Allow automatic index creation in development
 });
 
-// Indexes for better query performance
-orderSchema.index({ user: 1, createdAt: -1 });
-// orderNumber index is already created by unique: true, no need for duplicate
-orderSchema.index({ status: 1 });
-orderSchema.index({ paymentStatus: 1 });
-orderSchema.index({ createdAt: -1 });
-orderSchema.index({ 'guestInfo.email': 1 });
+// ⚡ OPTIMIZED INDEXES - No duplicates, explicit definitions only
 
 // Virtual for order age
 orderSchema.virtual('orderAge').get(function() {
@@ -217,16 +212,15 @@ orderSchema.statics.findRecent = function(limit = 10) {
     .populate('items.coffee', 'name price');
 };
 
-// ⚡ PERFORMANCE OPTIMIZED INDEXES
+// ⚡ PERFORMANCE OPTIMIZED INDEXES - No duplicates
 orderSchema.index({ user: 1, createdAt: -1 }); // User's order history (most common query)
-orderSchema.index({ orderNumber: 1 }, { unique: true }); // Order lookup by number
-orderSchema.index({ status: 1, paymentStatus: 1 }); // Admin filtering by status
-orderSchema.index({ createdAt: -1 }); // Recent orders sorting
-orderSchema.index({ 'guestInfo.email': 1 }); // Guest order lookup
+// orderNumber unique index is automatically created by schema definition
+orderSchema.index({ status: 1, paymentStatus: 1 }); // Admin filtering by status  
 orderSchema.index({ status: 1, createdAt: -1 }); // Status-based timeline queries
 orderSchema.index({ user: 1, status: 1 }); // User's orders by status
+orderSchema.index({ 'guestInfo.email': 1 }); // Guest order lookup
 
-// Compound index for admin dashboard queries
+// Compound index for comprehensive admin dashboard queries
 orderSchema.index({ status: 1, paymentStatus: 1, createdAt: -1 });
 
 module.exports = mongoose.model('Order', orderSchema);

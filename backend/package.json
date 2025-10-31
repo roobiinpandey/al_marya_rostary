@@ -6,8 +6,27 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
+    "dev:clean": "./kill-port.sh && npm run dev",
+    "kill:port": "./kill-port.sh",
     "build": "echo 'No build step required'",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "seed:all": "node scripts/seed-all.js",
+    "seed:tiers": "node scripts/seed-loyalty-tiers.js",
+    "seed:plans": "node scripts/seed-subscription-plans.js",
+    "seed:sample": "node scripts/seed-sample-data.js",
+    "test:api": "node test-api.js",
+    "db:cleanup": "node scripts/cleanup-database-indexes.js",
+    "db:monitor": "node scripts/database-monitor.js",
+    "db:snapshot": "node scripts/database-monitor.js --snapshot",
+    "db:slow-queries": "node scripts/database-monitor.js --slow-queries",
+    "db:optimize": "node scripts/database-optimizer.js",
+    "db:optimize-small": "node scripts/optimize-small-db.js",
+    "loyalty:sync": "node scripts/loyalty-user-sync.js",
+    "loyalty:check": "node scripts/loyalty-auto-sync.js --validate",
+    "loyalty:fix": "node scripts/loyalty-auto-sync.js --fix",
+    "loyalty:welcome": "node scripts/award-welcome-bonus.js",
+    "firebase:sync": "node scripts/firebase-first-sync.js",
+    "firebase:validate": "node scripts/firebase-webhook-sync.js validate"
   },
   "engines": {
     "node": ">=20.0.0",
@@ -22,6 +41,7 @@
   "author": "Al Marya Rostery",
   "license": "ISC",
   "dependencies": {
+    "@dataconnect/generated": "file:src/dataconnect-generated",
     "bcryptjs": "^3.0.2",
     "chalk": "^5.6.2",
     "compression": "^1.8.1",
@@ -44,6 +64,7 @@
     "node-fetch": "^2.7.0",
     "nodemailer": "^7.0.9",
     "pdfkit": "^0.17.2",
+    "qrcode": "^1.5.4",
     "validator": "^13.15.15"
   },
   "devDependencies": {

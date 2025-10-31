@@ -18,7 +18,10 @@ const logAdminAction = async (userId, action, details = {}, req = null, targetUs
 
     await AuditLog.create(logData);
   } catch (error) {
-    console.error('Failed to log admin action:', error);
+    // Only log in development mode
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Failed to log admin action:', error.message);
+    }
   }
 };
 
@@ -39,7 +42,10 @@ const logAudit = async (userId, action, resourceType, resourceId, details = {}) 
       timestamp: new Date()
     });
   } catch (error) {
-    console.error('Failed to log audit action:', error);
+    // Only log in development mode
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Failed to log audit action:', error.message);
+    }
   }
 };
 

@@ -48,7 +48,11 @@ class _SettingsPageState extends State<SettingsPage> {
                     icon: Icons.person,
                     title: 'Profile',
                     subtitle: 'Manage your profile information',
-                    onTap: () => Navigator.pushNamed(context, '/profile'),
+                    onTap: () => Navigator.pushNamed(
+                      context,
+                      '/main-navigation',
+                      arguments: {'initialIndex': 3}, // Profile tab
+                    ),
                   ),
                   _buildListTile(
                     icon: Icons.security,

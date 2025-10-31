@@ -138,6 +138,17 @@ class CoffeeProvider with ChangeNotifier {
     await loadCoffees(category: category);
   }
 
+  // Filter by origin/region
+  Future<void> filterByOrigin(String origin) async {
+    await loadCoffees(search: origin);
+  }
+
+  // Filter by multiple origins (for regions)
+  Future<void> filterByRegion(List<String> origins) async {
+    final searchQuery = origins.join(' OR ');
+    await loadCoffees(search: searchQuery);
+  }
+
   // Private helper methods
   void _setLoading(bool loading) {
     _isLoading = loading;
@@ -153,90 +164,52 @@ class CoffeeProvider with ChangeNotifier {
     _error = null;
   }
 
-  // Fallback mock data when API is not available
+  // Minimal fallback mock data when API is completely unavailable
   void _loadMockDataFallback() {
-    debugPrint('📦 Loading fallback mock data...');
+    debugPrint('📦 Loading minimal fallback data due to API unavailability...');
+
+    // Minimal fallback data - just to prevent empty state when API is down
     _coffees = [
       const CoffeeProductModel(
-        id: '1',
-        name: 'Yemen Mocha',
-        description: 'Rich and bold flavor from the mountains of Yemen',
+        id: 'fallback-1',
+        name: 'Al Marya House Blend',
+        description:
+            'Our signature coffee blend - temporarily using offline data',
         price: 45.0,
-        imageUrl:
-            'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=400',
-        origin: 'Yemen',
+        imageUrl: 'assets/images/default-coffee.jpg', // Use local asset instead
+        origin: 'Multi-Origin',
         roastLevel: 'Medium',
         stock: 100,
         variants: [
           CoffeeVariant(size: '250g', price: 45.0, stock: 30),
           CoffeeVariant(size: '500g', price: 85.0, stock: 25),
-          CoffeeVariant(size: '1kg', price: 160.0, stock: 15),
         ],
-        categories: ['Hot Coffee', 'Specialty'],
+        categories: ['House Blend'],
         isActive: true,
         isFeatured: true,
       ),
       const CoffeeProductModel(
-        id: '2',
-        name: 'Ethiopian Yirgacheffe',
-        description: 'Light and fruity with floral notes',
-        price: 42.0,
-        imageUrl:
-            'https://images.unsplash.com/photo-1497935586351-b67a49e012bf?w=400',
-        origin: 'Ethiopia',
-        roastLevel: 'Light',
-        stock: 85,
-        variants: [
-          CoffeeVariant(size: '250g', price: 42.0, stock: 35),
-          CoffeeVariant(size: '500g', price: 80.0, stock: 30),
-          CoffeeVariant(size: '1kg', price: 150.0, stock: 20),
-        ],
-        categories: ['Single Origin'],
-        isActive: true,
-        isFeatured: true,
-      ),
-      const CoffeeProductModel(
-        id: '3',
-        name: 'House Blend',
-        description: 'Our signature blend, perfect for everyday enjoyment',
-        price: 38.0,
-        imageUrl:
-            'https://images.unsplash.com/photo-1459755486867-b55449bb39ff?w=400',
-        origin: 'Multi-Origin',
-        roastLevel: 'Medium',
-        stock: 120,
-        variants: [
-          CoffeeVariant(size: '250g', price: 38.0, stock: 40),
-          CoffeeVariant(size: '500g', price: 70.0, stock: 40),
-          CoffeeVariant(size: '1kg', price: 130.0, stock: 40),
-        ],
-        categories: ['Blends'],
-        isActive: true,
-        isFeatured: true,
-      ),
-      const CoffeeProductModel(
-        id: '4',
-        name: 'Dark Roast Supreme',
-        description: 'Bold and intense for the strong coffee lovers',
-        price: 40.0,
-        imageUrl:
-            'https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=400',
-        origin: 'Brazil',
+        id: 'fallback-2',
+        name: 'Arabic Traditional',
+        description:
+            'Traditional Arabic coffee - temporarily using offline data',
+        price: 50.0,
+        imageUrl: 'assets/images/default-coffee.jpg', // Use local asset instead
+        origin: 'Yemen',
         roastLevel: 'Dark',
-        stock: 90,
-        variants: [
-          CoffeeVariant(size: '250g', price: 40.0, stock: 30),
-          CoffeeVariant(size: '500g', price: 75.0, stock: 30),
-          CoffeeVariant(size: '1kg', price: 140.0, stock: 30),
-        ],
-        categories: ['Dark Roast'],
+        stock: 80,
+        variants: [CoffeeVariant(size: '250g', price: 50.0, stock: 20)],
+        categories: ['Traditional'],
         isActive: true,
         isFeatured: true,
       ),
     ];
 
     _featuredCoffees = _coffees;
-    _categories = ['Espresso', 'Single Origin', 'Blends', 'Dark Roast'];
+    _categories = ['House Blend', 'Traditional'];
+
+    // Show a clear message to the user that they're viewing offline data
+    _setError('Using offline data - connect to internet for latest products');
 
     notifyListeners();
   }

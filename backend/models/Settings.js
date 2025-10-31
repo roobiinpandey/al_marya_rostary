@@ -4,8 +4,7 @@ const settingsSchema = new mongoose.Schema({
   key: {
     type: String,
     required: true,
-    unique: true,
-    index: true
+    unique: true // Automatically creates an index
   },
   value: {
     type: mongoose.Schema.Types.Mixed,
@@ -131,6 +130,8 @@ settingsSchema.statics.initializeDefaults = async function() {
     { key: 'contact_email', value: 'info@qahwatalemarat.com', category: 'general', description: 'Contact email address', isPublic: true },
     { key: 'contact_phone', value: '+971-XX-XXXX-XXX', category: 'general', description: 'Contact phone number', isPublic: true },
     { key: 'address', value: 'Dubai, UAE', category: 'general', description: 'Business address', isPublic: true },
+    { key: 'store_latitude', value: '', category: 'general', description: 'Store latitude coordinate for Google Maps', isPublic: true },
+    { key: 'store_longitude', value: '', category: 'general', description: 'Store longitude coordinate for Google Maps', isPublic: true },
     { key: 'maintenance_mode', value: false, category: 'general', description: 'Enable maintenance mode', dataType: 'boolean' },
     
     // Business Settings
@@ -142,6 +143,11 @@ settingsSchema.statics.initializeDefaults = async function() {
     { key: 'minimum_order_amount', value: 50, category: 'business', description: 'Minimum order amount', dataType: 'number', isPublic: true },
     { key: 'delivery_fee', value: 15, category: 'business', description: 'Delivery fee', dataType: 'number', isPublic: true },
     { key: 'free_delivery_threshold', value: 200, category: 'business', description: 'Free delivery threshold', dataType: 'number', isPublic: true },
+    { key: 'tax_rate', value: 5, category: 'business', description: 'Tax rate percentage', dataType: 'number', isPublic: true },
+    { key: 'primary_color', value: '#8B4513', category: 'business', description: 'Primary brand color', isPublic: true },
+    { key: 'secondary_color', value: '#D2691E', category: 'business', description: 'Secondary brand color', isPublic: true },
+    { key: 'logo_url', value: '/assets/images/logo.png', category: 'business', description: 'Logo URL', isPublic: true },
+    { key: 'low_stock_notifications', value: true, category: 'notification', description: 'Enable low stock notifications', dataType: 'boolean' },
     
     // Email Settings
     { key: 'smtp_host', value: '', category: 'email', description: 'SMTP server host' },

@@ -10,12 +10,12 @@ buildscript {
         classpath("com.google.gms:google-services:4.4.0")
     }
 }
-plugins {
-    // Root build uses settings.gradle.kts for plugin management; keep minimal config here
-}
 
-subprojects {
-    evaluationDependsOn(":app")
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
 }
 
 tasks.register<Delete>("clean") {

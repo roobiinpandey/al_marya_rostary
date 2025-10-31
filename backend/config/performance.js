@@ -257,21 +257,48 @@ const optimizeJsonResponse = (req, res, next) => {
 /**
  * Remove empty values from objects to reduce response size
  */
-const removeEmpty = (obj) => {
+const removeEmpty = (obj, seen = new WeakSet()) => {
+  // Prevent circular references
+  if (obj && typeof obj === 'object' && seen.has(obj)) {
+    return obj;
+  }
+  
   if (Array.isArray(obj)) {
-    return obj.map(removeEmpty).filter(item => 
+    // Skip Mongoose arrays to avoid circular references
+    if (obj.constructor.name === 'MongooseDocumentArray' || obj.isMongooseArray) {
+      return obj;
+    }
+    
+    if (obj && typeof obj === 'object') {
+      seen.add(obj);
+    }
+    
+    const filtered = obj.map(item => removeEmpty(item, seen)).filter(item => 
       item !== null && 
       item !== undefined && 
       item !== '' &&
       !(Array.isArray(item) && item.length === 0) &&
       !(typeof item === 'object' && Object.keys(item).length === 0)
     );
+    
+    if (obj && typeof obj === 'object') {
+      seen.delete(obj);
+    }
+    
+    return filtered;
   }
   
   if (obj && typeof obj === 'object') {
+    // Skip Mongoose documents to avoid circular references
+    if (obj.constructor.name === 'model' || obj.$__ || obj._id) {
+      return obj;
+    }
+    
+    seen.add(obj);
+    
     const cleaned = {};
     Object.keys(obj).forEach(key => {
-      const value = removeEmpty(obj[key]);
+      const value = removeEmpty(obj[key], seen);
       if (
         value !== null && 
         value !== undefined && 
@@ -282,6 +309,8 @@ const removeEmpty = (obj) => {
         cleaned[key] = value;
       }
     });
+    
+    seen.delete(obj);
     return cleaned;
   }
   

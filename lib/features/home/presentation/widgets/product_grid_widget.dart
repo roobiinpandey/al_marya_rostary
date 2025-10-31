@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../cart/presentation/providers/cart_provider.dart';
+import '../../../coffee/presentation/providers/coffee_provider.dart';
 import '../../../../../core/theme/app_theme.dart';
 import '../../../../../data/models/coffee_product_model.dart';
 
@@ -13,80 +14,37 @@ class ProductGridWidget extends StatefulWidget {
 }
 
 class _ProductGridWidgetState extends State<ProductGridWidget> {
-  late Future<List<CoffeeProductModel>> _productsFuture;
-
   @override
   void initState() {
     super.initState();
-    _productsFuture = _fetchFeaturedProducts();
-  }
-
-  Future<List<CoffeeProductModel>> _fetchFeaturedProducts() async {
-    // Simulate network delay
-    await Future.delayed(const Duration(seconds: 1));
-
-    // Return featured products (subset of all products)
-    return [
-      const CoffeeProductModel(
-        id: '1',
-        name: 'Ethiopian Yirgacheffe',
-        description:
-            'Light roasted single origin coffee from Ethiopia with floral notes',
-        price: 24.99,
-        imageUrl:
-            'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=400',
-        origin: 'Ethiopia',
-        roastLevel: 'Light',
-        stock: 50,
-      ),
-      const CoffeeProductModel(
-        id: '2',
-        name: 'Colombian Supremo',
-        description: 'Medium roasted coffee from the mountains of Colombia',
-        price: 19.99,
-        imageUrl:
-            'https://images.unsplash.com/photo-1497935586351-b67a49e012bf?w=400',
-        origin: 'Colombia',
-        roastLevel: 'Medium',
-        stock: 30,
-      ),
-      const CoffeeProductModel(
-        id: '3',
-        name: 'Brazilian Santos',
-        description: 'Dark roasted coffee with chocolate notes from Brazil',
-        price: 22.99,
-        imageUrl:
-            'https://images.unsplash.com/photo-1459755486867-b55449bb39ff?w=400',
-        origin: 'Brazil',
-        roastLevel: 'Dark',
-        stock: 40,
-      ),
-      const CoffeeProductModel(
-        id: '4',
-        name: 'Guatemala Antigua',
-        description: 'Full-bodied coffee with spicy undertones from Guatemala',
-        price: 26.99,
-        imageUrl:
-            'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=400',
-        origin: 'Guatemala',
-        roastLevel: 'Medium-Dark',
-        stock: 25,
-      ),
-    ];
+    // Load products from API when widget initializes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final coffeeProvider = Provider.of<CoffeeProvider>(
+        context,
+        listen: false,
+      );
+      if (coffeeProvider.featuredCoffees.isEmpty && !coffeeProvider.isLoading) {
+        coffeeProvider.loadCoffees(limit: 4); // Load only 4 products for grid
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<CoffeeProductModel>>(
-      future: _productsFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
+    return Consumer<CoffeeProvider>(
+      builder: (context, coffeeProvider, child) {
+        // Loading state
+        if (coffeeProvider.isLoading &&
+            coffeeProvider.featuredCoffees.isEmpty) {
           return const Center(
             child: CircularProgressIndicator(
               valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF8B4513)),
             ),
           );
-        } else if (snapshot.hasError) {
+        }
+
+        // Error state
+        if (coffeeProvider.hasError && coffeeProvider.featuredCoffees.isEmpty) {
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -98,45 +56,48 @@ class _ProductGridWidgetState extends State<ProductGridWidget> {
                   style: Theme.of(context).textTheme.headlineMedium,
                 ),
                 const SizedBox(height: 8),
+                Text(
+                  coffeeProvider.error ?? 'Unknown error',
+                  style: const TextStyle(color: Colors.grey),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: () {
-                    setState(() {
-                      _productsFuture = _fetchFeaturedProducts();
-                    });
+                    coffeeProvider.loadCoffees(limit: 4);
                   },
                   child: const Text('Retry'),
                 ),
               ],
             ),
           );
-        } else if (snapshot.hasData) {
-          final products = snapshot.data!;
-          if (products.isEmpty) {
-            return const Center(child: Text('No products available'));
-          }
-
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                childAspectRatio:
-                    0.7, // Increased to give more height and prevent overflow
-              ),
-              itemCount: products.length,
-              itemBuilder: (context, index) {
-                final product = products[index];
-                return _buildGridProductCard(context, product);
-              },
-            ),
-          );
-        } else {
-          return const Center(child: Text('No data available'));
         }
+
+        // Success state with data
+        final products = coffeeProvider.featuredCoffees.take(4).toList();
+        if (products.isEmpty) {
+          return const Center(child: Text('No products available'));
+        }
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              childAspectRatio:
+                  0.7, // Increased to give more height and prevent overflow
+            ),
+            itemCount: products.length,
+            itemBuilder: (context, index) {
+              final product = products[index];
+              return _buildGridProductCard(context, product);
+            },
+          ),
+        );
       },
     );
   }
@@ -282,7 +243,9 @@ class _ProductGridWidgetState extends State<ProductGridWidget> {
                       Consumer<CartProvider>(
                         builder: (context, cartProvider, child) {
                           final isInCart = cartProvider.items.any(
-                            (item) => item.product.id == product.id,
+                            (item) =>
+                                item.itemType == CartItemType.coffee &&
+                                item.id == product.id,
                           );
 
                           return IconButton(

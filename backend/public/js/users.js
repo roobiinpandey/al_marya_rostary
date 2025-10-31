@@ -252,38 +252,25 @@ function displayFirebaseUsersTable(users) {
         });
     }
     
-    // Initialize or reinitialize DataTable
+    // Simple table functionality without jQuery DataTable
     try {
-        if (usersDataTable) {
-            usersDataTable.destroy();
+        // Add simple search functionality
+        const searchInput = document.getElementById('usersSearchInput');
+        if (searchInput) {
+            searchInput.addEventListener('keyup', function() {
+                const filter = this.value.toLowerCase();
+                const rows = document.querySelectorAll('#firebaseUsersTable tbody tr');
+                
+                rows.forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(filter) ? '' : 'none';
+                });
+            });
         }
-        usersDataTable = $('#firebaseUsersTable').DataTable({
-            responsive: true,
-            pageLength: 25,
-            order: [[6, 'desc']], // Sort by creation date
-            dom: 'rtip', // Remove default search and controls
-            language: {
-                search: '',
-                searchPlaceholder: 'Search users...',
-                lengthMenu: 'Show _MENU_ users per page',
-                info: 'Showing _START_ to _END_ of _TOTAL_ users',
-                paginate: {
-                    first: 'First',
-                    last: 'Last',
-                    next: 'Next',
-                    previous: 'Previous'
-                }
-            }
-        });
         
-        // Connect custom search
-        $('#usersSearchInput').on('keyup', function() {
-            usersDataTable.search(this.value).draw();
-        });
-        
-        console.log('✅ DataTable initialized successfully');
+        console.log('✅ Simple table functionality initialized successfully');
     } catch (error) {
-        console.error('⚠️ DataTable initialization failed:', error);
+        console.error('⚠️ Table initialization failed:', error);
     }
 }
 

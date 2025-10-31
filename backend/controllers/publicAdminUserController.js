@@ -9,8 +9,20 @@ const mongoose = require('mongoose');
 // @access  Public (for development only)
 const getUsers = async (req, res) => {
   try {
+    // Admin authentication check
+    const adminUsername = req.user.username;
+    const adminPass = req.user.password || process.env.ADMIN_PASS;
+
+    if (adminUsername !== 'admin' || adminPass !== process.env.ADMIN_PASS) {
+      return res.status(403).json({ 
+        success: false, 
+        message: 'Unauthorized' 
+      });
+    }
+
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    // FIXED: Use high default limit for dashboard stats accuracy; pagination only when explicitly requested
+    const limit = parseInt(req.query.limit) || 100; // Increased from 10 to 100 for dashboard compatibility
     const skip = (page - 1) * limit;
 
     // Build filter object

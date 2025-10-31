@@ -11,7 +11,7 @@ const getSettings = async (req, res) => {
       settings = await Settings.getSettingsByCategory(category, includePrivate === 'true');
     } else {
       const query = includePrivate === 'true' ? {} : { isPublic: true };
-      const settingsList = await Settings.find(query).sort({ category: 1, key: 1 });
+      const settingsList = await Settings.find(query).sort({ category: 1, key: 1 }).lean();
       
       // Group by category
       settings = {};
@@ -47,7 +47,7 @@ const getSettings = async (req, res) => {
 const getSetting = async (req, res) => {
   try {
     const { key } = req.params;
-    const setting = await Settings.findOne({ key });
+    const setting = await Settings.findOne({ key }).lean();
 
     if (!setting) {
       return res.status(404).json({
@@ -111,7 +111,7 @@ const updateSetting = async (req, res) => {
       { key },
       updateData,
       { new: true, runValidators: true }
-    );
+    ).lean();
 
     // Log the change
     await logAudit(req.user.id, 'UPDATE_SETTING', 'Settings', key, {
@@ -375,7 +375,7 @@ const getPublicSettings = async (req, res) => {
     if (category) {
       settings = await Settings.getSettingsByCategory(category, false); // only public
     } else {
-      const publicSettings = await Settings.find({ isPublic: true }).sort({ category: 1, key: 1 });
+      const publicSettings = await Settings.find({ isPublic: true }).sort({ category: 1, key: 1 }).lean();
       settings = {};
       publicSettings.forEach(setting => {
         if (!settings[setting.category]) {

@@ -163,17 +163,16 @@ const handleSpecificErrors = (error) => {
  * Global error handler middleware
  */
 const globalErrorHandler = (err, req, res, next) => {
-  // Log error for monitoring
-  console.error('Error occurred:', {
-    message: err.message,
-    stack: err.stack,
-    url: req?.originalUrl,
-    method: req?.method,
-    ip: req?.ip,
-    userAgent: req?.get('User-Agent'),
-    userId: req?.user?.userId,
-    timestamp: new Date().toISOString()
-  });
+  // Log error for monitoring (only in development or for critical errors)
+  if (process.env.NODE_ENV === 'development' || err.statusCode >= 500) {
+    console.error('Error occurred:', {
+      message: err.message,
+      url: req?.originalUrl,
+      method: req?.method,
+      statusCode: err.statusCode,
+      timestamp: new Date().toISOString()
+    });
+  }
 
   // Handle specific error types
   const processedError = handleSpecificErrors(err);

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:qahwat_al_emarat/data/models/coffee_product_model.dart';
+import 'package:provider/provider.dart';
+import '../providers/coffee_provider.dart';
 import 'coffee_product_card.dart';
 import '../pages/product_detail_page.dart';
 
@@ -12,63 +13,32 @@ class CoffeeListWidget extends StatefulWidget {
 }
 
 class _CoffeeListWidgetState extends State<CoffeeListWidget> {
-  late Future<List<CoffeeProductModel>> _coffeeProductsFuture;
-
   @override
   void initState() {
     super.initState();
-    _coffeeProductsFuture = _fetchCoffeeProducts();
-  }
-
-  Future<List<CoffeeProductModel>> _fetchCoffeeProducts() async {
-    // TODO: Replace with actual API call
-    // For now, return mock data
-    await Future.delayed(const Duration(seconds: 1)); // Simulate network delay
-
-    return [
-      const CoffeeProductModel(
-        id: '1',
-        name: 'Ethiopian Yirgacheffe',
-        description: 'Light roasted single origin coffee from Ethiopia',
-        price: 24.99,
-        imageUrl: 'https://via.placeholder.com/150',
-        origin: 'Ethiopia',
-        roastLevel: 'Light',
-        stock: 50,
-      ),
-      const CoffeeProductModel(
-        id: '2',
-        name: 'Colombian Supremo',
-        description: 'Medium roasted coffee from the mountains of Colombia',
-        price: 19.99,
-        imageUrl: 'https://via.placeholder.com/150',
-        origin: 'Colombia',
-        roastLevel: 'Medium',
-        stock: 30,
-      ),
-      const CoffeeProductModel(
-        id: '3',
-        name: 'Brazilian Santos',
-        description: 'Dark roasted coffee with chocolate notes',
-        price: 22.99,
-        imageUrl: 'https://via.placeholder.com/150',
-        origin: 'Brazil',
-        roastLevel: 'Dark',
-        stock: 40,
-      ),
-    ];
+    // Load products from API when widget initializes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final coffeeProvider = Provider.of<CoffeeProvider>(
+        context,
+        listen: false,
+      );
+      if (coffeeProvider.coffees.isEmpty && !coffeeProvider.isLoading) {
+        coffeeProvider.loadCoffees();
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<CoffeeProductModel>>(
-      future: _coffeeProductsFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
-        } else if (snapshot.hasError) {
+    return Consumer<CoffeeProvider>(
+      builder: (context, coffeeProvider, child) {
+        // Loading state
+        if (coffeeProvider.isLoading && coffeeProvider.coffees.isEmpty) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        // Error state
+        if (coffeeProvider.hasError && coffeeProvider.coffees.isEmpty) {
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -80,49 +50,48 @@ class _CoffeeListWidgetState extends State<CoffeeListWidget> {
                   style: Theme.of(context).textTheme.headlineMedium,
                 ),
                 const SizedBox(height: 8),
+                Text(
+                  coffeeProvider.error ?? 'Unknown error',
+                  style: const TextStyle(color: Colors.grey),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: () {
-                    setState(() {
-                      _coffeeProductsFuture = _fetchCoffeeProducts();
-                    });
+                    coffeeProvider.loadCoffees();
                   },
                   child: const Text('Retry'),
                 ),
               ],
             ),
           );
-        } else if (snapshot.hasData) {
-          final products = snapshot.data!;
-          if (products.isEmpty) {
-            return const Center(
-              child: Text('No coffee products available'),
-            );
-          }
-
-          return ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: products.length,
-            itemBuilder: (context, index) {
-              final product = products[index];
-              return CoffeeProductCard(
-                coffeeProduct: product,
-                onTap: () {
-                  // Navigate to product detail page
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => ProductDetailPage(product: product),
-                    ),
-                  );
-                },
-              );
-            },
-          );
-        } else {
-          return const Center(
-            child: Text('No data available'),
-          );
         }
+
+        // Success state with data
+        final products = coffeeProvider.coffees;
+        if (products.isEmpty) {
+          return const Center(child: Text('No coffee products available'));
+        }
+
+        return ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: products.length,
+          itemBuilder: (context, index) {
+            final product = products[index];
+            return CoffeeProductCard(
+              coffeeProduct: product,
+              onTap: () {
+                // Navigate to product detail page
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => ProductDetailPage(product: product),
+                  ),
+                );
+              },
+            );
+          },
+        );
       },
     );
   }

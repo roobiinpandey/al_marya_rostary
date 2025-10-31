@@ -9,7 +9,11 @@ const {
   sendNewsletter,
   sendTestNewsletter,
   getNewsletterStats,
-  getReadyToSend
+  getReadyToSend,
+  getSubscribers,
+  unsubscribeUser,
+  resubscribeUser,
+  deleteSubscriber
 } = require('../controllers/newsletterController');
 
 const router = express.Router();
@@ -54,6 +58,7 @@ const testEmailValidation = [
 // Routes
 router.get('/stats', getNewsletterStats);
 router.get('/ready-to-send', getReadyToSend);
+router.get('/subscribers', getSubscribers);
 router.get('/', getNewsletters);
 router.get('/:id', getNewsletter);
 router.post('/', newsletterValidation, createNewsletter);
@@ -61,5 +66,8 @@ router.put('/:id', newsletterValidation, updateNewsletter);
 router.delete('/:id', deleteNewsletter);
 router.post('/:id/send', sendNewsletter);
 router.post('/:id/test', testEmailValidation, sendTestNewsletter);
+router.post('/subscribers/:id/unsubscribe', unsubscribeUser);
+router.post('/subscribers/:id/resubscribe', resubscribeUser);
+router.delete('/subscribers/:id', deleteSubscriber);
 
 module.exports = router;

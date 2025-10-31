@@ -49,11 +49,23 @@ class _AddAddressSheetState extends State<AddAddressSheet> {
       // Get address for the current location
       await _onMapTap(_selectedLocation!);
     } catch (e) {
-      // If location fails, use a default location (Dubai, UAE)
+      // If location fails, show error and don't use default location
       setState(() {
-        _selectedLocation = const LatLng(25.2048, 55.2708);
-        _selectedAddress = 'Dubai, UAE';
+        _selectedLocation = null;
+        _selectedAddress = 'Unable to detect location';
       });
+
+      // Show error to user
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Unable to get your current location. Please select manually on the map.',
+            ),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
     }
   }
 

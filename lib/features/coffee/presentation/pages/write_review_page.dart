@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../../data/datasources/remote/reviews_api_service.dart';
 
 class WriteReviewPage extends StatefulWidget {
-  final String? productId;
-  final String? productName;
+  final String productId;
+  final String productName;
 
-  const WriteReviewPage({super.key, this.productId, this.productName});
+  const WriteReviewPage({
+    super.key,
+    required this.productId,
+    required this.productName,
+  });
 
   @override
   State<WriteReviewPage> createState() => _WriteReviewPageState();
@@ -15,12 +20,15 @@ class WriteReviewPage extends StatefulWidget {
 class _WriteReviewPageState extends State<WriteReviewPage> {
   final _formKey = GlobalKey<FormState>();
   final _reviewController = TextEditingController();
+  final _titleController = TextEditingController();
+  final _reviewsApi = ReviewsApiService();
   double _rating = 0;
   bool _isSubmitting = false;
 
   @override
   void dispose() {
     _reviewController.dispose();
+    _titleController.dispose();
     super.dispose();
   }
 
@@ -43,25 +51,57 @@ class _WriteReviewPageState extends State<WriteReviewPage> {
       _isSubmitting = true;
     });
 
-    // Simulate API call
-    await Future.delayed(const Duration(seconds: 2));
+    try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final user = authProvider.user;
 
-    if (!mounted) return;
+      if (user == null) {
+        throw Exception('User not logged in');
+      }
 
-    setState(() {
-      _isSubmitting = false;
-    });
+      // Submit review via API
+      await _reviewsApi.submitReview(
+        productId: widget.productId,
+        productName: widget.productName,
+        rating: _rating.toInt(),
+        comment: _reviewController.text.trim(),
+        userId: user.id,
+        userName: user.name,
+        userEmail: user.email,
+      );
 
-    // Show success message
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Review submitted successfully!'),
-        backgroundColor: Colors.green,
-      ),
-    );
+      if (!mounted) return;
 
-    // Go back
-    Navigator.pop(context);
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Review submitted! It will be published after moderation.',
+          ),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 4),
+        ),
+      );
+
+      // Go back
+      Navigator.pop(context, true); // Return true to indicate success
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to submit review: ${e.toString()}'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
+    }
   }
 
   @override
@@ -78,17 +118,15 @@ class _WriteReviewPageState extends State<WriteReviewPage> {
                 padding: const EdgeInsets.all(16),
                 children: [
                   // Product name
-                  if (widget.productName != null) ...[
-                    Text(
-                      widget.productName!,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      textAlign: TextAlign.center,
+                  Text(
+                    widget.productName,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
                     ),
-                    const SizedBox(height: 24),
-                  ],
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
 
                   // Rating
                   Card(

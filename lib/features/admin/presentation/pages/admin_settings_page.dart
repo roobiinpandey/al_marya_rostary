@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../widgets/admin_sidebar.dart';
+import '../../../../services/reward_service.dart';
 
 /// Admin Settings Page
 /// TODO: Implement comprehensive admin settings functionality
@@ -417,6 +418,13 @@ class _AdminSettingsPageState extends State<AdminSettingsPage>
                 trailing: const Icon(Icons.file_download),
                 onTap: () => _showComingSoon('Data export functionality'),
               ),
+              const Divider(),
+              ListTile(
+                title: const Text('Generate QR Codes'),
+                subtitle: const Text('Create QR codes for existing customers'),
+                trailing: const Icon(Icons.qr_code),
+                onTap: () => _migrateQRCodes(),
+              ),
             ],
           ),
 
@@ -623,5 +631,79 @@ class _AdminSettingsPageState extends State<AdminSettingsPage>
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text('$feature - Coming Soon')));
+  }
+
+  void _migrateQRCodes() async {
+    // Show confirmation dialog
+    bool? confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Generate QR Codes'),
+          content: const Text(
+            'This will generate QR codes for all existing customers who don\'t have one. '
+            'This process may take a few minutes. Continue?',
+          ),
+          actions: [
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () => Navigator.of(context).pop(false),
+            ),
+            ElevatedButton(
+              child: const Text('Generate'),
+              onPressed: () => Navigator.of(context).pop(true),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != true) return;
+
+    // Show loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return const AlertDialog(
+          content: Row(
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(width: 20),
+              Text('Generating QR codes...'),
+            ],
+          ),
+        );
+      },
+    );
+
+    try {
+      // Run the migration
+      await RewardService.migrateExistingUsersToQR();
+
+      // Close loading dialog
+      Navigator.of(context).pop();
+
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('QR codes generated successfully!'),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 3),
+        ),
+      );
+    } catch (e) {
+      // Close loading dialog
+      Navigator.of(context).pop();
+
+      // Show error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error generating QR codes: $e'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 5),
+        ),
+      );
+    }
   }
 }

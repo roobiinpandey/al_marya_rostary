@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
 import '../../../../core/theme/app_theme.dart';
 
 class Address {
@@ -58,35 +60,9 @@ class _AddressManagementPageState extends State<AddressManagementPage> {
   }
 
   void _loadAddresses() {
-    // TODO: Load from API
+    // Load addresses from storage or API - starting with empty list for new users
     setState(() {
-      _addresses = [
-        Address(
-          id: '1',
-          title: 'Home',
-          fullName: 'Ahmed Al Mansouri',
-          phoneNumber: '+971 50 123 4567',
-          emirate: 'Dubai',
-          area: 'Business Bay',
-          street: 'Sheikh Zayed Road',
-          building: 'Executive Heights, Tower A',
-          apartment: '2304',
-          landmark: 'Near Metro Station',
-          isDefault: true,
-        ),
-        Address(
-          id: '2',
-          title: 'Office',
-          fullName: 'Ahmed Al Mansouri',
-          phoneNumber: '+971 50 123 4567',
-          emirate: 'Dubai',
-          area: 'DIFC',
-          street: 'Gate Avenue',
-          building: 'ICD Brookfield Place',
-          apartment: '1205',
-          isDefault: false,
-        ),
-      ];
+      _addresses = []; // No mock addresses - user will add their own
       _isLoading = false;
     });
   }
@@ -524,6 +500,7 @@ class _AddEditAddressPageState extends State<AddEditAddressPage> {
   String _selectedEmirate = 'Dubai';
   bool _isDefault = false;
   bool _isLoading = false;
+  bool _isLoadingLocation = false;
 
   @override
   void initState() {
@@ -637,6 +614,40 @@ class _AddEditAddressPageState extends State<AddEditAddressPage> {
                 // Address Details Section
                 _buildSectionHeader('Address Details'),
                 const SizedBox(height: 16),
+
+                // Use Current Location Button
+                Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  child: OutlinedButton.icon(
+                    onPressed: _isLoadingLocation ? null : _useCurrentLocation,
+                    icon: _isLoadingLocation
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                AppTheme.primaryBrown,
+                              ),
+                            ),
+                          )
+                        : const Icon(Icons.my_location, size: 18),
+                    label: Text(
+                      _isLoadingLocation
+                          ? 'Detecting Location...'
+                          : 'Use My Current Location',
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppTheme.primaryBrown,
+                      side: const BorderSide(color: AppTheme.primaryBrown),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
 
                 // Emirate Dropdown
                 _buildEmirateDropdown(),
@@ -857,6 +868,129 @@ class _AddEditAddressPageState extends State<AddEditAddressPage> {
         return null;
       },
     );
+  }
+
+  Future<void> _useCurrentLocation() async {
+    setState(() {
+      _isLoadingLocation = true;
+    });
+
+    try {
+      // Check location permissions
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          throw Exception('Location permissions are denied');
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        throw Exception(
+          'Location permissions are permanently denied, we cannot request permissions.',
+        );
+      }
+
+      // Get current position
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      // Get address from coordinates
+      List<Placemark> placemarks = await placemarkFromCoordinates(
+        position.latitude,
+        position.longitude,
+      );
+
+      if (placemarks.isNotEmpty) {
+        Placemark place = placemarks.first;
+
+        // Auto-fill the form with detected location
+        setState(() {
+          if (place.administrativeArea != null) {
+            // Map the administrative area to UAE emirate
+            String detectedEmirate = _mapToEmirate(place.administrativeArea!);
+            _selectedEmirate = detectedEmirate;
+          }
+
+          if (place.subLocality != null && place.subLocality!.isNotEmpty) {
+            _areaController.text = place.subLocality!;
+          } else if (place.locality != null && place.locality!.isNotEmpty) {
+            _areaController.text = place.locality!;
+          }
+
+          if (place.thoroughfare != null && place.thoroughfare!.isNotEmpty) {
+            _streetController.text = place.thoroughfare!;
+          }
+
+          if (place.subThoroughfare != null &&
+              place.subThoroughfare!.isNotEmpty) {
+            _buildingController.text = place.subThoroughfare!;
+          }
+
+          // Set landmark if available
+          if (place.name != null &&
+              place.name!.isNotEmpty &&
+              place.name != place.thoroughfare) {
+            _landmarkController.text = place.name!;
+          }
+        });
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Location detected successfully! Please verify and complete the address details.',
+              ),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+      } else {
+        throw Exception('Could not determine address from location');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to get location: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            action: SnackBarAction(
+              label: 'Settings',
+              textColor: Colors.white,
+              onPressed: () {
+                Geolocator.openAppSettings();
+              },
+            ),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingLocation = false;
+        });
+      }
+    }
+  }
+
+  String _mapToEmirate(String administrativeArea) {
+    // Map common variations to UAE emirate names
+    final emirateMap = {
+      'dubai': 'Dubai',
+      'abu dhabi': 'Abu Dhabi',
+      'sharjah': 'Sharjah',
+      'ajman': 'Ajman',
+      'ras al khaimah': 'Ras Al Khaimah',
+      'rak': 'Ras Al Khaimah',
+      'fujairah': 'Fujairah',
+      'umm al quwain': 'Umm Al Quwain',
+      'uaq': 'Umm Al Quwain',
+    };
+
+    String normalized = administrativeArea.toLowerCase();
+    return emirateMap[normalized] ?? 'Dubai'; // Default to Dubai if not found
   }
 
   Future<void> _saveAddress() async {

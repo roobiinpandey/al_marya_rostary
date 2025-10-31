@@ -473,6 +473,40 @@ const moderateFeedback = async (req, res) => {
   }
 };
 
+// @desc    Get feedback statistics for admin
+// @route   GET /api/feedback/stats
+// @access  Admin
+const getFeedbackStats = async (req, res) => {
+  try {
+    const totalFeedback = await UserFeedback.countDocuments();
+    
+    const avgRatingResult = await UserFeedback.aggregate([
+      { $group: { _id: null, avgRating: { $avg: '$rating' } } }
+    ]);
+    const avgRating = avgRatingResult.length > 0 ? avgRatingResult[0].avgRating : 0;
+    
+    const positiveFeedback = await UserFeedback.countDocuments({ rating: { $gte: 4 } });
+    const needsAttention = await UserFeedback.countDocuments({ rating: { $lte: 2 } });
+
+    res.json({
+      success: true,
+      data: {
+        totalFeedback,
+        avgRating: parseFloat(avgRating.toFixed(2)),
+        positiveFeedback,
+        needsAttention
+      }
+    });
+  } catch (error) {
+    console.error('Get feedback stats error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching feedback statistics',
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   createFeedback,
   getProductFeedback,
@@ -483,5 +517,6 @@ module.exports = {
   getTopRatedProducts,
   // Admin functions
   getAllFeedback,
-  moderateFeedback
+  moderateFeedback,
+  getFeedbackStats
 };

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../coffee/presentation/widgets/coffee_list_widget.dart';
-import '../../../cart/presentation/pages/cart_page.dart';
-import '../../../cart/presentation/providers/cart_provider.dart';
 import '../../../../core/theme/theme_extensions.dart';
 import '../widgets/hero_banner_carousel.dart';
 import '../widgets/quick_categories_widget.dart';
@@ -118,51 +116,11 @@ class HomePage extends StatelessWidget {
             icon: Icon(Icons.search, color: Colors.white),
             onPressed: () => _showSearchDialog(context),
           ),
-          // Cart button with badge
-          Consumer<CartProvider>(
-            builder: (context, cartProvider, child) {
-              return Stack(
-                children: [
-                  IconButton(
-                    icon: Icon(Icons.shopping_cart, color: Colors.white),
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const CartPage(),
-                        ),
-                      );
-                    },
-                  ),
-                  if (cartProvider.items.isNotEmpty)
-                    Positioned(
-                      right: 8,
-                      top: 8,
-                      child: Container(
-                        padding: const EdgeInsets.all(2),
-                        decoration: BoxDecoration(
-                          color: context.colors.secondary,
-                          borderRadius: const BorderRadius.all(
-                            Radius.circular(10),
-                          ),
-                          border: Border.all(color: Colors.white, width: 1),
-                        ),
-                        constraints: const BoxConstraints(
-                          minWidth: 18,
-                          minHeight: 18,
-                        ),
-                        child: Text(
-                          '${cartProvider.items.length}',
-                          style: TextStyle(
-                            color: context.colors.onSurface,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ),
-                ],
-              );
+          // Favorites button
+          IconButton(
+            icon: Icon(Icons.favorite_outline, color: Colors.white),
+            onPressed: () {
+              Navigator.of(context).pushNamed('/favorites');
             },
           ),
         ],
@@ -248,17 +206,6 @@ class HomePage extends StatelessWidget {
       ),
       drawer:
           const AppDrawer(), // Use the proper AppDrawer with Profile section
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // TODO: Quick add to cart or navigate to favorites
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Quick actions coming soon!')),
-          );
-        },
-        backgroundColor: context.colors.secondary,
-        foregroundColor: context.colors.onSurface,
-        child: Icon(Icons.add_shopping_cart),
-      ),
     );
   }
 

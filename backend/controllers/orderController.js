@@ -146,7 +146,8 @@ const getOrders = async (req, res) => {
       .populate('items.coffee', 'name image price')
       .sort(sortOptions)
       .skip(skip)
-      .limit(limitNum);
+      .limit(limitNum)
+      .lean(); // Convert Mongoose documents to plain JavaScript objects
 
     const totalOrders = await Order.countDocuments(query);
     const totalPages = Math.ceil(totalOrders / limitNum);
@@ -182,7 +183,8 @@ const getOrder = async (req, res) => {
 
     const order = await Order.findById(id)
       .populate('user', 'name email phone')
-      .populate('items.coffee', 'name image price variants');
+      .populate('items.coffee', 'name image price variants')
+      .lean(); // Convert Mongoose document to plain JavaScript object
 
     if (!order) {
       return res.status(404).json({
@@ -255,7 +257,8 @@ const updateOrderStatus = async (req, res) => {
 
     const updatedOrder = await Order.findById(id)
       .populate('user', 'name email phone')
-      .populate('items.coffee', 'name image price');
+      .populate('items.coffee', 'name image price')
+      .lean(); // Convert to plain JavaScript object
 
     res.json({
       success: true,
@@ -445,7 +448,8 @@ const exportOrders = async (req, res) => {
 
     const orders = await Order.find(query)
       .populate('user', 'name email phone')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean(); // Convert to plain JavaScript objects
 
     // Generate CSV content
     const csvHeaders = [

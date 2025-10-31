@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/language_provider.dart';
 
 /// Extension to easily access Almaryah theme colors through Material theme
 extension AlmaryahColors on ColorScheme {
@@ -29,4 +31,13 @@ extension AlmaryahColors on ColorScheme {
 extension ThemeExtension on BuildContext {
   ColorScheme get colors => Theme.of(this).colorScheme;
   TextTheme get textStyles => Theme.of(this).textTheme;
+
+  // Language and localization helpers
+  bool get isArabic =>
+      Provider.of<LanguageProvider>(this, listen: false).isArabic;
+  bool get isEnglish =>
+      Provider.of<LanguageProvider>(this, listen: false).isEnglish;
+  bool get isRTL => Provider.of<LanguageProvider>(this, listen: false).isRTL;
+  TextDirection get textDirection =>
+      Provider.of<LanguageProvider>(this, listen: false).textDirection;
 }

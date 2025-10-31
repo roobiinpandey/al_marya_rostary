@@ -189,9 +189,10 @@ class AutoFirebaseSyncService {
       const auth = admin.auth();
       const updatedUsers = [];
       
-      // Get local users with Firebase UIDs
+      // Get local users with Firebase UIDs (exclude guest users)
       const localUsersWithFirebase = await User.find({
-        firebaseUid: { $exists: true, $ne: null }
+        firebaseUid: { $exists: true, $ne: null },
+        email: { $not: /^guest_.*@temp\.com$/ } // Exclude guest users
       }).select('firebaseUid email lastFirebaseSync');
 
       console.log(`🔍 Checking ${localUsersWithFirebase.length} local users for Firebase updates`);
@@ -212,11 +213,14 @@ class AutoFirebaseSyncService {
         } catch (error) {
           if (error.code === 'auth/user-not-found') {
             console.log(`⚠️ Firebase user not found for local user ${localUser.email}, will unlink`);
-            // Unlink deleted Firebase user
+            // Unlink deleted Firebase user (set to null, not remove the field)
             await User.findByIdAndUpdate(localUser._id, {
-              firebaseUid: null,
-              firebaseSyncStatus: 'manual',
-              firebaseSyncError: 'Firebase user deleted'
+              $set: {
+                firebaseUid: null,
+                firebaseSyncStatus: 'manual',
+                firebaseSyncError: 'Firebase user deleted',
+                lastFirebaseSync: new Date()
+              }
             });
           } else {
             console.error(`❌ Error checking Firebase user ${localUser.firebaseUid}:`, error.message);

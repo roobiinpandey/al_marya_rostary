@@ -130,17 +130,34 @@ class LocationService {
   /// Format placemark into readable location string
   String _formatLocation(Placemark place) {
     // Try different combinations to get a good location string
-    String? city =
-        place.locality ??
-        place.subAdministrativeArea ??
-        place.administrativeArea;
-    String? country = place.country;
+    String? city = place.locality?.trim().isNotEmpty == true
+        ? place.locality
+        : place.subAdministrativeArea?.trim().isNotEmpty == true
+        ? place.subAdministrativeArea
+        : place.administrativeArea?.trim().isNotEmpty == true
+        ? place.administrativeArea
+        : place.subLocality?.trim().isNotEmpty == true
+        ? place.subLocality
+        : null;
 
-    if (city != null && country != null) {
+    String? country = place.country?.trim().isNotEmpty == true
+        ? place.country
+        : null;
+
+    // Debug print to see what we're getting
+    print('🏠 Location parts - City: "$city", Country: "$country"');
+    print(
+      '🏠 Raw placemark - locality: "${place.locality}", subAdmin: "${place.subAdministrativeArea}", admin: "${place.administrativeArea}", subLocality: "${place.subLocality}"',
+    );
+
+    if (city != null &&
+        city.isNotEmpty &&
+        country != null &&
+        country.isNotEmpty) {
       return '$city, $country';
-    } else if (city != null) {
+    } else if (city != null && city.isNotEmpty) {
       return city;
-    } else if (country != null) {
+    } else if (country != null && country.isNotEmpty) {
       return country;
     } else {
       return 'Current Location';
@@ -192,20 +209,49 @@ class LocationService {
   /// Get detailed location info (for debugging)
   Future<Map<String, dynamic>> getDetailedLocation() async {
     try {
+      // Add more detailed logging
+      print('🔍 Starting location detection...');
+
+      // Check if location services are enabled
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      print('📍 Location services enabled: $serviceEnabled');
+
+      if (!serviceEnabled) {
+        return {'error': 'Location services disabled'};
+      }
+
+      // Check permission
+      LocationPermission permission = await Geolocator.checkPermission();
+      print('🔐 Location permission: $permission');
+
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        print('🔐 Permission after request: $permission');
+      }
+
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        return {'error': 'Location permission denied: $permission'};
+      }
+
       Position position = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
           accuracy: LocationAccuracy.high,
         ),
       );
 
+      print('📍 Position: ${position.latitude}, ${position.longitude}');
+
       List<Placemark> placemarks = await placemarkFromCoordinates(
         position.latitude,
         position.longitude,
       );
 
+      print('🏠 Placemarks found: ${placemarks.length}');
+
       Placemark? place = placemarks.isNotEmpty ? placemarks.first : null;
 
-      return {
+      final result = {
         'latitude': position.latitude,
         'longitude': position.longitude,
         'accuracy': position.accuracy,
@@ -215,10 +261,16 @@ class LocationService {
         'country': place?.country,
         'postalCode': place?.postalCode,
         'street': place?.street,
+        'formatted': place != null
+            ? _formatLocation(place)
+            : 'No address found',
       };
+
+      print('📋 Final result: $result');
+      return result;
     } catch (e) {
-      debugPrint('Error getting detailed location: $e');
-      return {};
+      print('❌ Location error: $e');
+      return {'error': e.toString()};
     }
   }
 }

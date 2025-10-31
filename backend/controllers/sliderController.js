@@ -57,7 +57,8 @@ const getSliders = async (req, res) => {
       .sort({ displayOrder: 1, createdAt: -1 })
       .skip(skip)
       .limit(limit)
-      .select('-__v');
+      .select('-__v')
+      .lean(); // Convert Mongoose documents to plain JavaScript objects
 
     const total = await Slider.countDocuments(filter);
 
@@ -86,7 +87,7 @@ const getSliders = async (req, res) => {
 // @access  Public
 const getSlider = async (req, res) => {
   try {
-    const slider = await Slider.findById(req.params.id);
+    const slider = await Slider.findById(req.params.id).lean();
 
     if (!slider) {
       return res.status(404).json({
@@ -144,7 +145,7 @@ const createSlider = async (req, res) => {
       sliderData.mobileImage = `/uploads/${req.files.mobileImage[0].filename}`;
     }
 
-    const slider = await Slider.create(sliderData);
+    const slider = (await Slider.create(sliderData)).toObject(); // Convert to plain object
 
     res.status(201).json({
       success: true,
@@ -226,7 +227,7 @@ const updateSlider = async (req, res) => {
       req.params.id,
       updateData,
       { new: true, runValidators: true }
-    );
+    ).lean(); // Convert Mongoose document to plain JavaScript object
 
     if (!slider) {
       return res.status(404).json({
@@ -340,7 +341,8 @@ const getSliderStats = async (req, res) => {
     const topPerforming = await Slider.find({ isActive: true })
       .sort({ clickCount: -1 })
       .limit(5)
-      .select('title clickCount viewCount');
+      .select('title clickCount viewCount')
+      .lean(); // Convert to plain JavaScript objects
 
     res.json({
       success: true,

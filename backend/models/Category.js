@@ -51,6 +51,22 @@ const categorySchema = new mongoose.Schema({
     ref: 'Category',
     default: null
   },
+  // Category type for organization and filtering
+  categoryType: {
+    type: String,
+    enum: {
+      values: ['origin', 'roast', 'bean-type', 'collection', 'general', 'seasonal', 'specialty'],
+      message: '{VALUE} is not a valid category type'
+    },
+    default: 'general',
+    index: true
+  },
+  // Optional reference to attribute group (links category to dynamic attributes)
+  attributeGroupRef: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'AttributeGroup',
+    default: null
+  },
   seo: {
     metaTitle: String,
     metaDescription: String,

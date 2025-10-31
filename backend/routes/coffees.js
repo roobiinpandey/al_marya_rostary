@@ -79,10 +79,12 @@ const coffeeValidation = [
     .isFloat({ min: 0 })
     .withMessage('Price must be a positive number'),
   body('origin')
+    .optional()
     .trim()
     .isLength({ min: 2, max: 100 })
     .withMessage('Origin must be between 2 and 100 characters'),
   body('roastLevel')
+    .optional()
     .isIn(['Light', 'Medium-Light', 'Medium', 'Medium-Dark', 'Dark'])
     .withMessage('Invalid roast level'),
   body('stock')
