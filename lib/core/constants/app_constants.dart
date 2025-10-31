@@ -3,11 +3,10 @@ class AppConstants {
   // API Endpoints - Environment Configuration
   // Set _useProduction to true for production Render.com backend (connects to MongoDB Atlas)
   // Set _useProduction to false for local development backend
-  static const bool _useProduction =
-      false; // Change to false for local development
+  static const bool _useProduction = true; // ✅ Using production Render backend
 
   static String get baseUrl => _useProduction
-      ? 'https://al-marya-rostary.onrender.com' // Production Render.com backend (connects to MongoDB Atlas)
+      ? 'https://almaryarostary.onrender.com' // Production Render.com backend (connects to MongoDB Atlas)
       : 'http://192.168.0.148:5001'; // Local development backend (use your computer's IP, not localhost)
 
   // Environment info for debugging
