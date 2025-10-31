@@ -13,21 +13,12 @@ const {
   trackSliderView
 } = require('../controllers/sliderController');
 
+// ✨ NEW: Import Cloudinary storage
+const { sliderStorage, mobileSliderStorage } = require('../config/cloudinary');
+
 const router = express.Router();
 
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, '../uploads'));
-  },
-  filename: (req, file, cb) => {
-    // Generate unique filename with timestamp
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, 'slider-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
-
-// File filter to allow only images
+// ✨ NEW: Configure multer to use Cloudinary storage
 const fileFilter = (req, file, cb) => {
   if (file.mimetype.startsWith('image/')) {
     cb(null, true);
@@ -37,10 +28,18 @@ const fileFilter = (req, file, cb) => {
 };
 
 const upload = multer({
-  storage: storage,
+  storage: sliderStorage, // ✨ Using Cloudinary storage
   fileFilter: fileFilter,
   limits: {
     fileSize: 10 * 1024 * 1024 // 10MB limit for banner images
+  }
+});
+
+const mobileUpload = multer({
+  storage: mobileSliderStorage, // ✨ Using Cloudinary storage for mobile
+  fileFilter: fileFilter,
+  limits: {
+    fileSize: 10 * 1024 * 1024
   }
 });
 

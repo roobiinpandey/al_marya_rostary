@@ -132,9 +132,10 @@ const createSlider = async (req, res) => {
       });
     }
 
+    // ✨ NEW: Use Cloudinary URLs instead of local paths
     const sliderData = {
       ...req.body,
-      image: `/uploads/${req.files.image[0].filename}`,
+      image: req.files.image[0].path, // Cloudinary returns full URL in 'path'
       categories: req.body.categories ? JSON.parse(req.body.categories) : [],
       targetAudience: req.body.targetAudience ? JSON.parse(req.body.targetAudience) : ['all'],
       tags: req.body.tags ? JSON.parse(req.body.tags) : []
@@ -142,10 +143,15 @@ const createSlider = async (req, res) => {
 
     // Handle optional mobile image
     if (req.files && req.files.mobileImage) {
-      sliderData.mobileImage = `/uploads/${req.files.mobileImage[0].filename}`;
+      sliderData.mobileImage = req.files.mobileImage[0].path; // Cloudinary URL
     }
 
     const slider = (await Slider.create(sliderData)).toObject(); // Convert to plain object
+
+    console.log('✅ Slider created with Cloudinary images:', {
+      image: slider.image,
+      mobileImage: slider.mobileImage
+    });
 
     res.status(201).json({
       success: true,
@@ -155,25 +161,8 @@ const createSlider = async (req, res) => {
   } catch (error) {
     console.error('Create slider error:', error);
 
-    // Delete uploaded files if slider creation fails
-    if (req.files) {
-      
-      if (req.files.image && req.files.image[0]) {
-        try {
-          fs.unlinkSync(path.join(__dirname, '../uploads', req.files.image[0].filename));
-        } catch (err) {
-          console.error('Error deleting image file:', err);
-        }
-      }
-      
-      if (req.files.mobileImage && req.files.mobileImage[0]) {
-        try {
-          fs.unlinkSync(path.join(__dirname, '../uploads', req.files.mobileImage[0].filename));
-        } catch (err) {
-          console.error('Error deleting mobile image file:', err);
-        }
-      }
-    }
+    // ✨ NEW: Cloudinary handles cleanup automatically on error
+    // No need to manually delete files
 
     res.status(500).json({
       success: false,
@@ -199,21 +188,36 @@ const updateSlider = async (req, res) => {
 
     let updateData = { ...req.body };
 
-        // Handle image update
+    // ✨ NEW: Handle image update with Cloudinary
     if (req.files && req.files.image && req.files.image[0]) {
-      updateData.image = `/uploads/${req.files.image[0].filename}`;
+      updateData.image = req.files.image[0].path; // Cloudinary URL
+      
+      // Delete old image from Cloudinary
+      const oldSlider = await Slider.findById(req.params.id);
+      if (oldSlider && oldSlider.image && oldSlider.image.includes('cloudinary')) {
+        const { deleteImage } = require('../config/cloudinary');
+        try {
+          await deleteImage(oldSlider.image);
+          console.log('✅ Old slider image deleted from Cloudinary');
+        } catch (err) {
+          console.error('⚠️ Error deleting old image from Cloudinary:', err);
+        }
+      }
     }
 
     // Handle optional mobile image
     if (req.files && req.files.mobileImage) {
-      updateData.mobileImage = `/uploads/${req.files.mobileImage[0].filename}`;
+      updateData.mobileImage = req.files.mobileImage[0].path; // Cloudinary URL
 
-      // Delete old mobile image file
+      // Delete old mobile image from Cloudinary
       const oldSlider = await Slider.findById(req.params.id);
-      if (oldSlider && oldSlider.mobileImage) {
-        const oldMobileImagePath = path.join(__dirname, '..', oldSlider.mobileImage);
-        if (fs.existsSync(oldMobileImagePath)) {
-          fs.unlinkSync(oldMobileImagePath);
+      if (oldSlider && oldSlider.mobileImage && oldSlider.mobileImage.includes('cloudinary')) {
+        const { deleteImage } = require('../config/cloudinary');
+        try {
+          await deleteImage(oldSlider.mobileImage);
+          console.log('✅ Old mobile slider image deleted from Cloudinary');
+        } catch (err) {
+          console.error('⚠️ Error deleting old mobile image from Cloudinary:', err);
         }
       }
     }
