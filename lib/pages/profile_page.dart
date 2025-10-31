@@ -160,24 +160,32 @@ class _ProfilePageContentState extends State<_ProfilePageContent> {
             return _buildGuestView();
           }
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                children: [
-                  _buildProfileHeader(authProvider.user!),
-                  const SizedBox(height: 24),
-                  _buildPersonalInfoCard(),
-                  const SizedBox(height: 16),
-                  _buildContactInfoCard(),
-                  const SizedBox(height: 16),
-                  _buildPreferencesCard(),
-                  const SizedBox(height: 16),
-                  _buildAccountActionsCard(authProvider),
-                  const SizedBox(height: 24),
-                  if (_isEditing) _buildActionButtons(),
-                ],
+          return RefreshIndicator(
+            onRefresh: () async {
+              _loadUserData();
+              await Future.delayed(const Duration(milliseconds: 500));
+            },
+            color: AppTheme.primaryBrown,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(16),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    _buildProfileHeader(authProvider.user!),
+                    const SizedBox(height: 24),
+                    _buildPersonalInfoCard(),
+                    const SizedBox(height: 16),
+                    _buildContactInfoCard(),
+                    const SizedBox(height: 16),
+                    _buildPreferencesCard(),
+                    const SizedBox(height: 16),
+                    _buildAccountActionsCard(authProvider),
+                    const SizedBox(height: 24),
+                    if (_isEditing) _buildActionButtons(),
+                  ],
+                ),
               ),
             ),
           );

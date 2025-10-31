@@ -1,16 +1,50 @@
 const express = require('express');
 const { body } = require('express-validator');
+const multer = require('multer');
 const {
   getUsers,
   getUser,
   updateUser,
   deleteUser,
-  getUserStats
+  getUserStats,
+  updateMyProfile
 } = require('../controllers/userController');
 const { verifyFirebaseToken } = require('../middleware/firebaseAuth');
 const Order = require('../models/Order');
 
 const router = express.Router();
+
+// Configure multer for profile picture uploads
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const cloudinary = require('../config/cloudinary').cloudinary || require('cloudinary').v2;
+
+const profileStorage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'al-marya/profiles',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+    transformation: [
+      { width: 400, height: 400, crop: 'fill', gravity: 'face', quality: 'auto:good' }
+    ],
+    public_id: (req, file) => {
+      const userId = req.user?.id || 'unknown';
+      const timestamp = Date.now();
+      return `profile-${userId}-${timestamp}`;
+    },
+  },
+});
+
+const upload = multer({
+  storage: profileStorage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed'));
+    }
+  }
+});
 
 // Validation rules
 const userUpdateValidation = [
@@ -39,6 +73,11 @@ const userUpdateValidation = [
 ];
 
 // User-specific routes (with Firebase auth)
+// @route   PUT /api/users/me/profile
+// @desc    Update current user's profile
+// @access  Private (Firebase authenticated users)
+router.put('/me/profile', verifyFirebaseToken, upload.single('avatar'), updateMyProfile);
+
 // @route   GET /api/users/me/orders
 // @desc    Get current user's orders
 // @access  Private (Firebase authenticated users)

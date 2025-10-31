@@ -1,8 +1,10 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:qahwat_al_emarat/domain/repositories/auth_repository.dart';
 import 'package:qahwat_al_emarat/domain/models/auth_models.dart';
+import 'package:qahwat_al_emarat/core/services/user_api_service.dart';
 import '../../../../services/reward_service.dart';
 
 enum AuthState { initial, loading, authenticated, unauthenticated, error }
@@ -275,39 +277,44 @@ class AuthProvider extends ChangeNotifier {
       _setState(AuthState.loading);
       _clearError();
 
-      late AuthResponse response;
-
-      // Use file upload method if file is provided, otherwise use regular method
-      if (avatarFile != null) {
-        response = await _authRepository.updateProfileWithFile(
-          name,
-          phone,
-          avatarFile,
-        );
-      } else {
-        final updatedUser = User(
-          id: _user!.id,
-          name: name ?? _user!.name,
-          email: _user!.email,
-          phone: phone ?? _user!.phone,
-          avatar: avatar ?? _user!.avatar,
-          isEmailVerified: _user!.isEmailVerified,
-          isAnonymous: _user!.isAnonymous,
-          roles: _user!.roles,
-          createdAt: _user!.createdAt,
-          updatedAt: DateTime.now(),
-        );
-
-        response = await _authRepository.updateProfile(updatedUser);
+      // Get Firebase ID token for backend authentication
+      final firebaseUser = firebase_auth.FirebaseAuth.instance.currentUser;
+      if (firebaseUser == null) {
+        throw AuthException('No authenticated Firebase user');
       }
 
-      _user = response.user;
-      if (response.refreshToken.isNotEmpty) {
-        _refreshToken = response.refreshToken;
+      final token = await firebaseUser.getIdToken();
+      if (token == null || token.isEmpty) {
+        throw AuthException('Failed to get authentication token');
       }
+
+      // Use backend API for profile updates (handles Cloudinary upload)
+      final userApiService = UserApiService();
+      final updatedUser = await userApiService.updateMyProfile(
+        name: name,
+        phone: phone,
+        avatarPath: avatarFile?.path,
+        firebaseToken: token,
+      );
+
+      // Update local user state
+      _user = User(
+        id: updatedUser.id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        phone: updatedUser.phone,
+        avatar: updatedUser.avatar ?? _user!.avatar,
+        isEmailVerified: updatedUser.isEmailVerified,
+        isAnonymous: _user!.isAnonymous,
+        roles: updatedUser.roles,
+        createdAt: updatedUser.createdAt ?? _user!.createdAt,
+        updatedAt: DateTime.now(),
+      );
+
       _setState(AuthState.authenticated);
     } catch (e) {
       _handleAuthError(e);
+      rethrow; // Re-throw so the UI can show the error
     }
   }
 

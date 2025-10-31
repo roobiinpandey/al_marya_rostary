@@ -11,8 +11,33 @@ import '../widgets/location_picker_dialog.dart';
 import '../widgets/search_dialog.dart';
 
 /// HomePage displays featured coffee products and navigation
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
+      GlobalKey<RefreshIndicatorState>();
+
+  /// Handle pull-to-refresh
+  Future<void> _handleRefresh() async {
+    // Show refresh indicator
+    await Future.wait([
+      // Reload location
+      if (mounted)
+        Provider.of<LocationProvider>(context, listen: false).refreshLocation(),
+      // Add a small delay to ensure smooth animation
+      Future.delayed(const Duration(milliseconds: 500)),
+    ]);
+
+    // Force rebuild of child widgets by calling setState
+    if (mounted) {
+      setState(() {});
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -126,16 +151,21 @@ class HomePage extends StatelessWidget {
         ],
         elevation: 0,
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.only(
-            bottom: 100,
-          ), // Account for FAB with extra space
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Hero Banner Carousel
-              const HeroBannerCarousel(),
+      body: RefreshIndicator(
+        key: _refreshIndicatorKey,
+        onRefresh: _handleRefresh,
+        color: context.colors.primary,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(), // Enables pull-to-refresh even when content is small
+          child: Padding(
+            padding: const EdgeInsets.only(
+              bottom: 100,
+            ), // Account for FAB with extra space
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Hero Banner Carousel
+                const HeroBannerCarousel(),
               // Quick Categories
               const QuickCategoriesWidget(),
               // Featured Products Header
@@ -200,7 +230,8 @@ class HomePage extends StatelessWidget {
               ),
               // Coffee List (original full list)
               const CoffeeListWidget(),
-            ],
+              ],
+            ),
           ),
         ),
       ),
