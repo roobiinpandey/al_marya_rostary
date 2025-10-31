@@ -3,7 +3,7 @@
 // Configuration
 const API_BASE_URL = window.location.hostname === 'localhost' 
     ? `http://localhost:${window.location.port || '5001'}` 
-    : 'https://al-marya-rostary.onrender.com';
+    : 'https://almaryarostary.onrender.com';
 
 // Global variables
 let currentSection = 'dashboard';
