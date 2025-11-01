@@ -91,18 +91,22 @@ class CartPage extends StatelessWidget {
             const SizedBox(height: 32),
             ElevatedButton.icon(
               onPressed: () {
-                // Check if we can pop (standalone page) or need to navigate to home tab
-                if (Navigator.of(context).canPop()) {
-                  Navigator.of(context).pop();
-                } else {
-                  // We're in a tab view, navigate to home tab
-                  // Find the MainNavigationPage and switch to home tab
-                  final navigator = Navigator.of(context);
-                  navigator.pushNamedAndRemoveUntil('/', (route) => false);
-                }
+                // When cart is in a tab view (bottom navigation),
+                // we can't actually navigate away. Show a helpful message.
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: const Text('Tap the Home tab below to start shopping'),
+                    backgroundColor: AppTheme.primaryBrown,
+                    behavior: SnackBarBehavior.floating,
+                    duration: const Duration(seconds: 2),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                );
               },
-              icon: const Icon(Icons.arrow_back),
-              label: const Text('Continue Shopping'),
+              icon: const Icon(Icons.home),
+              label: const Text('Go to Home'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.primaryBrown,
                 foregroundColor: Colors.white,
