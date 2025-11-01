@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../data/models/category_model.dart';
+import '../constants/app_constants.dart';
 import '../utils/app_logger.dart';
 
 /// API Service for Category Management
@@ -9,8 +10,8 @@ class CategoryApiService {
   final Dio _dio;
   final FlutterSecureStorage _secureStorage;
 
-  // Base URL for the API (update with production URL)
-  static const String baseUrl = 'http://localhost:5001';
+  // Base URL for the API - uses centralized AppConstants configuration
+  static String get baseUrl => AppConstants.baseUrl;
 
   CategoryApiService({Dio? dio, FlutterSecureStorage? secureStorage})
     : _dio = dio ?? Dio(),

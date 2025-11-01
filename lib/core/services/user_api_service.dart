@@ -372,14 +372,24 @@ class UserApiService {
             'Authorization': 'Bearer $firebaseToken',
             'Content-Type': 'multipart/form-data',
           },
+          sendTimeout: const Duration(seconds: 30),
+          receiveTimeout: const Duration(seconds: 30),
         ),
+      );
+
+      AppLogger.info(
+        'Profile update response: ${response.statusCode}',
+        tag: 'UserAPI',
       );
 
       if (response.data['success'] == true) {
         AppLogger.success('Profile updated successfully', tag: 'UserAPI');
         return UserModel.fromJson(response.data['user']);
       } else {
-        throw Exception(response.data['message'] ?? 'Failed to update profile');
+        final errorMessage =
+            response.data['message'] ?? 'Failed to update profile';
+        AppLogger.error('Profile update failed: $errorMessage', tag: 'UserAPI');
+        throw Exception(errorMessage);
       }
     } on DioException catch (e) {
       AppLogger.error(
@@ -387,10 +397,40 @@ class UserApiService {
         tag: 'UserAPI',
         error: e,
       );
+
+      // Enhanced error handling based on status codes
       if (e.response?.statusCode == 401) {
-        throw Exception('Session expired. Please sign in again.');
+        final errorMessage =
+            e.response?.data?['message'] ?? 'Authentication failed';
+        AppLogger.error('Auth error: $errorMessage', tag: 'UserAPI');
+
+        if (errorMessage.contains('Invalid token format')) {
+          throw Exception(
+            'Invalid authentication token. Please sign out and sign in again.',
+          );
+        } else if (errorMessage.contains('expired')) {
+          throw Exception('Your session has expired. Please sign in again.');
+        } else {
+          throw Exception('Authentication failed. Please sign in again.');
+        }
+      } else if (e.response?.statusCode == 413) {
+        throw Exception('File too large. Please choose a smaller image.');
+      } else if (e.response?.statusCode == 400) {
+        final errorMessage = e.response?.data?['message'] ?? 'Invalid request';
+        throw Exception(errorMessage);
+      } else if (e.type == DioExceptionType.connectionTimeout) {
+        throw Exception(
+          'Connection timeout. Please check your internet connection.',
+        );
+      } else if (e.type == DioExceptionType.sendTimeout) {
+        throw Exception(
+          'Upload timeout. Please try again with a smaller image.',
+        );
+      } else if (e.type == DioExceptionType.receiveTimeout) {
+        throw Exception('Server response timeout. Please try again.');
+      } else {
+        throw Exception('Network error: ${e.message ?? 'Unknown error'}');
       }
-      throw Exception('Network error: ${e.message}');
     } catch (e) {
       AppLogger.error('Error updating profile', tag: 'UserAPI', error: e);
       throw Exception('Error updating profile: $e');

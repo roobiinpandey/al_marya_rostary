@@ -202,7 +202,8 @@ class CartPage extends StatelessWidget {
                             Text(
                               item.itemType == CartItemType.coffee
                                   ? (item.product?.origin ?? 'Unknown Origin')
-                                  : (item.accessory?.category ?? 'Unknown Category'),
+                                  : (item.accessory?.category ??
+                                        'Unknown Category'),
                               style: Theme.of(context).textTheme.bodyMedium
                                   ?.copyWith(color: AppTheme.textMedium),
                             ),

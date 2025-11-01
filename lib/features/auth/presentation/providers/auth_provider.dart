@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:qahwat_al_emarat/domain/repositories/auth_repository.dart';
 import 'package:qahwat_al_emarat/domain/models/auth_models.dart';
 import 'package:qahwat_al_emarat/core/services/user_api_service.dart';
+import 'package:qahwat_al_emarat/core/utils/app_logger.dart';
 import '../../../../services/reward_service.dart';
 
 enum AuthState { initial, loading, authenticated, unauthenticated, error }
@@ -277,41 +278,87 @@ class AuthProvider extends ChangeNotifier {
       _setState(AuthState.loading);
       _clearError();
 
-      // Get Firebase ID token for backend authentication
+      // Enhanced Firebase authentication for profile updates
       final firebaseUser = firebase_auth.FirebaseAuth.instance.currentUser;
       if (firebaseUser == null) {
-        throw AuthException('No authenticated Firebase user');
+        throw AuthException(
+          'You must be signed in to update your profile. Please sign in and try again.',
+        );
       }
 
-      final token = await firebaseUser.getIdToken();
-      if (token == null || token.isEmpty) {
-        throw AuthException('Failed to get authentication token');
+      // Verify user is properly authenticated (not anonymous)
+      if (firebaseUser.isAnonymous) {
+        throw AuthException(
+          'Anonymous users cannot update profiles. Please create an account first.',
+        );
       }
+
+      // Get fresh Firebase ID token (force refresh to ensure validity)
+      final token = await firebaseUser.getIdToken(true);
+      if (token == null || token.isEmpty) {
+        throw AuthException(
+          'Failed to get authentication token. Please sign out and sign in again.',
+        );
+      }
+
+      AppLogger.info(
+        'Profile update: Getting fresh Firebase token for ${firebaseUser.email}',
+        tag: 'AuthProvider',
+      );
+      AppLogger.info(
+        'Profile update: Token length: ${token.length}',
+        tag: 'AuthProvider',
+      );
 
       // Use backend API for profile updates (handles Cloudinary upload)
       final userApiService = UserApiService();
-      final updatedUser = await userApiService.updateMyProfile(
-        name: name,
-        phone: phone,
-        avatarPath: avatarFile?.path,
-        firebaseToken: token,
-      );
+      try {
+        final updatedUser = await userApiService.updateMyProfile(
+          name: name,
+          phone: phone,
+          avatarPath: avatarFile?.path,
+          firebaseToken: token,
+        );
 
-      // Update local user state
-      _user = User(
-        id: updatedUser.id,
-        name: updatedUser.name,
-        email: updatedUser.email,
-        phone: updatedUser.phone,
-        avatar: updatedUser.avatar ?? _user!.avatar,
-        isEmailVerified: updatedUser.isEmailVerified,
-        isAnonymous: _user!.isAnonymous,
-        roles: updatedUser.roles,
-        createdAt: updatedUser.createdAt ?? _user!.createdAt,
-        updatedAt: DateTime.now(),
-      );
+        // Update local user state
+        _user = User(
+          id: updatedUser.id,
+          name: updatedUser.name,
+          email: updatedUser.email,
+          phone: updatedUser.phone,
+          avatar: updatedUser.avatar ?? _user!.avatar,
+          isEmailVerified: updatedUser.isEmailVerified,
+          isAnonymous: _user!.isAnonymous,
+          roles: updatedUser.roles,
+          createdAt: updatedUser.createdAt ?? _user!.createdAt,
+          updatedAt: DateTime.now(),
+        );
 
-      _setState(AuthState.authenticated);
+        _setState(AuthState.authenticated);
+        AppLogger.success('Profile updated successfully', tag: 'AuthProvider');
+      } catch (apiError) {
+        AppLogger.error(
+          'Profile update API failed',
+          tag: 'AuthProvider',
+          error: apiError,
+        );
+
+        // Handle specific API errors
+        final errorMessage = apiError.toString();
+        if (errorMessage.contains('Invalid token format') ||
+            errorMessage.contains('Session expired')) {
+          throw AuthException(
+            'Your session has expired. Please sign out and sign in again to update your profile.',
+          );
+        } else if (errorMessage.contains('401') ||
+            errorMessage.contains('Unauthorized')) {
+          throw AuthException(
+            'Authentication failed. Please sign out and sign in again.',
+          );
+        } else {
+          throw AuthException('Failed to update profile: ${errorMessage}');
+        }
+      }
     } catch (e) {
       _handleAuthError(e);
       rethrow; // Re-throw so the UI can show the error

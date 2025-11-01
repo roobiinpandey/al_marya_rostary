@@ -64,12 +64,7 @@ class BrewingMethodCard extends StatelessWidget {
                   ),
                 )
               : Icon(
-                  brewingMethod.icon != null
-                      ? IconData(
-                          int.parse(brewingMethod.icon!),
-                          fontFamily: 'MaterialIcons',
-                        )
-                      : Icons.coffee,
+                  _getIconData(brewingMethod.icon),
                   color: Colors.white,
                   size: 30,
                 ),
@@ -302,5 +297,28 @@ class BrewingMethodCard extends StatelessWidget {
       return '${AppConstants.baseUrl}$imagePath';
     }
     return imagePath;
+  }
+
+  /// Get IconData from icon string or fallback to coffee icon
+  /// Uses constant icons to support tree-shaking in release builds
+  IconData _getIconData(String? icon) {
+    if (icon == null) return Icons.coffee;
+
+    // Map common icon codes to constant IconData objects
+    // This allows Flutter to tree-shake icons in release mode
+    const iconMap = {
+      '57627': Icons.coffee,
+      '58732': Icons.local_cafe,
+      '59498': Icons.coffee_maker,
+      '57684': Icons.restaurant,
+      '59693': Icons.emoji_food_beverage,
+    };
+
+    // Try to use mapped constant icon
+    final mappedIcon = iconMap[icon];
+    if (mappedIcon != null) return mappedIcon;
+
+    // Fallback to coffee icon for unknown codes
+    return Icons.coffee;
   }
 }
