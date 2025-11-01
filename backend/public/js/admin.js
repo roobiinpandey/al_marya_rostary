@@ -364,7 +364,11 @@ async function initializeAdmin() {
         // Don't throw - let user stay logged in even if dashboard fails
     }
     
-    loadCategories();
+    // Load categories if function exists
+    if (typeof loadCategories === 'function') {
+        loadCategories();
+    }
+    
     initializeCharts();
     hideGlobalLoading();
 }
