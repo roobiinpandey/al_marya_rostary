@@ -1,9 +1,9 @@
 {
   "project_info": {
     "project_number": "446607982003",
-    "firebase_url": "https://***REMOVED***-default-rtdb.asia-southeast1.firebasedatabase.app",
-    "project_id": "***REMOVED***",
-    "storage_bucket": "***REMOVED***.firebasestorage.app"
+    "firebase_url": "https://qahwatapp-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "qahwatapp",
+    "storage_bucket": "qahwatapp.firebasestorage.app"
   },
   "client": [
     {
@@ -29,7 +29,7 @@
       ],
       "api_key": [
         {
-          "current_key": "***REMOVED***"
+          "current_key": "AIzaSyA9PHzkR6CykfVk3yNqY5SDuCP2F6pN3Oc"
         }
       ],
       "services": {

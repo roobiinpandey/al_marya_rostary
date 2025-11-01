@@ -17,7 +17,7 @@ const REQUIRED_ENV_VARS = {
   // Database Configuration
   MONGODB_URI: {
     required: true,
-    validate: (value) => value && (value.startsWith('mongodb://') || value.startsWith('***REMOVED***')),
+    validate: (value) => value && (value.startsWith('mongodb://') || value.startsWith('mongodb+srv://')),
     errorMessage: 'MONGODB_URI must be a valid MongoDB connection string'
   },
 

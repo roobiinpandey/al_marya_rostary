@@ -34,7 +34,7 @@ const orderItemSchema = new mongoose.Schema({
 const orderSchema = new mongoose.Schema({
   orderNumber: {
     type: String,
-    unique: true, // This automatically creates an index
+    unique: true, // This automatically creates an index    flutter run
     required: true
   },
   user: {

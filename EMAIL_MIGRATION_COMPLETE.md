@@ -4,7 +4,7 @@
 
 ### **1. 🗄️ Database Configuration**
 **File:** `backend/.env`
-- ✅ Updated MongoDB username from `***REMOVED***` to `***REMOVED***`
+- ✅ Updated MongoDB username from `roobiinpandey_db_user` to `almaryarostery_db_user`
 - ✅ Email configuration already using `almaryarostery@gmail.com`
 
 ### **2. 📋 Documentation Updates**
@@ -22,7 +22,7 @@
 
 ### **Before:**
 ```
-MongoDB User: ***REMOVED***
+MongoDB User: roobiinpandey_db_user
 Main Admin: roobiinpandey@gmail.com (Robin Pandey)
 Git Email: roobiinpandey@gmail.com
 Git Name: robin
@@ -31,7 +31,7 @@ GitHub Repo: roobiinpandey/al_marya_rostary
 
 ### **After:**
 ```
-MongoDB User: ***REMOVED***
+MongoDB User: almaryarostery_db_user
 Main Admin: almaryarostery@gmail.com (Al Marya Rostery)
 Git Email: almaryarostery@gmail.com
 Git Name: Al Marya Rostery
@@ -41,7 +41,7 @@ GitHub Repo: almaryarostery/al_marya_rostary
 ## 🔒 **MongoDB Atlas - RESOLVED**
 
 ✅ **Fixed:** MongoDB connection working perfectly
-- Kept existing MongoDB user `***REMOVED***` (database working)
+- Kept existing MongoDB user `roobiinpandey_db_user` (database working)
 - Updated all other references to use `almaryarostery@gmail.com`
 - Database connection: `✅ MongoDB Connected: ac-1j2ae9n-shard-00-02.2yel8zi.mongodb.net`
 
