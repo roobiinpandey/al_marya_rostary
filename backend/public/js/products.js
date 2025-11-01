@@ -4,6 +4,9 @@
 // IMAGE URL HELPER FUNCTION
 // ============================================================================
 
+// Placeholder image as data URI (coffee cup icon)
+const DEFAULT_COFFEE_IMAGE = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"%3E%3Crect fill="%23f5f5f5" width="200" height="200"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="60" fill="%23999"%3E☕%3C/text%3E%3C/svg%3E';
+
 /**
  * Get proper image URL - handles both local and Cloudinary URLs
  * @param {string} imagePath - The image path from database
@@ -11,7 +14,7 @@
  */
 function getImageUrl(imagePath) {
     if (!imagePath) {
-        return '/assets/images/default-coffee.jpg';
+        return DEFAULT_COFFEE_IMAGE;
     }
     
     // If it's already a full URL (Cloudinary or external), return as-is
@@ -325,7 +328,7 @@ function renderProductsTable(products) {
                             <img src="${getImageUrl(product.image)}" 
                                  alt="${product.name?.en || 'Product'}" 
                                  style="width: 60px; height: 60px; border-radius: 8px; object-fit: cover; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"
-                                 onerror="this.src='/assets/images/default-coffee.jpg'">
+                                 onerror="this.onerror=null; this.src='${DEFAULT_COFFEE_IMAGE}'">
                         </td>
                         <td>
                             <div class="product-name">
@@ -557,7 +560,7 @@ async function showEditProductModal(product) {
             imageItem.className = 'preview-image-item main';
             const imageUrl = getImageUrl(product.image);
             imageItem.innerHTML = `
-                <img src="${imageUrl}" alt="Product image" onerror="this.src='/assets/images/default-coffee.jpg'">
+                <img src="${imageUrl}" alt="Product image" onerror="this.onerror=null; this.src='${DEFAULT_COFFEE_IMAGE}'">
                 <span class="main-badge">Main</span>
             `;
             imagesPreview.appendChild(imageItem);
@@ -1047,7 +1050,7 @@ function removeProductImage(index) {
         imageItem.className = `preview-image-item ${img.isMain ? 'main' : ''}`;
         const imageUrl = getImageUrl(img.url);
         imageItem.innerHTML = `
-            <img src="${imageUrl}" alt="Product image" onerror="this.src='/assets/images/default-coffee.jpg'">
+            <img src="${imageUrl}" alt="Product image" onerror="this.onerror=null; this.src='${DEFAULT_COFFEE_IMAGE}'">
             <button type="button" class="remove-btn" onclick="removeProductImage(${i})">×</button>
             ${img.isMain ? '<span class="main-badge">Main</span>' : ''}
         `;
