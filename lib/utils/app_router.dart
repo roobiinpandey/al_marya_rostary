@@ -9,7 +9,6 @@ import '../features/auth/presentation/pages/register_page.dart';
 import '../features/auth/presentation/pages/forgot_password_page.dart';
 import '../features/auth/presentation/screens/email_verification_screen.dart';
 import '../core/guards/email_verification_guard.dart';
-import '../debug/auth_debug_page.dart';
 import '../features/admin/presentation/pages/admin_login_page.dart';
 import '../core/theme/app_theme.dart';
 // Import missing pages
@@ -123,7 +122,6 @@ class AppRouter {
   static const String loyaltyRewards = '/loyalty-rewards';
   static const String referral = '/referral';
   static const String subscriptions = '/subscriptions';
-  static const String debugAuth = '/debug/auth';
   // Enhanced navigation routes
   static const String coffeeArabica = '/coffee/arabica';
   static const String coffeeRobusta = '/coffee/robusta';
@@ -277,10 +275,14 @@ class AppRouter {
 
         try {
           final product = settings.arguments as CoffeeProductModel?;
-          AppLogger.debug('🔍 App Router: Cast successful, product: ${product?.name}');
+          AppLogger.debug(
+            '🔍 App Router: Cast successful, product: ${product?.name}',
+          );
 
           if (product == null) {
-            AppLogger.error('❌ App Router: Product is null, showing error page');
+            AppLogger.error(
+              '❌ App Router: Product is null, showing error page',
+            );
             return _buildRouteWithPersistentNav(
               _buildErrorPage('Product not found'),
               settings: settings,
@@ -452,9 +454,6 @@ class AppRouter {
           const EmailVerificationGuard(child: SubscriptionManagementPage()),
           settings: settings,
         );
-
-      case '/debug/auth':
-        return _buildRoute(const AuthDebugPage(), settings: settings);
 
       case '/help-support':
         return _buildRoute(const HelpSupportPage(), settings: settings);
