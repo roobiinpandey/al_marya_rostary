@@ -93,8 +93,10 @@ class CartPage extends StatelessWidget {
               onPressed: () {
                 // Navigate back to home
                 // Use root navigator to go to MainNavigationPage with home tab (index 0)
-                Navigator.of(context, rootNavigator: true)
-                    .pushNamedAndRemoveUntil(
+                Navigator.of(
+                  context,
+                  rootNavigator: true,
+                ).pushNamedAndRemoveUntil(
                   '/',
                   (route) => false,
                   arguments: {'initialIndex': 0},
