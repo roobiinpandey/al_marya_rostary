@@ -75,27 +75,27 @@ class CartItem {
   String get id {
     switch (itemType) {
       case CartItemType.coffee:
-        return product!.id;
+        return product?.id ?? 'unknown-coffee';
       case CartItemType.accessory:
-        return accessory!.id;
+        return accessory?.id ?? 'unknown-accessory';
     }
   }
 
   String get name {
     switch (itemType) {
       case CartItemType.coffee:
-        return product!.name;
+        return product?.name ?? 'Unknown Coffee';
       case CartItemType.accessory:
-        return accessory!.name.en;
+        return accessory?.name.en ?? 'Unknown Accessory';
     }
   }
 
   String get imageUrl {
     switch (itemType) {
       case CartItemType.coffee:
-        return product!.imageUrl;
+        return product?.imageUrl ?? '';
       case CartItemType.accessory:
-        return accessory!.primaryImageUrl;
+        return accessory?.primaryImageUrl ?? '';
     }
   }
 
@@ -103,9 +103,9 @@ class CartItem {
     if (price != null) return price!;
     switch (itemType) {
       case CartItemType.coffee:
-        return product!.price;
+        return product?.price ?? 0.0;
       case CartItemType.accessory:
-        return accessory!.price.sale ?? accessory!.price.regular;
+        return accessory?.price.sale ?? accessory?.price.regular ?? 0.0;
     }
   }
 

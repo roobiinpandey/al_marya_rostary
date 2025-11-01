@@ -90,7 +90,17 @@ class CartPage extends StatelessWidget {
             ),
             const SizedBox(height: 32),
             ElevatedButton.icon(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () {
+                // Check if we can pop (standalone page) or need to navigate to home tab
+                if (Navigator.of(context).canPop()) {
+                  Navigator.of(context).pop();
+                } else {
+                  // We're in a tab view, navigate to home tab
+                  // Find the MainNavigationPage and switch to home tab
+                  final navigator = Navigator.of(context);
+                  navigator.pushNamedAndRemoveUntil('/', (route) => false);
+                }
+              },
               icon: const Icon(Icons.arrow_back),
               label: const Text('Continue Shopping'),
               style: ElevatedButton.styleFrom(
@@ -115,7 +125,7 @@ class CartPage extends StatelessWidget {
   Widget _buildCartContent(
     BuildContext context,
     CartProvider cartProvider,
-    cartItems,
+    List<CartItem> cartItems,
   ) {
     return Column(
       children: [
@@ -191,8 +201,8 @@ class CartPage extends StatelessWidget {
                             const SizedBox(height: 4),
                             Text(
                               item.itemType == CartItemType.coffee
-                                  ? item.product!.origin
-                                  : item.accessory!.category,
+                                  ? (item.product?.origin ?? 'Unknown Origin')
+                                  : (item.accessory?.category ?? 'Unknown Category'),
                               style: Theme.of(context).textTheme.bodyMedium
                                   ?.copyWith(color: AppTheme.textMedium),
                             ),
@@ -223,7 +233,7 @@ class CartPage extends StatelessWidget {
                             Text(
                               item.itemType == CartItemType.coffee
                                   ? '${AppConstants.currencySymbol}${item.unitPrice.toStringAsFixed(2)} per ${item.selectedSize ?? 'kg'}'
-                                  : '${item.unitPrice.toStringAsFixed(2)} ${item.accessory!.price.currency}',
+                                  : '${item.unitPrice.toStringAsFixed(2)} ${item.accessory?.price.currency ?? 'AED'}',
                               style: Theme.of(context).textTheme.bodyMedium
                                   ?.copyWith(
                                     color: AppTheme.primaryBrown,
