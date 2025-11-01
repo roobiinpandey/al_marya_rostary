@@ -303,8 +303,8 @@ router.get('/:groupKey/values', async (req, res) => {
     const { active, language = 'en', hierarchical } = req.query;
     const cacheKey = `${req.params.groupKey}_${active}_${language}_${hierarchical}`;
     
-    // Check cache first (5 minutes TTL)
-    const cached = cacheManager.get('attributes', cacheKey);
+    // Check cache first (5 minutes TTL) - use global.cacheManager which is properly initialized
+    const cached = global.cacheManager ? global.cacheManager.get('attributes', cacheKey) : null;
     if (cached) {
       return res.json(cached);
     }
@@ -349,8 +349,10 @@ router.get('/:groupKey/values', async (req, res) => {
       data: localizedValues
     };
     
-    // Cache the response for 5 minutes
-    cacheManager.set('attributes', cacheKey, response, 300);
+    // Cache the response for 5 minutes - use global.cacheManager
+    if (global.cacheManager) {
+      global.cacheManager.set('attributes', cacheKey, response, 300);
+    }
     
     res.json(response);
   } catch (error) {
@@ -406,7 +408,9 @@ router.get('/values/:id', async (req, res) => {
  */
 router.post('/:groupKey/values', protect, authorize("admin"), async (req, res) => {
   // Clear cache for this attribute group
-  cacheManager.clearNamespace('attributes');
+  if (global.cacheManager) {
+    global.cacheManager.clearNamespace('attributes');
+  }
   try {
     const group = await AttributeGroup.findByKey(req.params.groupKey);
     
@@ -472,7 +476,9 @@ router.post('/:groupKey/values', protect, authorize("admin"), async (req, res) =
  */
 router.put('/values/:id', protect, authorize("admin"), async (req, res) => {
   // Clear cache for all attributes
-  cacheManager.clearNamespace('attributes');
+  if (global.cacheManager) {
+    global.cacheManager.clearNamespace('attributes');
+  }
   
   try {
     const value = await AttributeValue.findById(req.params.id);
@@ -523,7 +529,9 @@ router.put('/values/:id', protect, authorize("admin"), async (req, res) => {
  */
 router.delete('/values/:id', protect, authorize("admin"), async (req, res) => {
   // Clear cache for all attributes
-  cacheManager.clearNamespace('attributes');
+  if (global.cacheManager) {
+    global.cacheManager.clearNamespace('attributes');
+  }
   
   try {
     const value = await AttributeValue.findById(req.params.id);
