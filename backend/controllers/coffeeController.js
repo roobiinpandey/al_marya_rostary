@@ -254,7 +254,7 @@ const createCoffee = async (req, res) => {
         ar: req.body.descriptionAr || req.body.description
       },
       price: price,
-      image: `/uploads/${req.file.filename}`,
+      image: req.file.path, // Cloudinary URL
       origin: req.body.origin,
       roastLevel: req.body.roastLevel,
       stock: stock,
@@ -277,13 +277,9 @@ const createCoffee = async (req, res) => {
     });
   } catch (error) {
     console.error('Create coffee error:', error);
-
-    // Delete uploaded file if coffee creation fails
-    if (req.file) {
-      const fs = require('fs');
-      const path = require('path');
-      fs.unlinkSync(path.join(__dirname, '../uploads', req.file.filename));
-    }
+    
+    // Note: Cloudinary automatically manages file storage
+    // No need to manually delete files on error
 
     res.status(500).json({
       success: false,
@@ -349,17 +345,9 @@ const updateCoffee = async (req, res) => {
 
     // Handle file upload if new image provided
     if (req.file) {
-      updateData.image = `/uploads/${req.file.filename}`;
-
-      // Delete old image file
-      if (existingCoffee && existingCoffee.image) {
-        const fs = require('fs');
-        const path = require('path');
-        const oldImagePath = path.join(__dirname, '..', existingCoffee.image);
-        if (fs.existsSync(oldImagePath)) {
-          fs.unlinkSync(oldImagePath);
-        }
-      }
+      updateData.image = req.file.path; // Cloudinary URL
+      // Note: Cloudinary automatically manages old images
+      // No need to manually delete old files
     }
 
     // Parse JSON fields
@@ -390,13 +378,9 @@ const updateCoffee = async (req, res) => {
     });
   } catch (error) {
     console.error('Update coffee error:', error);
-
-    // Delete uploaded file if update fails
-    if (req.file) {
-      const fs = require('fs');
-      const path = require('path');
-      fs.unlinkSync(path.join(__dirname, '../uploads', req.file.filename));
-    }
+    
+    // Note: Cloudinary automatically manages file storage
+    // No need to manually delete files on error
 
     res.status(500).json({
       success: false,
