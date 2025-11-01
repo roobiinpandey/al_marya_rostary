@@ -5,7 +5,7 @@
 - ✅ Flutter SDK installed (v3.35.6)
 - ✅ Firebase already integrated in Flutter app
 - ✅ Firebase options configured for all platforms
-- ✅ Firebase project: `***REMOVED***`
+- ✅ Firebase project: `qahwatapp`
 - ❌ FlutterFire CLI not installed
 
 ## 📋 What's Already Working
@@ -40,10 +40,10 @@ flutterfire configure
 ## 🔧 Current Firebase Configuration
 
 ### Project Details:
-- **Project ID**: ***REMOVED***
-- **Database URL**: https://***REMOVED***-default-rtdb.asia-southeast1.firebasedatabase.app
-- **Storage Bucket**: ***REMOVED***.appspot.com
-- **Auth Domain**: ***REMOVED***.firebaseapp.com
+- **Project ID**: qahwatapp
+- **Database URL**: https://qahwatapp-default-rtdb.asia-southeast1.firebasedatabase.app
+- **Storage Bucket**: qahwatapp.appspot.com
+- **Auth Domain**: qahwatapp.firebaseapp.com
 
 ### Configured Services:
 - 🔐 Authentication (Google Sign-In, Apple Sign-In)

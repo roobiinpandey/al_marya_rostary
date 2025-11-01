@@ -143,13 +143,13 @@ echo "✅ Security scan complete"
 ```
 android/app/google-services.json
 ├─ api_key: "AIza..." (Client key - domain restricted)
-├─ project_id: "***REMOVED***" (Public)
+├─ project_id: "qahwatapp" (Public)
 └─ app_id: "1:446..." (Public)
 
 lib/firebase_options.dart  
 ├─ apiKey: "AIza..." (Client key)
 ├─ appId: "1:446..." (Public)
-└─ projectId: "***REMOVED***" (Public)
+└─ projectId: "qahwatapp" (Public)
 
 android/app/src/main/AndroidManifest.xml
 └─ Google Maps API Key (Client key - domain restricted)
@@ -158,7 +158,7 @@ android/app/src/main/AndroidManifest.xml
 ### NEVER Commit (Server-Side Secrets):
 ```
 backend/.env
-├─ MONGODB_URI: "***REMOVED***user:PASSWORD@..." ❌
+├─ MONGODB_URI: "mongodb+srv://user:PASSWORD@..." ❌
 ├─ JWT_SECRET: "abc123..." ❌
 ├─ FIREBASE_PRIVATE_KEY: "-----BEGIN..." ❌
 └─ SMTP_PASS: "app_password" ❌

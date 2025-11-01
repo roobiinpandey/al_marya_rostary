@@ -6,7 +6,7 @@
 
 **WRONG** ❌:
 ```javascript
-const MONGODB_URI = '***REMOVED***realuser:realpassword@cluster.mongodb.net/database';
+const MONGODB_URI = 'mongodb+srv://realuser:realpassword@cluster.mongodb.net/database';
 ```
 
 **CORRECT** ✅:
@@ -21,7 +21,7 @@ if (!MONGODB_URI) {
 
 **Backend (.env file - NEVER commit):**
 ```env
-MONGODB_URI=***REMOVED***USERNAME:PASSWORD@CLUSTER.mongodb.net/DATABASE
+MONGODB_URI=mongodb+srv://USERNAME:PASSWORD@CLUSTER.mongodb.net/DATABASE
 CLOUDINARY_CLOUD_NAME=your-cloud-name
 CLOUDINARY_API_KEY=your-api-key
 CLOUDINARY_API_SECRET=your-api-secret
@@ -103,7 +103,7 @@ If a credential is exposed:
 
 **Example Connection String Template:**
 ```
-***REMOVED***USERNAME:PASSWORD@CLUSTER.mongodb.net/DATABASE?retryWrites=true&w=majority
+mongodb+srv://USERNAME:PASSWORD@CLUSTER.mongodb.net/DATABASE?retryWrites=true&w=majority
 ```
 
 Replace:

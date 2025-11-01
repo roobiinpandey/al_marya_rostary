@@ -23,7 +23,7 @@ Copy these **18 environment variables** into your Render service:
 ```
 NODE_ENV=production
 PORT=10000
-MONGODB_URI=***REMOVED***YOUR_USERNAME:YOUR_PASSWORD@YOUR_CLUSTER.mongodb.net/YOUR_DATABASE?retryWrites=true&w=majority
+MONGODB_URI=mongodb+srv://YOUR_USERNAME:YOUR_PASSWORD@YOUR_CLUSTER.mongodb.net/YOUR_DATABASE?retryWrites=true&w=majority
 ```
 
 #### **Authentication (4 variables)**  
@@ -48,7 +48,7 @@ ADMIN_PASSWORD=almarya2024
 
 #### **Firebase Configuration (4 variables)**
 ```
-FIREBASE_PROJECT_ID=***REMOVED***
+FIREBASE_PROJECT_ID=qahwatapp
 FIREBASE_SERVICE_ACCOUNT_KEY=[GET_FROM_YOUR_LOCAL_FIREBASE_SECRET_KEY_FILE]
 ENABLE_AUTO_FIREBASE_SYNC=true
 FIREBASE_SYNC_INTERVAL_MS=60000

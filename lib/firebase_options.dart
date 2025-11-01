@@ -42,33 +42,33 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions web = FirebaseOptions(
     apiKey: 'AIzaSyBPYrFbmQzoGFJyNTPc6_r-Nwo_LQAXt14',
-    appId: '1:446607982003:web:***REMOVED***',
+    appId: '1:446607982003:web:qahwatapp',
     messagingSenderId: '446607982003',
-    projectId: '***REMOVED***',
-    authDomain: '***REMOVED***.firebaseapp.com',
+    projectId: 'qahwatapp',
+    authDomain: 'qahwatapp.firebaseapp.com',
     databaseURL:
-        'https://***REMOVED***-default-rtdb.asia-southeast1.firebasedatabase.app',
-    storageBucket: '***REMOVED***.appspot.com',
+        'https://qahwatapp-default-rtdb.asia-southeast1.firebasedatabase.app',
+    storageBucket: 'qahwatapp.appspot.com',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyBPYrFbmQzoGFJyNTPc6_r-Nwo_LQAXt14',
     appId: '1:446607982003:android:31d906b11afa121189dfc6',
     messagingSenderId: '446607982003',
-    projectId: '***REMOVED***',
+    projectId: 'qahwatapp',
     databaseURL:
-        'https://***REMOVED***-default-rtdb.asia-southeast1.firebasedatabase.app',
-    storageBucket: '***REMOVED***.appspot.com',
+        'https://qahwatapp-default-rtdb.asia-southeast1.firebasedatabase.app',
+    storageBucket: 'qahwatapp.appspot.com',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyBPYrFbmQzoGFJyNTPc6_r-Nwo_LQAXt14',
     appId: '1:446607982003:ios:d7e83ac110607e0389dfc6',
     messagingSenderId: '446607982003',
-    projectId: '***REMOVED***',
+    projectId: 'qahwatapp',
     databaseURL:
-        'https://***REMOVED***-default-rtdb.asia-southeast1.firebasedatabase.app',
-    storageBucket: '***REMOVED***.appspot.com',
+        'https://qahwatapp-default-rtdb.asia-southeast1.firebasedatabase.app',
+    storageBucket: 'qahwatapp.appspot.com',
     iosBundleId: 'qahwatalemarat',
   );
 
@@ -76,21 +76,21 @@ class DefaultFirebaseOptions {
     apiKey: 'AIzaSyBPYrFbmQzoGFJyNTPc6_r-Nwo_LQAXt14',
     appId: '1:446607982003:ios:d7e83ac110607e0389dfc6',
     messagingSenderId: '446607982003',
-    projectId: '***REMOVED***',
+    projectId: 'qahwatapp',
     databaseURL:
-        'https://***REMOVED***-default-rtdb.asia-southeast1.firebasedatabase.app',
-    storageBucket: '***REMOVED***.appspot.com',
+        'https://qahwatapp-default-rtdb.asia-southeast1.firebasedatabase.app',
+    storageBucket: 'qahwatapp.appspot.com',
     iosBundleId: 'qahwatalemarat',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
     apiKey: 'AIzaSyBPYrFbmQzoGFJyNTPc6_r-Nwo_LQAXt14',
-    appId: '1:446607982003:web:***REMOVED***',
+    appId: '1:446607982003:web:qahwatapp',
     messagingSenderId: '446607982003',
-    projectId: '***REMOVED***',
-    authDomain: '***REMOVED***.firebaseapp.com',
+    projectId: 'qahwatapp',
+    authDomain: 'qahwatapp.firebaseapp.com',
     databaseURL:
-        'https://***REMOVED***-default-rtdb.asia-southeast1.firebasedatabase.app',
-    storageBucket: '***REMOVED***.appspot.com',
+        'https://qahwatapp-default-rtdb.asia-southeast1.firebasedatabase.app',
+    storageBucket: 'qahwatapp.appspot.com',
   );
 }

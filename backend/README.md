@@ -47,7 +47,7 @@ Backend API server for the Qahwat Al Emarat coffee ordering mobile application.
    ```env
    NODE_ENV=development
    PORT=5000
-      MONGODB_URI=***REMOVED***your_mongodb_uri_here
+      MONGODB_URI=mongodb+srv://your_mongodb_uri_here
    JWT_SECRET=your_jwt_secret_key
    JWT_EXPIRE=7d
    JWT_REFRESH_SECRET=your_refresh_secret_key
