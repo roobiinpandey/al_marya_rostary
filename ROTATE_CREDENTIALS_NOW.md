@@ -8,7 +8,7 @@
 
 ### 1. MongoDB Password
 - **User**: `roobiinpandey_db_user`
-- **Exposed Password**: `HBoz9zeuNMGv1QUtyj7tSZInxfT3v041`
+- **Exposed Password**: `***REMOVED***`
 - **Cluster**: `almaryarostery.2yel8zi.mongodb.net`
 - **Database**: `al_marya_rostery`
 
@@ -63,7 +63,7 @@ cd "/Volumes/PERSONAL/Al Marya Rostery APP/al_marya_rostery/backend"
 cp .env .env.backup
 
 # Replace password in .env (use your actual new password)
-sed -i '' 's/HBoz9zeuNMGv1QUtyj7tSZInxfT3v041/YOUR_NEW_PASSWORD_HERE/g' .env
+sed -i '' 's/***REMOVED***/YOUR_NEW_PASSWORD_HERE/g' .env
 ```
 
 ### D. Update Render.com Environment Variables
@@ -77,7 +77,7 @@ sed -i '' 's/HBoz9zeuNMGv1QUtyj7tSZInxfT3v041/YOUR_NEW_PASSWORD_HERE/g' .env
 7. Click **"Edit"** (pencil icon)
 8. Replace the old password in the URI:
    ```
-   OLD: mongodb+srv://roobiinpandey_db_user:HBoz9zeuNMGv1QUtyj7tSZInxfT3v041@almaryarostery...
+   OLD: mongodb+srv://roobiinpandey_db_user:***REMOVED***@almaryarostery...
    NEW: mongodb+srv://roobiinpandey_db_user:YOUR_NEW_PASSWORD@almaryarostery...
    ```
 9. Click **"Save Changes"**
