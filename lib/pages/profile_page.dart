@@ -5,7 +5,6 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../core/theme/app_theme.dart';
 import '../features/auth/presentation/providers/auth_provider.dart';
-import '../debug/firebase_token_debugger.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -135,29 +134,15 @@ class _ProfilePageContentState extends State<_ProfilePageContent> {
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
-          // Debug button for Firebase token testing
           IconButton(
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => FirebaseTokenDebugger(),
-                ),
-              );
+              setState(() {
+                _isEditing = true;
+              });
             },
-            icon: const Icon(Icons.bug_report),
-            tooltip: 'Debug Firebase Token',
+            icon: const Icon(Icons.edit),
+            tooltip: 'Edit Profile',
           ),
-          if (!_isEditing)
-            IconButton(
-              onPressed: () {
-                setState(() {
-                  _isEditing = true;
-                });
-              },
-              icon: const Icon(Icons.edit),
-              tooltip: 'Edit Profile',
-            ),
         ],
       ),
       backgroundColor: const Color(0xFFF5F5F5), // backgroundLight
