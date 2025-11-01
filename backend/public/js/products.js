@@ -1,6 +1,35 @@
 /* Products Management Module */
 
 // ============================================================================
+// IMAGE URL HELPER FUNCTION
+// ============================================================================
+
+/**
+ * Get proper image URL - handles both local and Cloudinary URLs
+ * @param {string} imagePath - The image path from database
+ * @returns {string} - Properly formatted image URL
+ */
+function getImageUrl(imagePath) {
+    if (!imagePath) {
+        return '/assets/images/default-coffee.jpg';
+    }
+    
+    // If it's already a full URL (Cloudinary or external), return as-is
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+        return imagePath;
+    }
+    
+    // If it's a relative path starting with /, it's a local upload
+    // Convert to full URL using BASE_URL
+    if (imagePath.startsWith('/')) {
+        return `${API_BASE_URL}${imagePath}`;
+    }
+    
+    // Otherwise, assume it's a relative path and prepend API_BASE_URL
+    return `${API_BASE_URL}/${imagePath}`;
+}
+
+// ============================================================================
 // DYNAMIC ATTRIBUTE LOADING FUNCTIONS
 // ============================================================================
 
@@ -41,12 +70,13 @@ async function loadOriginOptions() {
                 data.data.forEach(region => {
                     if (region.children && region.children.length > 0) {
                         const optgroup = document.createElement('optgroup');
-                        optgroup.label = region.localizedName || region.name.en;
+                        optgroup.label = region.localizedName || (region.name && region.name.en) || region.value;
 
                         region.children.forEach(country => {
                             const option = document.createElement('option');
                             option.value = country.value;
-                            option.textContent = `${country.icon || ''} ${country.localizedName || country.name.en}`.trim();
+                            const countryName = country.localizedName || (country.name && country.name.en) || country.value;
+                            option.textContent = `${country.icon || ''} ${countryName}`.trim();
                             optgroup.appendChild(option);
                         });
 
@@ -68,12 +98,13 @@ async function loadOriginOptions() {
         data.data.forEach(region => {
             if (region.children && region.children.length > 0) {
                 const optgroup = document.createElement('optgroup');
-                optgroup.label = region.localizedName || region.name.en;
+                optgroup.label = region.localizedName || (region.name && region.name.en) || region.value;
                 
                 region.children.forEach(country => {
                     const option = document.createElement('option');
                     option.value = country.value;
-                    option.textContent = `${country.icon || ''} ${country.localizedName || country.name.en}`.trim();
+                    const countryName = country.localizedName || (country.name && country.name.en) || country.value;
+                    option.textContent = `${country.icon || ''} ${countryName}`.trim();
                     optgroup.appendChild(option);
                 });
                 
@@ -112,9 +143,11 @@ async function loadRoastLevels() {
         sortedValues.forEach(roast => {
             const option = document.createElement('option');
             option.value = roast.value;
-            option.textContent = `${roast.icon || ''} ${roast.localizedName || roast.name.en}`.trim();
-            if (roast.description?.en) {
-                option.title = roast.description.en;
+            const roastName = roast.localizedName || (roast.name && roast.name.en) || roast.value;
+            option.textContent = `${roast.icon || ''} ${roastName}`.trim();
+            const description = roast.localizedDescription || (roast.description && roast.description.en);
+            if (description) {
+                option.title = description;
             }
             select.appendChild(option);
         });
@@ -150,9 +183,11 @@ async function loadProcessingMethods() {
         sortedValues.forEach(method => {
             const option = document.createElement('option');
             option.value = method.value;
-            option.textContent = method.localizedName || method.name.en;
-            if (method.description?.en) {
-                option.title = method.description.en;
+            const methodName = method.localizedName || (method.name && method.name.en) || method.value;
+            option.textContent = methodName;
+            const description = method.localizedDescription || (method.description && method.description.en);
+            if (description) {
+                option.title = description;
             }
             select.appendChild(option);
         });
@@ -189,14 +224,16 @@ async function loadFlavorProfiles() {
             const label = document.createElement('label');
             label.className = 'flavor-checkbox';
             label.style.color = flavor.color || '#333';
+            const flavorName = flavor.localizedName || (flavor.name && flavor.name.en) || flavor.value;
             label.innerHTML = `
                 <input type="checkbox" name="flavorProfile" value="${flavor.value}">
                 <span class="flavor-label">
-                    ${flavor.icon || ''} ${flavor.localizedName || flavor.name.en}
+                    ${flavor.icon || ''} ${flavorName}
                 </span>
             `;
-            if (flavor.description?.en) {
-                label.title = flavor.description.en;
+            const description = flavor.localizedDescription || (flavor.description && flavor.description.en);
+            if (description) {
+                label.title = description;
             }
             container.appendChild(label);
         });
@@ -285,9 +322,10 @@ function renderProductsTable(products) {
                     return `
                     <tr>
                         <td>
-                            <img src="${product.image || '/assets/images/default-coffee.jpg'}" 
+                            <img src="${getImageUrl(product.image)}" 
                                  alt="${product.name?.en || 'Product'}" 
-                                 style="width: 60px; height: 60px; border-radius: 8px; object-fit: cover; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                 style="width: 60px; height: 60px; border-radius: 8px; object-fit: cover; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"
+                                 onerror="this.src='/assets/images/default-coffee.jpg'">
                         </td>
                         <td>
                             <div class="product-name">
@@ -517,8 +555,9 @@ async function showEditProductModal(product) {
         if (imagesPreview) {
             const imageItem = document.createElement('div');
             imageItem.className = 'preview-image-item main';
+            const imageUrl = getImageUrl(product.image);
             imageItem.innerHTML = `
-                <img src="${product.image}" alt="Product image">
+                <img src="${imageUrl}" alt="Product image" onerror="this.src='/assets/images/default-coffee.jpg'">
                 <span class="main-badge">Main</span>
             `;
             imagesPreview.appendChild(imageItem);
@@ -1006,8 +1045,9 @@ function removeProductImage(index) {
         img.isMain = i === 0; // First image is always main
         const imageItem = document.createElement('div');
         imageItem.className = `preview-image-item ${img.isMain ? 'main' : ''}`;
+        const imageUrl = getImageUrl(img.url);
         imageItem.innerHTML = `
-            <img src="${img.url}" alt="Product image">
+            <img src="${imageUrl}" alt="Product image" onerror="this.src='/assets/images/default-coffee.jpg'">
             <button type="button" class="remove-btn" onclick="removeProductImage(${i})">×</button>
             ${img.isMain ? '<span class="main-badge">Main</span>' : ''}
         `;
