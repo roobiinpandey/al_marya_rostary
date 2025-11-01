@@ -1,12 +1,22 @@
 /**
  * Delete placeholder/test sliders from database
- * Run with: node delete-placeholder-sliders.js
+ * Run with: MONGODB_URI=<your-uri> node delete-placeholder-sliders.js
+ * 
+ * SECURITY: Never hardcode database credentials
+ * Set MONGODB_URI environment variable before running
  */
 
 const mongoose = require('mongoose');
 const Slider = require('./models/Slider');
 
-const MONGODB_URI = process.env.MONGODB_URI || '***REMOVED******REMOVED***:***REMOVED***@almaryarostery.2yel8zi.mongodb.net/al_marya_rostery?retryWrites=true&w=majority&appName=almaryarostery';
+// Require environment variable - fail if not set
+const MONGODB_URI = process.env.MONGODB_URI;
+
+if (!MONGODB_URI) {
+  console.error('❌ ERROR: MONGODB_URI environment variable is required');
+  console.error('Usage: MONGODB_URI=<your-uri> node delete-placeholder-sliders.js');
+  process.exit(1);
+}
 
 async function deletePlaceholderSliders() {
   try {
