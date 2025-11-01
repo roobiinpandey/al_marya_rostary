@@ -132,6 +132,12 @@ backend/firebase-service-account.json
 **/*COMPLETE_ENV*.txt
 **/*ENV_VARS*.env
 
+# Security documentation with real examples
+SECURITY_CREDENTIALS_*.md
+**/delete-placeholder-*.js
+**/*_temp_*.js
+GITHUB_SECURITY_ALERT_ANALYSIS.md
+
 # Firebase related
 .firebase/
 firebase-debug.log*
