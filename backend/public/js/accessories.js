@@ -554,11 +554,18 @@ class AccessoriesManager {
                                 <h4>Product Images</h4>
                                 
                                 <div class="form-group">
-                                    <label for="imageUrl">Image URL *</label>
+                                    <label>Upload Image</label>
+                                    <input type="file" id="accessoryImageFile" accept="image/*" 
+                                           onchange="accessoriesManager.handleImageUpload(event)">
+                                    <small class="form-help">Upload a new image (JPG, PNG, WebP - Max 5MB)</small>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="imageUrl">Or use Image URL</label>
                                     <input type="url" id="imageUrl" name="imageUrl" 
                                            value="${accessory?.images?.[0]?.url || ''}" 
                                            placeholder="https://example.com/image.jpg or /uploads/accessory.jpg">
-                                    <small class="form-help">Enter a full URL or a path relative to the server (e.g., /uploads/mug.jpg)</small>
+                                    <small class="form-help">Paste an existing image URL or use the upload above</small>
                                 </div>
 
                                 <div class="form-group">
@@ -575,24 +582,33 @@ class AccessoriesManager {
                                            placeholder="وصف الصورة">
                                 </div>
 
-                                ${accessory?.images?.[0]?.url ? `
-                                    <div class="image-preview">
-                                        <label>Current Image:</label>
-                                        <img src="${accessory.images[0].url}" alt="Current accessory image" 
-                                             style="max-width: 200px; max-height: 200px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd;">
+                                <div id="accessoryImagePreview" class="image-preview" style="display: ${accessory?.images?.[0]?.url ? 'block' : 'none'}">
+                                    <label>Image Preview:</label>
+                                    <img id="accessoryPreviewImg" src="${accessory?.images?.[0]?.url || ''}" alt="Preview" 
+                                         style="max-width: 200px; max-height: 200px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd; margin-top: 8px;">
+                                    <button type="button" class="btn btn-sm btn-danger" style="margin-top: 8px;" 
+                                            onclick="accessoriesManager.removeImage()">
+                                        <i class="fas fa-times"></i> Remove Image
+                                    </button>
+                                </div>
+
+                                <div id="accessoryImageUploadProgress" style="display: none; margin-top: 10px;">
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" id="accessoryUploadProgressBar" style="width: 0%"></div>
                                     </div>
-                                ` : ''}
+                                    <p class="progress-text">Uploading: <span id="accessoryUploadProgressText">0%</span></p>
+                                </div>
 
                                 <div class="form-help-box">
                                     <i class="fas fa-info-circle"></i>
                                     <div>
                                         <strong>Image Guidelines:</strong>
                                         <ul>
-                                            <li>Upload images to the <code>/backend/public/uploads/</code> folder</li>
-                                            <li>Then use the path: <code>/uploads/your-image.jpg</code></li>
-                                            <li>Or use a full URL from an external source</li>
+                                            <li>Click "Upload Image" to upload from your computer</li>
+                                            <li>Or paste an existing image URL</li>
                                             <li>Recommended size: 800x800px or higher</li>
                                             <li>Format: JPG, PNG, or WebP</li>
+                                            <li>Maximum file size: 5MB</li>
                                         </ul>
                                     </div>
                                 </div>
@@ -726,6 +742,94 @@ class AccessoriesManager {
             console.error('Error saving accessory:', error);
             showErrorMessage('Failed to save accessory: ' + error.message);
         }
+    }
+
+    async handleImageUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        // Validate file
+        const maxSize = 5 * 1024 * 1024; // 5MB
+        if (file.size > maxSize) {
+            showErrorMessage('Image file size must be less than 5MB');
+            event.target.value = '';
+            return;
+        }
+
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+        if (!allowedTypes.includes(file.type)) {
+            showErrorMessage('Only JPG, PNG, and WebP images are allowed');
+            event.target.value = '';
+            return;
+        }
+
+        try {
+            // Show progress
+            document.getElementById('accessoryImageUploadProgress').style.display = 'block';
+            
+            const formData = new FormData();
+            formData.append('image', file);
+
+            // Upload with progress tracking
+            const xhr = new XMLHttpRequest();
+            
+            xhr.upload.addEventListener('progress', (e) => {
+                if (e.lengthComputable) {
+                    const percentComplete = (e.loaded / e.total) * 100;
+                    document.getElementById('accessoryUploadProgressBar').style.width = percentComplete + '%';
+                    document.getElementById('accessoryUploadProgressText').textContent = Math.round(percentComplete) + '%';
+                }
+            });
+
+            xhr.addEventListener('load', () => {
+                document.getElementById('accessoryImageUploadProgress').style.display = 'none';
+                
+                if (xhr.status === 200) {
+                    const response = JSON.parse(xhr.responseText);
+                    if (response.success) {
+                        const imageUrl = response.url || response.imageUrl || response.data?.url;
+                        
+                        // Update the image URL field
+                        document.getElementById('imageUrl').value = imageUrl;
+                        
+                        // Show preview
+                        document.getElementById('accessoryImagePreview').style.display = 'block';
+                        document.getElementById('accessoryPreviewImg').src = imageUrl;
+                        
+                        showSuccessMessage('Image uploaded successfully!');
+                    } else {
+                        throw new Error(response.message || 'Upload failed');
+                    }
+                } else {
+                    throw new Error('Upload failed with status: ' + xhr.status);
+                }
+            });
+
+            xhr.addEventListener('error', () => {
+                document.getElementById('accessoryImageUploadProgress').style.display = 'none';
+                showErrorMessage('Failed to upload image. Please try again.');
+            });
+
+            xhr.open('POST', '/api/accessories/upload/image');
+            const token = localStorage.getItem('adminToken');
+            if (token) {
+                xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+            }
+            xhr.send(formData);
+
+        } catch (error) {
+            console.error('Error uploading image:', error);
+            showErrorMessage('Failed to upload image: ' + error.message);
+            document.getElementById('accessoryImageUploadProgress').style.display = 'none';
+        }
+    }
+
+    removeImage() {
+        document.getElementById('imageUrl').value = '';
+        document.getElementById('accessoryImagePreview').style.display = 'none';
+        document.getElementById('accessoryPreviewImg').src = '';
+        document.getElementById('accessoryImageFile').value = '';
+        showSuccessMessage('Image removed');
     }
 }
 
