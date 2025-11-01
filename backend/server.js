@@ -121,9 +121,6 @@ app.use('/api/contact-inquiries', require('./routes/contactInquiries'));
 // Debug routes (for development)
 app.use('/api/debug', require('./routes/debug'));
 
-// Debug authentication routes (for development)
-app.use('/api/debug-auth', require('./routes/debug-auth'));
-
 // Email testing routes (admin only)
 app.use('/api/test', require('./routes/emailTest'));
 
