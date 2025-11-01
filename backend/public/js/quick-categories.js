@@ -564,3 +564,26 @@ if (typeof showSection !== 'undefined') {
         }
     };
 }
+
+// ============================================================================
+// IMAGE DELETION FUNCTIONS
+// ============================================================================
+
+/**
+ * Remove quick category image from preview
+ */
+function removeQuickCategoryImage() {
+    const preview = document.getElementById('quickCategoryImagePreview');
+    const fileInput = document.getElementById('quickCategoryImage');
+    
+    if (preview) {
+        preview.src = '';
+        preview.style.display = 'none';
+    }
+    
+    if (fileInput) {
+        fileInput.value = '';
+    }
+    
+    console.log('✅ Quick category image removed from preview');
+}

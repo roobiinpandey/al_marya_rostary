@@ -409,3 +409,45 @@ async function loadCategoriesForSlider() {
         document.getElementById('sliderCategory').innerHTML = '<option value="">Error loading categories</option>';
     }
 }
+
+// ============================================================================
+// IMAGE DELETION FUNCTIONS
+// ============================================================================
+
+/**
+ * Remove desktop slider image from preview
+ */
+function removeSliderImage() {
+    const preview = document.getElementById('sliderImagePreview');
+    const fileInput = document.getElementById('sliderImage');
+    
+    if (preview) {
+        preview.src = '';
+        preview.style.display = 'none';
+    }
+    
+    if (fileInput) {
+        fileInput.value = '';
+    }
+    
+    console.log('✅ Desktop slider image removed from preview');
+}
+
+/**
+ * Remove mobile slider image from preview
+ */
+function removeSliderMobileImage() {
+    const preview = document.getElementById('sliderMobileImagePreview');
+    const fileInput = document.getElementById('sliderMobileImage');
+    
+    if (preview) {
+        preview.src = '';
+        preview.style.display = 'none';
+    }
+    
+    if (fileInput) {
+        fileInput.value = '';
+    }
+    
+    console.log('✅ Mobile slider image removed from preview');
+}

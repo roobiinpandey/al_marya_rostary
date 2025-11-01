@@ -552,3 +552,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Export for global access
 window.brewingMethodsManager = brewingMethodsManager;
+
+// ============================================================================
+// IMAGE DELETION FUNCTIONS
+// ============================================================================
+
+/**
+ * Remove brewing method image from preview
+ */
+function removeBrewingMethodImage() {
+    const preview = document.getElementById('brewingMethodImagePreview');
+    const fileInput = document.getElementById('brewingMethodImage');
+    
+    if (preview) {
+        preview.src = '';
+        preview.style.display = 'none';
+    }
+    
+    if (fileInput) {
+        fileInput.value = '';
+    }
+    
+    console.log('✅ Brewing method image removed from preview');
+}
