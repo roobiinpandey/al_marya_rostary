@@ -157,14 +157,24 @@ class AppRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
       case '/':
+        // Extract initialIndex from arguments if provided
+        final args = settings.arguments as Map<String, dynamic>?;
+        final initialIndex = args?['initialIndex'] as int? ?? 0;
         return _buildRoute(
-          const EmailVerificationGuard(child: MainNavigationPage()),
+          EmailVerificationGuard(
+            child: MainNavigationPage(initialIndex: initialIndex),
+          ),
           settings: settings,
         );
 
       case '/home':
+        // Extract initialIndex from arguments if provided
+        final args = settings.arguments as Map<String, dynamic>?;
+        final initialIndex = args?['initialIndex'] as int? ?? 0;
         return _buildRoute(
-          const EmailVerificationGuard(child: MainNavigationPage()),
+          EmailVerificationGuard(
+            child: MainNavigationPage(initialIndex: initialIndex),
+          ),
           settings: settings,
         );
 

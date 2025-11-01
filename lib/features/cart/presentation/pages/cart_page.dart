@@ -91,22 +91,17 @@ class CartPage extends StatelessWidget {
             const SizedBox(height: 32),
             ElevatedButton.icon(
               onPressed: () {
-                // When cart is in a tab view (bottom navigation),
-                // we can't actually navigate away. Show a helpful message.
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: const Text('Tap the Home tab below to start shopping'),
-                    backgroundColor: AppTheme.primaryBrown,
-                    behavior: SnackBarBehavior.floating,
-                    duration: const Duration(seconds: 2),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
+                // Navigate back to home
+                // Use root navigator to go to MainNavigationPage with home tab (index 0)
+                Navigator.of(context, rootNavigator: true)
+                    .pushNamedAndRemoveUntil(
+                  '/',
+                  (route) => false,
+                  arguments: {'initialIndex': 0},
                 );
               },
-              icon: const Icon(Icons.home),
-              label: const Text('Go to Home'),
+              icon: const Icon(Icons.shopping_bag),
+              label: const Text('Browse Products'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.primaryBrown,
                 foregroundColor: Colors.white,
