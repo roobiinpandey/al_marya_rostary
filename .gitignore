@@ -193,3 +193,39 @@ android/app/*.backup
 !**/ios/**/default.mode2v3
 !**/ios/**/default.pbxuser
 !**/ios/**/default.perspectivev3
+
+# macOS System Files
+.DS_Store
+**/.DS_Store
+
+# Build Outputs
+*.apk
+*.ipa
+*.aab
+*.app
+
+# Backup Files
+*.backup
+*.bak
+*.old
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Environment & Logs
+.env
+.env.local
+*.log
+
+# Node Modules (should always be ignored)
+node_modules/
+backend/node_modules/
+functions/node_modules/
+
+# Build directories
+build/
+.dart_tool/
+.flutter-plugins-dependencies
+
