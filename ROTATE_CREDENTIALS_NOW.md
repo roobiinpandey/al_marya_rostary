@@ -26,6 +26,40 @@
 
 ## 🎯 STEP 1: ROTATE MONGODB PASSWORD (15 minutes)
 
+## 🔒 IP ACCESS LIST (Network Access) — add these IPs to Atlas
+
+Before testing connections from your local machine or servers, ensure the cluster allows connections from your IPs. Add the following IP access list entries in MongoDB Atlas (Project → Network Access → IP Access List):
+
+- 92.96.6.195/32  # your current local IP (active)
+- 2.50.140.183/32  # secondary server IP
+
+Notes:
+- After adding an IP allowlist entry, propagation may take 1–2 minutes.
+- If you're blocked and need quick access, you can temporarily add 0.0.0.0/0 (NOT recommended for long) and then narrow it down immediately after.
+
+Add via Atlas UI:
+1. Log in to https://cloud.mongodb.com/ and open your project (almaryarostery).
+2. In the left sidebar choose **Network Access** → **IP Access List**.
+3. Click **Add IP Address**.
+4. Paste the IP (e.g. `92.96.6.195/32`), add a short comment, and click **Confirm**.
+5. Repeat for `2.50.140.183/32`.
+
+Add via Atlas CLI (optional, if you have the `atlas` CLI set up):
+```bash
+# Create entries using Atlas CLI (install: https://www.mongodb.com/docs/atlas/cli/stable/)
+atlas accessLists create 92.96.6.195/32 --comment "home-ip"
+atlas accessLists create 2.50.140.183/32 --comment "server-ip"
+```
+
+Or using the older mongocli (if you use it):
+```bash
+mongocli iam projects accessList create --projectId <PROJECT_ID> --cidrBlock 92.96.6.195/32 --comment "home-ip"
+mongocli iam projects accessList create --projectId <PROJECT_ID> --cidrBlock 2.50.140.183/32 --comment "server-ip"
+```
+
+If you want, I can run a connection test after you confirm the IP entries are active.
+
+
 ### A. Generate New Password
 
 1. Open Terminal and run:

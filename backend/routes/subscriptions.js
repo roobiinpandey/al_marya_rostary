@@ -3,6 +3,127 @@ const router = express.Router();
 const { Subscription, SubscriptionPlan, SubscriptionDelivery } = require('../models/Subscription');
 const { protect } = require('../middleware/auth');
 
+// SUBSCRIPTION PLANS MANAGEMENT ENDPOINTS (must be before /:id routes)
+// ============================================================================
+
+// Get all subscription plans
+router.get('/plans', async (req, res) => {
+    try {
+        const filter = {};
+        
+        // Filter by active status if specified
+        if (req.query.active !== undefined) {
+            filter.isActive = req.query.active === 'true';
+        }
+        
+        // Filter by frequency if specified
+        if (req.query.frequency) {
+            filter.frequency = req.query.frequency;
+        }
+        
+        const plans = await SubscriptionPlan.find(filter)
+            .sort({ sortOrder: 1, createdAt: -1 })
+            .lean();
+        
+        res.json({
+            success: true,
+            data: {
+                plans,
+                total: plans.length
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching subscription plans:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch subscription plans',
+            error: error.message
+        });
+    }
+});
+
+// Get single subscription plan by ID
+router.get('/plans/:id', async (req, res) => {
+    try {
+        const plan = await SubscriptionPlan.findById(req.params.id).lean();
+        
+        if (!plan) {
+            return res.status(404).json({
+                success: false,
+                message: 'Subscription plan not found'
+            });
+        }
+        
+        res.json({
+            success: true,
+            data: plan
+        });
+    } catch (error) {
+        console.error('Error fetching subscription plan:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch subscription plan',
+            error: error.message
+        });
+    }
+});
+
+// Create new subscription plan
+router.post('/plans', async (req, res) => {
+    try {
+        const {
+            planId,
+            name,
+            description,
+            frequency,
+            discountPercentage,
+            minCommitmentMonths,
+            benefits,
+            isActive,
+            sortOrder
+        } = req.body;
+        
+        // Validate required fields
+        if (!planId || !name || !description || !frequency || discountPercentage === undefined) {
+            return res.status(400).json({
+                success: false,
+                message: 'Missing required fields: planId, name, description, frequency, discountPercentage'
+            });
+        }
+
+        const plan = new SubscriptionPlan({
+            planId,
+            name,
+            description,
+            frequency,
+            discountPercentage,
+            minCommitmentMonths: minCommitmentMonths || 1,
+            benefits: benefits || [],
+            isActive: isActive !== undefined ? isActive : true,
+            sortOrder: sortOrder || 0
+        });
+
+        const savedPlan = await plan.save();
+        
+        res.status(201).json({
+            success: true,
+            message: 'Subscription plan created successfully',
+            data: savedPlan
+        });
+    } catch (error) {
+        console.error('Error creating subscription plan:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to create subscription plan',
+            error: error.message
+        });
+    }
+});
+
+// ============================================================================
+// SUBSCRIPTION MANAGEMENT ENDPOINTS
+// ============================================================================
+
 // Get all subscriptions with filtering and pagination
 router.get('/', protect, async (req, res) => {
     try {

@@ -7,10 +7,13 @@ const connectDB = async () => {
   try {
     console.log('🔌 Connecting to MongoDB...');
     
+    // Check if we're using local MongoDB or Atlas
+    const isLocalMongo = process.env.MONGODB_URI.includes('localhost') || process.env.MONGODB_URI.includes('127.0.0.1');
+    
     const connectionOptions = {
       // ⚡ OPTIMIZED CONNECTION POOLING
-      maxPoolSize: 50, // Increased from 10 to 50 for better concurrent request handling
-      minPoolSize: 10, // Maintain minimum 10 connections to avoid cold starts
+      maxPoolSize: isLocalMongo ? 10 : 50, // Reduce for local development
+      minPoolSize: isLocalMongo ? 2 : 10, // Reduce for local development
       maxIdleTimeMS: 30000, // Close idle connections after 30 seconds
       
       // ⚡ OPTIMIZED TIMEOUT SETTINGS
@@ -18,31 +21,27 @@ const connectDB = async () => {
       socketTimeoutMS: 30000, // Reduced from 45s to 30s for faster failure detection
       connectTimeoutMS: 10000, // 10 seconds for initial connection
       
-      // ⚡ CONNECTION COMPRESSION for better performance
-      compressors: ['zlib'],
-      zlibCompressionLevel: 6,
-      
-      // ⚡ READ PREFERENCES for better load distribution
-      readPreference: 'secondaryPreferred',
+      // ⚡ CONNECTION RETRY SETTINGS
+      retryWrites: true,
+      retryReads: true,
       
       // ⚡ WRITE CONCERN - balanced for performance and consistency
       w: 'majority',
       journal: true,
       wtimeoutMS: 5000, // Write timeout of 5 seconds
-      
-      // ⚡ CONNECTION RETRY SETTINGS
-      retryWrites: true,
-      retryReads: true,
-      maxStalenessSeconds: 90, // Use data up to 90 seconds old from secondaries
-      
-      // 🔒 SSL/TLS settings for security
-      ssl: true,
-      authSource: 'admin',
-      
-      // ⚡ CONNECTION MANAGEMENT
-      heartbeatFrequencyMS: 10000, // Check server health every 10 seconds
-      minHeartbeatFrequencyMS: 5000 // Minimum 5 seconds between heartbeats
     };
+
+    // Add production-specific options only for Atlas connections
+    if (!isLocalMongo) {
+      connectionOptions.compressors = ['zlib'];
+      connectionOptions.zlibCompressionLevel = 6;
+      connectionOptions.readPreference = 'secondaryPreferred';
+      connectionOptions.maxStalenessSeconds = 90;
+      connectionOptions.ssl = true;
+      connectionOptions.authSource = 'admin';
+      connectionOptions.heartbeatFrequencyMS = 10000;
+      connectionOptions.minHeartbeatFrequencyMS = 5000;
+    }
 
     // Configure mongoose settings for better performance
     mongoose.set('strictQuery', false);

@@ -28,10 +28,19 @@ import 'core/services/gift_set_api_service.dart';
 import 'providers/location_provider.dart';
 import 'providers/address_provider.dart';
 import 'providers/gift_set_provider.dart';
+import 'features/subscriptions/presentation/providers/subscriptions_provider.dart';
 import 'l10n/app_localizations.dart';
+import 'core/error/global_error_handler.dart';
+import 'core/network/network_manager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize global error handling
+  GlobalErrorHandler.initialize();
+
+  // Initialize network manager
+  await NetworkManager().initialize();
 
   // Initialize Firebase with error handling
   bool firebaseInitialized = false;
@@ -94,6 +103,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (context) => GiftSetProvider(GiftSetApiService()),
         ),
+        ChangeNotifierProvider(create: (context) => SubscriptionsProvider()),
       ],
       child: Consumer<LanguageProvider>(
         builder: (context, languageProvider, child) {
