@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
+const compression = require('compression');
 require('dotenv').config();
 
 // Security: Validate environment variables before starting server
@@ -26,6 +27,19 @@ monitoring.initializeMiddleware(app);
 
 // ⚡ NEW: Add performance monitoring middleware (MUST BE FIRST to track all requests)
 app.use(performanceMonitoring);
+
+// ⚡ PERFORMANCE: Enable compression for all responses (gzip/deflate)
+app.use(compression({
+  threshold: 1024, // Only compress responses larger than 1KB
+  level: 6, // Compression level (0-9, 6 is balanced)
+  filter: (req, res) => {
+    // Don't compress if explicitly disabled or if already compressed
+    if (req.headers['x-no-compression']) {
+      return false;
+    }
+    return compression.filter(req, res);
+  }
+}));
 
 // Security middleware (must be first)
 securityMiddleware(app);
@@ -60,11 +74,51 @@ app.use((req, res, next) => {
 
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Serve static files from uploads directory
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// ⚡ PERFORMANCE: Serve static files with aggressive caching
+// JavaScript files with 1 day cache
+app.use('/js', express.static(path.join(__dirname, 'public/js'), {
+  maxAge: '1d',          // Cache for 1 day
+  etag: true,            // Enable ETags for cache validation
+  lastModified: true,    // Enable Last-Modified headers
+  immutable: false       // Allow revalidation
+}));
 
-// Serve static files from public directory (admin panel)
-app.use(express.static(path.join(__dirname, 'public')));
+// CSS files with 1 day cache
+app.use('/css', express.static(path.join(__dirname, 'public/css'), {
+  maxAge: '1d',
+  etag: true,
+  lastModified: true
+}));
+
+// Images with 7 day cache (images change less frequently)
+app.use('/images', express.static(path.join(__dirname, 'public/images'), {
+  maxAge: '7d',
+  etag: true,
+  lastModified: true,
+  immutable: true        // Images are immutable once uploaded
+}));
+
+// Icons with 30 day cache (rarely change)
+app.use('/icons', express.static(path.join(__dirname, 'public/icons'), {
+  maxAge: '30d',
+  etag: true,
+  lastModified: true,
+  immutable: true
+}));
+
+// Serve uploads directory with shorter cache (user-generated content)
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
+  maxAge: '1d',
+  etag: true,
+  lastModified: true
+}));
+
+// Serve remaining public files (HTML, etc.) with shorter cache
+app.use(express.static(path.join(__dirname, 'public'), {
+  maxAge: '5m',          // 5 minutes for HTML files
+  etag: true,
+  lastModified: true
+}));
 
 // Database connection is now handled by the imported connectDB function
 
