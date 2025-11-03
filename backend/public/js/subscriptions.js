@@ -561,7 +561,7 @@ class SubscriptionPlansManager {
 
     async loadCoffeeProducts() {
         try {
-            const response = await authenticatedFetch(`${API_BASE_URL}/api/coffee`);
+            const response = await authenticatedFetch(`${API_BASE_URL}/api/coffees`);
             const data = await response.json();
             
             if (data.success && data.data) {
