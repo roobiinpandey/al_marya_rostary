@@ -1,8 +1,42 @@
+/**
+ * ⚠️ DEPRECATION NOTICE ⚠️
+ * 
+ * This route is DEPRECATED and will be removed in a future version.
+ * 
+ * The Review model has been merged with UserFeedback model for consistency.
+ * All review functionality now uses /api/feedback endpoints.
+ * 
+ * Migration Status:
+ * - ✅ Admin panel updated to use /api/feedback
+ * - ✅ Migration script created: backend/scripts/migrate-reviews-to-feedback.js
+ * - ⚠️ This route kept for backward compatibility only
+ * 
+ * Please update your code to use /api/feedback instead:
+ * - GET /api/feedback/product/:productId (was /api/reviews/product/:productId)
+ * - POST /api/feedback (was /api/reviews)
+ * - GET /api/feedback/admin/all (was /api/reviews/admin/list)
+ * - GET /api/feedback/stats (was /api/reviews/admin/stats)
+ * - PUT /api/feedback/admin/:id/moderate (was /api/reviews/:id/approve or /api/reviews/:id/reject)
+ * 
+ * Date: November 3, 2025
+ */
+
 const express = require('express');
 const router = express.Router();
 const Review = require('../models/Review');
 const { body, validationResult, param, query } = require('express-validator');
 const { protect } = require('../middleware/auth');
+
+// Deprecation warning middleware
+const deprecationWarning = (req, res, next) => {
+  console.warn(`⚠️  DEPRECATION WARNING: ${req.method} ${req.originalUrl} is deprecated. Use /api/feedback instead.`);
+  res.setHeader('X-API-Deprecated', 'true');
+  res.setHeader('X-API-Deprecation-Info', 'Use /api/feedback endpoints instead. See route comments for details.');
+  next();
+};
+
+// Apply deprecation warning to all routes
+router.use(deprecationWarning);
 
 // Validation middleware
 const validateReview = [

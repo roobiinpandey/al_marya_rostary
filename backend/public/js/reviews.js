@@ -53,15 +53,17 @@ const reviewsManager = {
 
     async fetchReviewStats() {
         try {
-            const response = await authenticatedFetch(`${API_BASE_URL}/api/reviews/admin/stats`);
+            // NOW USING FEEDBACK API - migrated from /api/reviews to /api/feedback
+            const response = await authenticatedFetch(`${API_BASE_URL}/api/feedback/stats`);
             const data = await response.json();
             
             if (data.success) {
+                // Map UserFeedback stats to Review stats format
                 return {
                     pending: data.data.pending || 0,
                     approved: data.data.approved || 0,
-                    rejected: data.data.rejected || 0,
-                    flagged: data.data.flagged || 0,
+                    rejected: data.data.hidden || 0, // hidden = rejected in new model
+                    flagged: 0, // UserFeedback doesn't have flagged status
                     averageRating: data.data.averageRating || 0,
                     total: data.data.total || 0
                 };
@@ -87,41 +89,50 @@ const reviewsManager = {
             if (filter) params.append('status', filter);
             params.append('limit', '50');
             
-            const response = await authenticatedFetch(`${API_BASE_URL}/api/reviews/admin/list?${params}`);
+            // NOW USING FEEDBACK API - migrated from /api/reviews to /api/feedback
+            const response = await authenticatedFetch(`${API_BASE_URL}/api/feedback/admin/all?${params}`);
             const data = await response.json();
             
             // Check if API call was successful
             if (data.success && data.data) {
-                // Return reviews array (could be empty, which is fine)
-                if (Array.isArray(data.data.reviews)) {
-                    return data.data.reviews.map(review => ({
-                        _id: review._id,
-                        productId: review.productId,
-                        productName: review.productName,
-                        userId: review.userId,
-                        userName: review.userName,
-                        userEmail: review.userEmail,
-                        rating: review.rating,
-                        title: review.title,
-                        comment: review.comment,
-                        status: review.status,
-                        helpfulCount: review.helpfulCount || 0,
-                        isVerifiedPurchase: review.isVerifiedPurchase,
-                        orderNumber: review.orderNumber,
-                        createdAt: new Date(review.createdAt),
-                        updatedAt: review.updatedAt ? new Date(review.updatedAt) : null,
-                        moderationNotes: review.moderationNotes,
-                        moderatedBy: review.moderatedBy,
-                        moderatedAt: review.moderatedAt ? new Date(review.moderatedAt) : null
+                // Return feedback array mapped to review format
+                if (Array.isArray(data.data.feedback)) {
+                    return data.data.feedback.map(feedback => ({
+                        _id: feedback._id,
+                        productId: feedback.product?._id || feedback.product,
+                        productName: feedback.product?.name || 'Unknown Product',
+                        userId: feedback.user?._id || feedback.user,
+                        userName: feedback.user?.name || 'Anonymous',
+                        userEmail: feedback.user?.email || '',
+                        rating: feedback.rating,
+                        title: feedback.title,
+                        comment: feedback.comment,
+                        // Map UserFeedback status to Review status format
+                        status: feedback.isHidden ? 'rejected' : (feedback.isApproved ? 'approved' : 'pending'),
+                        helpfulCount: feedback.helpfulVotes || 0,
+                        isVerifiedPurchase: feedback.isVerifiedPurchase,
+                        orderNumber: feedback.order || null,
+                        createdAt: new Date(feedback.createdAt),
+                        updatedAt: feedback.updatedAt ? new Date(feedback.updatedAt) : null,
+                        moderationNotes: feedback.moderationNotes,
+                        moderatedBy: null, // UserFeedback doesn't track moderator
+                        moderatedAt: null,
+                        // Additional UserFeedback fields (bonus features)
+                        pros: feedback.pros || [],
+                        cons: feedback.cons || [],
+                        images: feedback.images || [],
+                        brewingMethod: feedback.brewingMethod,
+                        flavorProfile: feedback.flavorProfile,
+                        wouldRecommend: feedback.wouldRecommend
                     }));
                 } else {
-                    // No reviews array, return empty
+                    // No feedback array, return empty
                     return [];
                 }
             }
             
             // If API call failed, return empty array (don't throw error for empty state)
-            console.warn('Reviews API returned unsuccessful response:', data.message);
+            console.warn('Feedback API returned unsuccessful response:', data.message);
             return [];
         } catch (error) {
             console.error('Error fetching reviews:', error);
@@ -248,8 +259,18 @@ const reviewsManager = {
         try {
             showGlobalLoading('Approving review...');
             
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 500));
+            // NOW USING FEEDBACK API - migrated from /api/reviews to /api/feedback
+            const response = await authenticatedFetch(`${API_BASE_URL}/api/feedback/admin/${reviewId}/moderate`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'approve',
+                    moderationNotes: 'Approved by admin'
+                })
+            });
+            
+            const data = await response.json();
+            if (!data.success) throw new Error(data.message);
             
             showToast('Review approved successfully', 'success');
             await this.loadReviews();
@@ -270,8 +291,18 @@ const reviewsManager = {
         try {
             showGlobalLoading('Rejecting review...');
             
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 500));
+            // NOW USING FEEDBACK API - migrated from /api/reviews to /api/feedback
+            const response = await authenticatedFetch(`${API_BASE_URL}/api/feedback/admin/${reviewId}/moderate`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'hide',
+                    moderationNotes: reason || 'Rejected by admin'
+                })
+            });
+            
+            const data = await response.json();
+            if (!data.success) throw new Error(data.message);
             
             showToast('Review rejected successfully', 'success');
             await this.loadReviews();

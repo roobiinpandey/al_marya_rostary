@@ -185,6 +185,8 @@ app.use('/api/firebase-sync', require('./routes/firebaseSync'));
 app.use('/api/auto-sync', require('./routes/autoSync'));
 
 // New Feature Routes
+// ⚠️ DEPRECATED: /api/reviews - Use /api/feedback instead (migrated Nov 3, 2025)
+// Kept for backward compatibility only. See backend/REVIEW_MIGRATION_GUIDE.md
 app.use('/api/reviews', require('./routes/reviews'));
 app.use('/api/loyalty', require('./routes/loyalty'));
 app.use('/api/referrals', require('./routes/referrals'));
