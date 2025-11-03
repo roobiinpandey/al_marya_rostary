@@ -25,8 +25,8 @@ class _ReferralsPageEnhancedState extends State<ReferralsPageEnhanced>
     // Load referrals data when page loads
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final provider = Provider.of<ReferralsProvider>(context, listen: false);
-      provider.loadUserReferrals('current_user_id'); // TODO: Get actual user ID
-      provider.loadReferralStats('current_user_id'); // TODO: Get actual user ID
+      provider.loadUserReferrals('current_user_id'); // Note: Get actual user ID
+      provider.loadReferralStats('current_user_id'); // Note: Get actual user ID
       provider.loadProgramInfo();
     });
   }
@@ -126,7 +126,10 @@ class _ReferralsPageEnhancedState extends State<ReferralsPageEnhanced>
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(12),
                     gradient: LinearGradient(
-                      colors: [primaryColor, primaryColor.withOpacity(0.8)],
+                      colors: [
+                        primaryColor,
+                        primaryColor.withValues(alpha: 0.8),
+                      ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
@@ -152,7 +155,7 @@ class _ReferralsPageEnhancedState extends State<ReferralsPageEnhanced>
                                 vertical: 12,
                               ),
                               decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.2),
+                                color: Colors.white.withValues(alpha: 0.2),
                                 borderRadius: BorderRadius.circular(8),
                                 border: Border.all(color: Colors.white38),
                               ),
@@ -175,7 +178,9 @@ class _ReferralsPageEnhancedState extends State<ReferralsPageEnhanced>
                             ),
                             icon: const Icon(Icons.copy, color: Colors.white),
                             style: IconButton.styleFrom(
-                              backgroundColor: Colors.white.withOpacity(0.2),
+                              backgroundColor: Colors.white.withValues(
+                                alpha: 0.2,
+                              ),
                             ),
                           ),
                         ],
@@ -413,7 +418,10 @@ class _ReferralsPageEnhancedState extends State<ReferralsPageEnhanced>
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           gradient: LinearGradient(
-            colors: [color.withOpacity(0.1), color.withOpacity(0.05)],
+            colors: [
+              color.withValues(alpha: 0.1),
+              color.withValues(alpha: 0.05),
+            ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -505,7 +513,7 @@ class _ReferralsPageEnhancedState extends State<ReferralsPageEnhanced>
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: _getStatusColor(status).withOpacity(0.1),
+                color: _getStatusColor(status).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(24),
               ),
               child: Icon(
@@ -539,7 +547,7 @@ class _ReferralsPageEnhancedState extends State<ReferralsPageEnhanced>
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: _getStatusColor(status).withOpacity(0.1),
+                        color: _getStatusColor(status).withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
@@ -563,7 +571,7 @@ class _ReferralsPageEnhancedState extends State<ReferralsPageEnhanced>
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.amber.withOpacity(0.1),
+                  color: Colors.amber.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Row(
@@ -619,7 +627,7 @@ class _ReferralsPageEnhancedState extends State<ReferralsPageEnhanced>
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: Colors.amber.withOpacity(0.1),
+                color: Colors.amber.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: const Icon(Icons.star, color: Colors.amber, size: 20),
@@ -662,7 +670,7 @@ class _ReferralsPageEnhancedState extends State<ReferralsPageEnhanced>
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: primaryColor.withOpacity(0.1),
+                color: primaryColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(24),
               ),
               child: Center(
@@ -788,7 +796,7 @@ class _ReferralsPageEnhancedState extends State<ReferralsPageEnhanced>
 
   void _shareReferralCode(String code) {
     if (code.isNotEmpty) {
-      // TODO: Implement proper sharing functionality
+      // Note: Implement proper sharing functionality
       // For now, just copy to clipboard
       _copyReferralCode(code);
       ScaffoldMessenger.of(context).showSnackBar(

@@ -81,7 +81,9 @@ class CoffeeProductModel extends CoffeeProduct {
     }
 
     // Fallback: Return empty string and let backend handle error
-    AppLogger.warning('⚠️ Warning: Could not parse product ID from: ${json['_id']}');
+    AppLogger.warning(
+      '⚠️ Warning: Could not parse product ID from: ${json['_id']}',
+    );
     return '';
   }
 

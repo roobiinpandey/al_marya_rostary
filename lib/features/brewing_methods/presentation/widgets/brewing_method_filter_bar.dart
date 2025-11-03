@@ -36,7 +36,7 @@ class BrewingMethodFilterBar extends StatelessWidget {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -152,7 +152,7 @@ class BrewingMethodFilterBar extends StatelessWidget {
       onSelected: (_) => onTap(),
       selectedColor: AppTheme.primaryBrown,
       backgroundColor: Colors.white,
-      side: BorderSide(color: AppTheme.primaryBrown.withOpacity(0.3)),
+      side: BorderSide(color: AppTheme.primaryBrown.withValues(alpha: 0.3)),
       labelStyle: TextStyle(
         color: isActive ? Colors.white : AppTheme.primaryBrown,
         fontWeight: FontWeight.w500,
@@ -208,8 +208,8 @@ class BrewingMethodFilterBar extends StatelessWidget {
       label: Text(label),
       deleteIcon: const Icon(Icons.close, size: 16),
       onDeleted: onRemove,
-      backgroundColor: AppTheme.accentAmber.withOpacity(0.1),
-      side: BorderSide(color: AppTheme.accentAmber.withOpacity(0.3)),
+      backgroundColor: AppTheme.accentAmber.withValues(alpha: 0.1),
+      side: BorderSide(color: AppTheme.accentAmber.withValues(alpha: 0.3)),
       labelStyle: TextStyle(color: AppTheme.accentAmber, fontSize: 12),
     );
   }

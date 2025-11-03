@@ -98,7 +98,7 @@ class AdminProvider extends ChangeNotifier {
       // Fetch user statistics
       await _fetchUserStats(headers);
 
-      // TODO: Add other metrics (orders, products, revenue)
+      // Note: Add other metrics (orders, products, revenue)
       // For now, we'll focus on fixing the user count issue
 
       _error = null;

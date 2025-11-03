@@ -106,7 +106,7 @@ class _FirebaseUsersPageState extends State<FirebaseUsersPage> {
               // Header
               Container(
                 padding: const EdgeInsets.all(16),
-                color: AppTheme.primaryLightBrown.withOpacity(0.1),
+                color: AppTheme.primaryLightBrown.withValues(alpha: 0.1),
                 child: Row(
                   children: [
                     const Icon(Icons.people, color: AppTheme.primaryBrown),

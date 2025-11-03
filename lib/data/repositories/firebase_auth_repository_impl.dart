@@ -104,13 +104,13 @@ class FirebaseAuthRepositoryImpl implements AuthRepository {
       name: updatedUser.name,
       photoURL: updatedUser.avatar,
     );
-    
+
     // Get current user's auth info to create proper response
     final currentUser = await _firebaseAuthService.getCurrentUser();
     if (currentUser == null) {
       throw AuthException('Failed to get updated user info');
     }
-    
+
     return AuthResponse(
       accessToken: '', // Firebase handles tokens internally
       refreshToken: '',
@@ -132,13 +132,13 @@ class FirebaseAuthRepositoryImpl implements AuthRepository {
       name: name,
       // photoURL would be set after uploading avatarFile to Firebase Storage
     );
-    
+
     // Get current user's auth info to create proper response
     final currentUser = await _firebaseAuthService.getCurrentUser();
     if (currentUser == null) {
       throw AuthException('Failed to get updated user info');
     }
-    
+
     return AuthResponse(
       accessToken: '', // Firebase handles tokens internally
       refreshToken: '',
@@ -146,7 +146,9 @@ class FirebaseAuthRepositoryImpl implements AuthRepository {
       tokenType: 'Bearer',
       user: currentUser,
     );
-  }  @override
+  }
+
+  @override
   Future<void> logout() async {
     await _firebaseAuthService.logout();
   }

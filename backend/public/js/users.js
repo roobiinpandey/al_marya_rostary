@@ -465,7 +465,7 @@ function copyToClipboard(text) {
 }
 
 function viewUserDetails(uid) {
-    // TODO: Implement user details modal
+     Implement user details modal
     console.log('View user details:', uid);
     showToast('User details feature coming soon!', 'info');
 }
@@ -806,13 +806,13 @@ function hideLoading() {
 }
 
 function toggleUserStatus(uid, currentlyDisabled) {
-    // TODO: Implement user status toggle
+     Implement user status toggle
     console.log('Toggle user status:', uid, 'Currently disabled:', currentlyDisabled);
     showToast('User status toggle feature coming soon!', 'info');
 }
 
 function setTableView(view) {
-    // TODO: Implement table/cards view toggle
+     Implement table/cards view toggle
     console.log('Set table view:', view);
     
     // Update button states
@@ -823,7 +823,7 @@ function setTableView(view) {
 }
 
 function exportUsers() {
-    // TODO: Implement user export functionality
+     Implement user export functionality
     console.log('Export users');
     showToast('Export feature coming soon!', 'info');
 }

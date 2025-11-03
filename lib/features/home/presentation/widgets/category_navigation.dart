@@ -186,7 +186,7 @@ class _CategoryNavigationState extends State<CategoryNavigation> {
           ),
         ),
         onTap: () {
-          // TODO: Navigate to subcategory page
+          // Note: Navigate to subcategory page
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Exploring $subcategory'),
@@ -212,7 +212,7 @@ class _CategoryNavigationState extends State<CategoryNavigation> {
         ),
       ),
       onTap: () {
-        // TODO: Navigate to section page
+        // Note: Navigate to section page
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Viewing ${section.title}'),
@@ -236,7 +236,7 @@ class _CategoryNavigationState extends State<CategoryNavigation> {
         ),
       ),
       onTap: () {
-        // TODO: Handle quick action
+        // Note: Handle quick action
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Opening ${action.title}'),

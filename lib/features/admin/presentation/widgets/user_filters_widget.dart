@@ -77,7 +77,7 @@ class _UserFiltersWidgetState extends State<UserFiltersWidget> {
                   // Role Filter
                   Expanded(
                     child: DropdownButtonFormField<String>(
-                      initialValue: provider.selectedRole.isEmpty
+                      value: provider.selectedRole.isEmpty
                           ? null
                           : provider.selectedRole,
                       decoration: InputDecoration(
@@ -108,7 +108,7 @@ class _UserFiltersWidgetState extends State<UserFiltersWidget> {
                   // Status Filter
                   Expanded(
                     child: DropdownButtonFormField<String>(
-                      initialValue: provider.selectedStatus.isEmpty
+                      value: provider.selectedStatus.isEmpty
                           ? null
                           : provider.selectedStatus,
                       decoration: InputDecoration(

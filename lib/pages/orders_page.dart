@@ -371,9 +371,9 @@ class _OrdersPageState extends State<OrdersPage>
     String subtitle = 'Start browsing our coffee collection';
     IconData icon = Icons.receipt_long;
     String buttonText = 'Go to Home';
-    VoidCallback onPressed = () {
+    void onPressed() {
       Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
-    };
+    }
 
     switch (_tabController.index) {
       case 1:
@@ -1061,7 +1061,7 @@ class _OrdersPageState extends State<OrdersPage>
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-              // TODO: Implement add to cart logic
+              // Note: Implement add to cart logic
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('Items added to cart!'),

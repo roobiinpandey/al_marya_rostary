@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { Subscription, SubscriptionPlan, SubscriptionDelivery } = require('../models/Subscription');
 const { protect } = require('../middleware/auth');
+const { verifyFirebaseToken } = require('../middleware/firebaseAuth');
 
 // SUBSCRIPTION PLANS MANAGEMENT ENDPOINTS (must be before /:id routes)
 // ============================================================================
@@ -125,7 +126,7 @@ router.post('/plans', async (req, res) => {
 // ============================================================================
 
 // Get all subscriptions with filtering and pagination
-router.get('/', protect, async (req, res) => {
+router.get('/', verifyFirebaseToken, async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
@@ -187,7 +188,7 @@ router.get('/', protect, async (req, res) => {
 });
 
 // Get subscription by ID
-router.get('/:id', protect, async (req, res) => {
+router.get('/:id', verifyFirebaseToken, async (req, res) => {
     try {
         const subscription = await Subscription.findById(req.params.id)
             .populate('userId', 'name email phone')
@@ -214,8 +215,8 @@ router.get('/:id', protect, async (req, res) => {
     }
 });
 
-// Create subscription
-router.post('/', protect, async (req, res) => {
+// Create new subscription
+router.post('/', verifyFirebaseToken, async (req, res) => {
     try {
         const subscriptionData = {
             userId: req.body.userId,
@@ -249,7 +250,7 @@ router.post('/', protect, async (req, res) => {
 });
 
 // Update subscription
-router.put('/:id', protect, async (req, res) => {
+router.put('/:id', verifyFirebaseToken, async (req, res) => {
     try {
         const subscription = await Subscription.findById(req.params.id);
         
@@ -291,7 +292,7 @@ router.put('/:id', protect, async (req, res) => {
 });
 
 // Pause subscription
-router.post('/:id/pause', protect, async (req, res) => {
+router.post('/:id/pause', verifyFirebaseToken, async (req, res) => {
     try {
         const subscription = await Subscription.findById(req.params.id);
         
@@ -335,7 +336,7 @@ router.post('/:id/pause', protect, async (req, res) => {
 });
 
 // Resume subscription
-router.post('/:id/resume', protect, async (req, res) => {
+router.post('/:id/resume', verifyFirebaseToken, async (req, res) => {
     try {
         const subscription = await Subscription.findById(req.params.id);
         
@@ -399,7 +400,7 @@ router.post('/:id/resume', protect, async (req, res) => {
 });
 
 // Cancel subscription
-router.post('/:id/cancel', protect, async (req, res) => {
+router.post('/:id/cancel', verifyFirebaseToken, async (req, res) => {
     try {
         const subscription = await Subscription.findById(req.params.id);
         
@@ -444,7 +445,7 @@ router.post('/:id/cancel', protect, async (req, res) => {
 });
 
 // Add delivery record
-router.post('/:id/deliveries', protect, async (req, res) => {
+router.post('/:id/deliveries', verifyFirebaseToken, async (req, res) => {
     try {
         const subscription = await Subscription.findById(req.params.id);
         
@@ -505,7 +506,7 @@ router.post('/:id/deliveries', protect, async (req, res) => {
 });
 
 // Update delivery status
-router.put('/:id/deliveries/:deliveryId', protect, async (req, res) => {
+router.put('/:id/deliveries/:deliveryId', verifyFirebaseToken, async (req, res) => {
     try {
         const subscription = await Subscription.findById(req.params.id);
         
@@ -625,7 +626,7 @@ router.get('/admin/stats', protect, async (req, res) => {
 });
 
 // Delete subscription (admin only)
-router.delete('/:id', protect, async (req, res) => {
+router.delete('/:id', verifyFirebaseToken, async (req, res) => {
     try {
         const subscription = await Subscription.findById(req.params.id);
         

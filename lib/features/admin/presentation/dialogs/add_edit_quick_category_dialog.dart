@@ -168,7 +168,7 @@ class _AddEditQuickCategoryDialogState
             borderRadius: BorderRadius.circular(12),
             color: Color(
               int.parse(_selectedColor.substring(1), radix: 16) + 0xFF000000,
-            ).withOpacity(0.1),
+            ).withValues(alpha: 0.1),
           ),
           child: _selectedImage != null
               ? ClipRRect(

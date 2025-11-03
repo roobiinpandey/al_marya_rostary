@@ -260,7 +260,7 @@ class GiftSetsPage extends StatelessWidget {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  '\$${priceRange}',
+                  '\$$priceRange',
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 12,

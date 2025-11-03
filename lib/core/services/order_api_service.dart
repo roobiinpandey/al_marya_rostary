@@ -206,7 +206,9 @@ class OrderApiService {
         options: Options(headers: headers),
       );
 
-      AppLogger.network('Update order status API response: ${response.statusCode}');
+      AppLogger.network(
+        'Update order status API response: ${response.statusCode}',
+      );
 
       if (response.statusCode == 200) {
         final orderJson = response.data['order'] ?? response.data;
@@ -265,7 +267,9 @@ class OrderApiService {
         options: Options(headers: headers),
       );
 
-      AppLogger.network('Update payment status API response: ${response.statusCode}');
+      AppLogger.network(
+        'Update payment status API response: ${response.statusCode}',
+      );
 
       if (response.statusCode == 200) {
         final orderJson = response.data['order'] ?? response.data;
@@ -419,7 +423,9 @@ class OrderApiService {
         options: Options(headers: headers),
       );
 
-      AppLogger.network('Orders analytics API response: ${response.statusCode}');
+      AppLogger.network(
+        'Orders analytics API response: ${response.statusCode}',
+      );
 
       if (response.statusCode == 200) {
         final analytics = response.data;

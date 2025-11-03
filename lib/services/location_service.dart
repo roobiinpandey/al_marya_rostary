@@ -241,7 +241,9 @@ class LocationService {
         ),
       );
 
-      AppLogger.debug('📍 Position: ${position.latitude}, ${position.longitude}');
+      AppLogger.debug(
+        '📍 Position: ${position.latitude}, ${position.longitude}',
+      );
 
       List<Placemark> placemarks = await placemarkFromCoordinates(
         position.latitude,

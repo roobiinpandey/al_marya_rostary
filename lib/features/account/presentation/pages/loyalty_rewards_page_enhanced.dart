@@ -364,7 +364,7 @@ class _LoyaltyRewardsPageEnhancedState extends State<LoyaltyRewardsPageEnhanced>
           else
             ...provider.pointsHistory.take(3).map((transaction) {
               return _buildTransactionItem(transaction);
-            }).toList(),
+            }),
 
           if (provider.pointsHistory.length > 3) ...[
             const SizedBox(height: 16),
@@ -703,20 +703,18 @@ class _LoyaltyRewardsPageEnhancedState extends State<LoyaltyRewardsPageEnhanced>
                 style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
               ),
               const SizedBox(height: 8),
-              ...benefits
-                  .map(
-                    (benefit) => Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 2),
-                      child: Row(
-                        children: [
-                          Icon(Icons.check_circle, color: color, size: 16),
-                          const SizedBox(width: 8),
-                          Expanded(child: Text(benefit)),
-                        ],
-                      ),
-                    ),
-                  )
-                  .toList(),
+              ...benefits.map(
+                (benefit) => Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: Row(
+                    children: [
+                      Icon(Icons.check_circle, color: color, size: 16),
+                      const SizedBox(width: 8),
+                      Expanded(child: Text(benefit)),
+                    ],
+                  ),
+                ),
+              ),
             ],
           ),
         ),

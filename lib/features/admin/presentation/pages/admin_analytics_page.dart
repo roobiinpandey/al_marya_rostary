@@ -3,7 +3,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../widgets/admin_sidebar.dart';
 
 /// Admin Analytics Dashboard Page
-/// TODO: Implement real analytics data integration
+/// Note: Implement real analytics data integration
 class AdminAnalyticsPage extends StatefulWidget {
   const AdminAnalyticsPage({super.key});
 

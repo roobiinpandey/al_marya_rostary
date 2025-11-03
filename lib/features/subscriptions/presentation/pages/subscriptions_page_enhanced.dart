@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/subscriptions_provider.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 
 class SubscriptionsPageEnhanced extends StatefulWidget {
   const SubscriptionsPageEnhanced({Key? key}) : super(key: key);
@@ -14,9 +15,13 @@ class _SubscriptionsPageEnhancedState extends State<SubscriptionsPageEnhanced>
     with TickerProviderStateMixin {
   late TabController _tabController;
 
-  // Define colors
-  static const Color primaryColor = Color(0xFF8B4513); // Brown coffee color
-  static const Color accentColor = Color(0xFFD2691E);
+  // Brand colors - Olive Gold theme
+  static const Color primaryColor = Color(
+    0xFFA89A6A,
+  ); // Olive Gold (brand primary)
+  static const Color accentColor = Color(
+    0xFFCBBE8C,
+  ); // Light Gold (brand secondary)
 
   @override
   void initState() {
@@ -25,14 +30,20 @@ class _SubscriptionsPageEnhancedState extends State<SubscriptionsPageEnhanced>
 
     // Load subscriptions data when page loads
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final provider = Provider.of<SubscriptionsProvider>(
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final subscriptionsProvider = Provider.of<SubscriptionsProvider>(
         context,
         listen: false,
       );
-      provider.loadUserSubscriptions(
-        'current_user_id',
-      ); // TODO: Get actual user ID
-      provider.loadSubscriptionPlans();
+
+      // Get the actual logged-in user ID
+      final userId = authProvider.user?.id;
+      if (userId != null) {
+        subscriptionsProvider.loadUserSubscriptions(userId);
+        subscriptionsProvider.loadSubscriptionPlans();
+      } else {
+        debugPrint('⚠️ No user logged in, cannot load subscriptions');
+      }
     });
   }
 
@@ -213,7 +224,7 @@ class _SubscriptionsPageEnhancedState extends State<SubscriptionsPageEnhanced>
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           gradient: LinearGradient(
-            colors: [primaryColor, primaryColor.withOpacity(0.8)],
+            colors: [primaryColor, primaryColor.withValues(alpha: 0.8)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -249,7 +260,7 @@ class _SubscriptionsPageEnhancedState extends State<SubscriptionsPageEnhanced>
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Icon(
@@ -355,7 +366,7 @@ class _SubscriptionsPageEnhancedState extends State<SubscriptionsPageEnhanced>
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: _getStatusColor(status).withOpacity(0.1),
+                    color: _getStatusColor(status).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Text(
@@ -376,7 +387,7 @@ class _SubscriptionsPageEnhancedState extends State<SubscriptionsPageEnhanced>
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.blue.withOpacity(0.1),
+                  color: Colors.blue.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -674,7 +685,7 @@ class _SubscriptionsPageEnhancedState extends State<SubscriptionsPageEnhanced>
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: _getStatusColor(status).withOpacity(0.1),
+            color: _getStatusColor(status).withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Icon(
@@ -704,7 +715,7 @@ class _SubscriptionsPageEnhancedState extends State<SubscriptionsPageEnhanced>
         trailing: Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
-            color: _getStatusColor(status).withOpacity(0.1),
+            color: _getStatusColor(status).withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Text(
@@ -872,7 +883,7 @@ class _SubscriptionsPageEnhancedState extends State<SubscriptionsPageEnhanced>
   }
 
   void _editSubscription(Map<String, dynamic> subscription) {
-    // TODO: Implement edit subscription functionality
+    // Note: Implement edit subscription functionality
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Edit subscription feature coming soon!')),
     );
@@ -931,7 +942,7 @@ class _SubscriptionsPageEnhancedState extends State<SubscriptionsPageEnhanced>
   }
 
   void _subscribeToPlan(Map<String, dynamic> plan) {
-    // TODO: Implement subscription creation flow
+    // Note: Implement subscription creation flow
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Subscription creation feature coming soon!'),
@@ -977,7 +988,7 @@ class _SubscriptionsPageEnhancedState extends State<SubscriptionsPageEnhanced>
                       Text(
                         'Subscription creation form will be implemented here',
                       ),
-                      // TODO: Add subscription creation form
+                      // Note: Add subscription creation form
                     ],
                   ),
                 ),

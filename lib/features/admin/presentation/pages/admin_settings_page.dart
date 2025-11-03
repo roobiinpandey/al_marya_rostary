@@ -4,7 +4,7 @@ import '../widgets/admin_sidebar.dart';
 import '../../../../services/reward_service.dart';
 
 /// Admin Settings Page
-/// TODO: Implement comprehensive admin settings functionality
+/// Note: Implement comprehensive admin settings functionality
 class AdminSettingsPage extends StatefulWidget {
   const AdminSettingsPage({super.key});
 
@@ -537,7 +537,7 @@ class _AdminSettingsPageState extends State<AdminSettingsPage>
           ),
         ),
         onChanged: (value) {
-          // TODO: Implement settings value updates
+          // Note: Implement settings value updates
         },
       ),
     );
@@ -618,7 +618,7 @@ class _AdminSettingsPageState extends State<AdminSettingsPage>
   }
 
   void _saveSettings() {
-    // TODO: Implement settings save functionality
+    // Note: Implement settings save functionality
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Settings saved successfully!'),

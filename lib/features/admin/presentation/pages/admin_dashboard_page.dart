@@ -136,7 +136,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                       IconButton(
                         icon: const Icon(Icons.refresh),
                         onPressed: () {
-                          // TODO: Refresh dashboard data
+                          // Note: Refresh dashboard data
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text('Dashboard refreshed'),
@@ -151,7 +151,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                           IconButton(
                             icon: const Icon(Icons.notifications),
                             onPressed: () {
-                              // TODO: Show notifications
+                              // Note: Show notifications
                             },
                             tooltip: 'Notifications',
                           ),

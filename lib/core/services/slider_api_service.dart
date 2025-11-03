@@ -78,14 +78,18 @@ class SliderApiService {
         queryParams['sortOrder'] = sortOrder;
       }
 
-      AppLogger.network('🌐 SliderApiService: Fetching sliders with params: $queryParams');
+      AppLogger.network(
+        '🌐 SliderApiService: Fetching sliders with params: $queryParams',
+      );
 
       final response = await _dio.get(
         '/api/sliders',
         queryParameters: queryParams,
       );
 
-      AppLogger.success('✅ SliderApiService: Response status: ${response.statusCode}');
+      AppLogger.success(
+        '✅ SliderApiService: Response status: ${response.statusCode}',
+      );
 
       if (response.statusCode == 200 && response.data['success'] == true) {
         final data = response.data['data'] as List;
@@ -320,7 +324,9 @@ class SliderApiService {
   /// Toggle slider active status
   Future<bool> toggleActiveStatus(String id, bool isActive) async {
     try {
-      AppLogger.network('🌐 SliderApiService: Toggling slider $id to $isActive');
+      AppLogger.network(
+        '🌐 SliderApiService: Toggling slider $id to $isActive',
+      );
 
       final response = await _dio.patch(
         '/api/sliders/$id',
@@ -404,7 +410,9 @@ class SliderApiService {
       );
 
       if (response.statusCode == 200) {
-        AppLogger.success('✅ SliderApiService: Display order updated successfully');
+        AppLogger.success(
+          '✅ SliderApiService: Display order updated successfully',
+        );
         return true;
       } else {
         return false;

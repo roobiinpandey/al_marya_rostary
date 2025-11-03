@@ -23,17 +23,18 @@ class RecentOrdersWidget extends StatelessWidget {
                 Text(
                   'Recent Orders',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: AppTheme.textDark,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    color: AppTheme.textDark,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const Spacer(),
                 TextButton(
                   onPressed: () {
-                    // TODO: Navigate to full orders page
+                    // Note: Navigate to full orders page
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                          content: Text('View All Orders - Coming Soon')),
+                        content: Text('View All Orders - Coming Soon'),
+                      ),
                     );
                   },
                   child: const Text(
@@ -62,10 +63,7 @@ class RecentOrdersWidget extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: const BorderRadius.all(Radius.circular(8)),
-                      border: Border.all(
-                        color: Colors.grey.shade200,
-                        width: 1,
-                      ),
+                      border: Border.all(color: Colors.grey.shade200, width: 1),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -76,9 +74,7 @@ class RecentOrdersWidget extends StatelessWidget {
                           children: [
                             Text(
                               order['id'] as String,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleSmall
+                              style: Theme.of(context).textTheme.titleSmall
                                   ?.copyWith(
                                     color: AppTheme.primaryBrown,
                                     fontWeight: FontWeight.bold,
@@ -86,22 +82,24 @@ class RecentOrdersWidget extends StatelessWidget {
                             ),
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 4),
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
                               decoration: BoxDecoration(
                                 color: adminProvider
                                     .getOrderStatusColor(
-                                        order['status'] as String)
-                                    .withValues(alpha:0.1),
+                                      order['status'] as String,
+                                    )
+                                    .withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
                                 order['status'] as String,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodySmall
+                                style: Theme.of(context).textTheme.bodySmall
                                     ?.copyWith(
                                       color: adminProvider.getOrderStatusColor(
-                                          order['status'] as String),
+                                        order['status'] as String,
+                                      ),
                                       fontWeight: FontWeight.w500,
                                     ),
                               ),
@@ -114,11 +112,11 @@ class RecentOrdersWidget extends StatelessWidget {
                         // Customer Name
                         Text(
                           order['customer'] as String,
-                          style:
-                              Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: AppTheme.textDark,
-                                    fontWeight: FontWeight.w500,
-                                  ),
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: AppTheme.textDark,
+                                fontWeight: FontWeight.w500,
+                              ),
                         ),
 
                         const SizedBox(height: 4),
@@ -129,9 +127,7 @@ class RecentOrdersWidget extends StatelessWidget {
                           children: [
                             Text(
                               '${AppConstants.currencySymbol}${(order['amount'] as double).toStringAsFixed(2)}',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleMedium
+                              style: Theme.of(context).textTheme.titleMedium
                                   ?.copyWith(
                                     color: AppTheme.primaryBrown,
                                     fontWeight: FontWeight.bold,
@@ -139,12 +135,8 @@ class RecentOrdersWidget extends StatelessWidget {
                             ),
                             Text(
                               order['date'] as String,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
-                                  ?.copyWith(
-                                    color: AppTheme.textLight,
-                                  ),
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(color: AppTheme.textLight),
                             ),
                           ],
                         ),
@@ -157,11 +149,13 @@ class RecentOrdersWidget extends StatelessWidget {
                             Expanded(
                               child: OutlinedButton.icon(
                                 onPressed: () {
-                                  // TODO: View order details
+                                  // Note: View order details
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
-                                        content: Text(
-                                            'View Order ${order['id']} - Coming Soon')),
+                                      content: Text(
+                                        'View Order ${order['id']} - Coming Soon',
+                                      ),
+                                    ),
                                   );
                                 },
                                 icon: const Icon(Icons.visibility, size: 16),
@@ -169,9 +163,11 @@ class RecentOrdersWidget extends StatelessWidget {
                                 style: OutlinedButton.styleFrom(
                                   foregroundColor: AppTheme.primaryBrown,
                                   side: const BorderSide(
-                                      color: AppTheme.primaryBrown),
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 8),
+                                    color: AppTheme.primaryBrown,
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 8,
+                                  ),
                                   textStyle: const TextStyle(fontSize: 12),
                                 ),
                               ),
@@ -180,11 +176,13 @@ class RecentOrdersWidget extends StatelessWidget {
                             Expanded(
                               child: ElevatedButton.icon(
                                 onPressed: () {
-                                  // TODO: Update order status
+                                  // Note: Update order status
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
-                                        content: Text(
-                                            'Update Order ${order['id']} - Coming Soon')),
+                                      content: Text(
+                                        'Update Order ${order['id']} - Coming Soon',
+                                      ),
+                                    ),
                                   );
                                 },
                                 icon: const Icon(Icons.edit, size: 16),
@@ -192,8 +190,9 @@ class RecentOrdersWidget extends StatelessWidget {
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: AppTheme.primaryBrown,
                                   foregroundColor: Colors.white,
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 8),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 8,
+                                  ),
                                   textStyle: const TextStyle(fontSize: 12),
                                 ),
                               ),
@@ -211,7 +210,7 @@ class RecentOrdersWidget extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppTheme.primaryLightBrown.withValues(alpha:0.1),
+                color: AppTheme.primaryLightBrown.withValues(alpha: 0.1),
                 borderRadius: const BorderRadius.all(Radius.circular(8)),
               ),
               child: Row(
@@ -220,12 +219,14 @@ class RecentOrdersWidget extends StatelessWidget {
                   Text(
                     'Pending Orders',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppTheme.textMedium,
-                        ),
+                      color: AppTheme.textMedium,
+                    ),
                   ),
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: const BoxDecoration(
                       color: Colors.orange,
                       borderRadius: BorderRadius.all(Radius.circular(12)),
@@ -233,9 +234,9 @@ class RecentOrdersWidget extends StatelessWidget {
                     child: Text(
                       '3',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ],

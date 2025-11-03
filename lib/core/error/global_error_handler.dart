@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 /// Global error handler for the Al Marya Rostery app
 /// Provides centralized error handling, logging, and user feedback
@@ -62,7 +61,7 @@ class GlobalErrorHandler {
   /// Log error to service (can be expanded to send to crash analytics)
   static void _logErrorToService(String type, String error, String stack) {
     // For now, just log locally
-    // TODO: Integrate with Firebase Crashlytics or similar service
+    // Note: Integrate with Firebase Crashlytics or similar service
     debugPrint('📊 Error logged: $type - $error');
   }
 

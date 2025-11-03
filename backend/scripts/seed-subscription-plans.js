@@ -1,229 +1,164 @@
-const mongoose = require('mongoose');
 require('dotenv').config();
+const mongoose = require('mongoose');
+const { SubscriptionPlan } = require('../models/Subscription');
 
-// Subscription Plans Seed Data (stored as documents in a SubscriptionPlan collection)
+// SECURITY: MongoDB URI must be provided via environment variable
+const MONGODB_URI = process.env.MONGODB_URI;
+if (!MONGODB_URI) {
+  console.error('❌ MONGODB_URI environment variable is required');
+  process.exit(1);
+}
+
+// Subscription Plans Seed Data matching the actual SubscriptionPlan schema
 const subscriptionPlans = [
   {
-    name: 'Daily Morning Brew',
-    frequency: 'daily',
-    description: 'Start every morning with freshly roasted coffee delivered to your door',
-    features: [
-      'Daily delivery Monday-Friday',
-      'Weekend delivery optional',
-      'Choose from 5+ coffee varieties',
-      'Free delivery',
-      '10% discount on all products'
-    ],
-    pricing: {
-      basePrice: 15.99,
-      discountPercentage: 10,
-      minimumOrder: 1,
-      freeShipping: true
-    },
-    deliveryOptions: {
-      timeSlots: ['6:00-8:00 AM', '8:00-10:00 AM', '10:00-12:00 PM'],
-      instructions: 'Perfect for early risers who need their daily coffee fix'
-    },
-    isActive: true,
-    popularityRank: 1
-  },
-  {
-    name: 'Weekly Coffee Discovery',
+    planId: 'WEEKLY_BASIC',
+    name: 'Weekly Basic Plan',
+    description: 'Perfect for coffee lovers who want fresh coffee every week. Get consistent delivery of your favorite coffee with 10% savings.',
     frequency: 'weekly',
-    description: 'Explore new coffee flavors with our curated weekly selection',
-    features: [
-      'Weekly delivery (choose your day)',
-      'Curated selection of premium coffees',
-      'Tasting notes included',
-      'Free delivery on orders over $50',
-      '15% discount on additional purchases'
+    discountPercentage: 10,
+    minCommitmentMonths: 1,
+    benefits: [
+      'Weekly delivery of fresh coffee',
+      '10% discount on all orders',
+      'Free delivery',
+      'Flexible pause and skip options',
+      'Cancel anytime after 1 month'
     ],
-    pricing: {
-      basePrice: 29.99,
-      discountPercentage: 15,
-      minimumOrder: 2,
-      freeShipping: true
-    },
-    deliveryOptions: {
-      timeSlots: ['Morning (8:00-12:00)', 'Afternoon (12:00-17:00)', 'Evening (17:00-20:00)'],
-      instructions: 'Great for coffee enthusiasts who want variety'
-    },
     isActive: true,
-    popularityRank: 2
+    sortOrder: 1
   },
   {
-    name: 'Bi-Weekly Office Supply',
+    planId: 'BIWEEKLY_STANDARD',
+    name: 'Bi-Weekly Standard Plan',
+    description: 'Great balance of convenience and value. Receive your coffee every two weeks with 15% savings on every order.',
     frequency: 'bi-weekly',
-    description: 'Keep your office stocked with premium coffee every two weeks',
-    features: [
-      'Bi-weekly delivery',
-      'Bulk ordering options',
-      'Perfect for office environments',
-      'Free delivery on all orders',
-      '20% discount on bulk purchases',
-      'Flexible quantity adjustments'
+    discountPercentage: 15,
+    minCommitmentMonths: 1,
+    benefits: [
+      'Bi-weekly delivery (every 2 weeks)',
+      '15% discount on all orders',
+      'Free priority delivery',
+      'Skip or reschedule deliveries easily',
+      'Exclusive access to new releases',
+      'Cancel anytime after 1 month'
     ],
-    pricing: {
-      basePrice: 89.99,
-      discountPercentage: 20,
-      minimumOrder: 5,
-      freeShipping: true
-    },
-    deliveryOptions: {
-      timeSlots: ['Business Hours (9:00-17:00)', 'After Hours (17:00-19:00)'],
-      instructions: 'Ideal for offices and teams of 5-20 people'
-    },
     isActive: true,
-    popularityRank: 3
+    sortOrder: 2
   },
   {
-    name: 'Monthly Premium Selection',
+    planId: 'MONTHLY_PREMIUM',
+    name: 'Monthly Premium Plan',
+    description: 'Best value for coffee enthusiasts. Get monthly deliveries with the highest discount and exclusive perks.',
     frequency: 'monthly',
-    description: 'Monthly delivery of our finest coffee selections and exclusive blends',
-    features: [
-      'Monthly delivery of premium coffees',
-      'Exclusive and limited edition blends',
-      'Coffee education materials',
-      'Free delivery worldwide',
-      '25% discount on all products',
-      'Priority customer support'
+    discountPercentage: 20,
+    minCommitmentMonths: 1,
+    benefits: [
+      'Monthly delivery on your chosen date',
+      '20% discount on all orders',
+      'Free express delivery',
+      'Exclusive limited edition coffees',
+      'Personal coffee consultation',
+      'Birthday gift included',
+      'Priority customer support',
+      'Cancel anytime after 1 month'
     ],
-    pricing: {
-      basePrice: 119.99,
-      discountPercentage: 25,
-      minimumOrder: 3,
-      freeShipping: true
-    },
-    deliveryOptions: {
-      timeSlots: ['Flexible (arrange with customer)', 'Standard (10:00-16:00)'],
-      instructions: 'Perfect for serious coffee connoisseurs'
-    },
     isActive: true,
-    popularityRank: 4
+    sortOrder: 3
   },
   {
-    name: 'Custom Business Plan',
-    frequency: 'custom',
-    description: 'Tailored subscription for businesses with specific requirements',
-    features: [
-      'Custom delivery schedule',
-      'Volume pricing available',
-      'Dedicated account manager',
-      'Custom blending options',
-      'Invoice billing available',
-      'Training and support included'
+    planId: 'QUARTERLY_VIP',
+    name: 'Quarterly VIP Plan',
+    description: 'Premium experience for serious coffee connoisseurs. Quarterly deliveries with maximum savings and VIP benefits.',
+    frequency: 'quarterly',
+    discountPercentage: 25,
+    minCommitmentMonths: 3,
+    benefits: [
+      'Quarterly delivery (every 3 months)',
+      '25% discount on all orders',
+      'Free express delivery worldwide',
+      'Exclusive VIP-only coffee releases',
+      'Personal barista consultation',
+      'Coffee accessories gift set',
+      'Invitation to exclusive tasting events',
+      'Dedicated VIP support line',
+      'Free coffee grinder after 1 year',
+      'Cancel anytime after 3 months'
     ],
-    pricing: {
-      basePrice: 0, // Custom pricing
-      discountPercentage: 30,
-      minimumOrder: 10,
-      freeShipping: true
-    },
-    deliveryOptions: {
-      timeSlots: ['Custom arrangement'],
-      instructions: 'Contact sales team for custom pricing and setup'
-    },
     isActive: true,
-    popularityRank: 5
+    sortOrder: 4
   }
 ];
 
-// Database connection
-const connectDB = async () => {
-  try {
-    await mongoose.connect(process.env.MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-    console.log('📍 MongoDB Connected for subscription seeding');
-  } catch (err) {
-    console.error('❌ Database connection failed:', err.message);
-    process.exit(1);
-  }
-};
-
-// Create SubscriptionPlan schema (if not exists)
-const subscriptionPlanSchema = new mongoose.Schema({
-  name: { type: String, required: true, unique: true },
-  frequency: { 
-    type: String, 
-    enum: ['daily', 'weekly', 'bi-weekly', 'monthly', 'custom'], 
-    required: true 
-  },
-  description: { type: String, required: true },
-  features: [{ type: String }],
-  pricing: {
-    basePrice: { type: Number, default: 0 },
-    discountPercentage: { type: Number, default: 0 },
-    minimumOrder: { type: Number, default: 1 },
-    freeShipping: { type: Boolean, default: false }
-  },
-  deliveryOptions: {
-    timeSlots: [{ type: String }],
-    instructions: { type: String }
-  },
-  isActive: { type: Boolean, default: true },
-  popularityRank: { type: Number, default: 0 },
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now }
-});
-
-const SubscriptionPlan = mongoose.model('SubscriptionPlan', subscriptionPlanSchema);
-
-// Seed Subscription Plans
-const seedSubscriptionPlans = async () => {
-  try {
-    console.log('🌱 Seeding Subscription Plans...');
-    
-    // Clear existing plans
-    await SubscriptionPlan.deleteMany({});
-    console.log('🧹 Cleared existing subscription plans');
-    
-    // Insert new plans
-    const insertedPlans = await SubscriptionPlan.insertMany(subscriptionPlans);
-    console.log(`✅ Inserted ${insertedPlans.length} subscription plans:`);
-    
-    insertedPlans.forEach(plan => {
-      console.log(`   • ${plan.name} (${plan.frequency}): $${plan.pricing.basePrice}`);
-    });
-    
-    return insertedPlans;
-  } catch (error) {
-    console.error('❌ Error seeding subscription plans:', error);
-    throw error;
-  }
-};
-
 // Main seeding function
-const seedDatabase = async () => {
+async function seedSubscriptionPlans() {
   try {
-    console.log('🚀 Starting Subscription Plans Seeding Process...\n');
+    console.log('🌱 Starting subscription plans seeding...');
+    console.log('� Connecting to MongoDB...');
     
-    await connectDB();
-    
-    // Seed subscription plans
-    await seedSubscriptionPlans();
-    
-    console.log('\n🎉 Subscription plans seeding completed successfully!');
-    console.log('📊 Summary:');
-    console.log('   • 5 Subscription Plans created');
-    console.log('   • Different frequencies: daily, weekly, bi-weekly, monthly, custom');
-    console.log('   • Pricing and features configured');
-    console.log('   • Delivery options and instructions added');
-    
-  } catch (error) {
-    console.error('\n❌ Subscription plans seeding failed:', error);
-    process.exit(1);
-  } finally {
-    await mongoose.disconnect();
-    console.log('📍 Database connection closed');
-    process.exit(0);
-  }
-};
+    await mongoose.connect(MONGODB_URI);
+    console.log('✅ Connected to MongoDB');
 
-// Run seeding if called directly
-if (require.main === module) {
-  seedDatabase();
+    // Check existing plans
+    const existingCount = await SubscriptionPlan.countDocuments();
+    console.log(`\n📦 Found ${existingCount} existing subscription plans`);
+    
+    if (existingCount > 0) {
+      console.log('🗑️  Clearing existing plans...');
+      await SubscriptionPlan.deleteMany({});
+      console.log('✅ Cleared existing plans');
+    }
+
+    // Insert new plans
+    console.log(`\n🌱 Inserting ${subscriptionPlans.length} subscription plans...`);
+    const inserted = await SubscriptionPlan.insertMany(subscriptionPlans);
+    console.log(`✅ Successfully inserted ${inserted.length} subscription plans`);
+
+    // Display summary
+    console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('📋 Subscription Plans Created:');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    
+    for (const plan of inserted) {
+      console.log(`\n📦 ${plan.name}`);
+      console.log(`   🆔 Plan ID: ${plan.planId}`);
+      console.log(`   📅 Frequency: ${plan.frequency}`);
+      console.log(`   💰 Discount: ${plan.discountPercentage}%`);
+      console.log(`   📝 Min Commitment: ${plan.minCommitmentMonths} month(s)`);
+      console.log(`   ✨ Benefits: ${plan.benefits.length} items`);
+      console.log(`   🎯 Sort Order: ${plan.sortOrder}`);
+      console.log(`   ✅ Active: ${plan.isActive}`);
+    }
+
+    console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('✅ Seeding completed successfully!');
+    console.log('\n💡 Next steps:');
+    console.log('   1. Test the API: GET /api/subscriptions/plans');
+    console.log('   2. Open your Flutter app and navigate to subscriptions');
+    console.log('   3. Users can now see and create subscriptions!');
+    console.log('\n📱 API Endpoints:');
+    console.log('   • GET    /api/subscriptions/plans - List all plans');
+    console.log('   • POST   /api/subscriptions       - Create subscription');
+    console.log('   • GET    /api/subscriptions       - Get user subscriptions');
+    console.log('   • PATCH  /api/subscriptions/:id   - Update subscription');
+    console.log('   • POST   /api/subscriptions/:id/pause   - Pause subscription');
+    console.log('   • POST   /api/subscriptions/:id/resume  - Resume subscription');
+    console.log('   • POST   /api/subscriptions/:id/cancel  - Cancel subscription');
+
+    await mongoose.connection.close();
+    console.log('\n👋 Database connection closed');
+    process.exit(0);
+
+  } catch (error) {
+    console.error('\n❌ Error seeding subscription plans:', error.message);
+    console.error('Stack trace:', error.stack);
+    process.exit(1);
+  }
 }
 
-module.exports = { seedDatabase, seedSubscriptionPlans, SubscriptionPlan };
+// Run the seeding
+if (require.main === module) {
+  seedSubscriptionPlans();
+}
+
+module.exports = { seedSubscriptionPlans };

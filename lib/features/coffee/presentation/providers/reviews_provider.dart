@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-// TODO: Re-enable when reviews_api_service is implemented
+// Note: Re-enable when reviews_api_service is implemented
 // import '../../../data/datasources/remote/reviews_api_service.dart';
 
 /// Review model for type safety
@@ -112,7 +112,7 @@ class ReviewStats {
 
 /// Provider for managing product reviews state and operations
 class ReviewsProvider with ChangeNotifier {
-  // TODO: Add API service when implemented
+  // Note: Add API service when implemented
   // late final ReviewsApiService _reviewsApiService;
 
   ReviewsProvider();

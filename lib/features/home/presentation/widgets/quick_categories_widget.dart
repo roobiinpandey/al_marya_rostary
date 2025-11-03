@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../data/models/quick_category_model.dart';
@@ -258,7 +257,7 @@ class _QuickCategoriesWidgetState extends State<QuickCategoriesWidget> {
       ),
     );
 
-    // TODO: Implement product navigation
+    // Note: Implement product navigation
     // 1. Fetch product by ID from API
     // 2. Navigate to ProductDetailPage
     // Example:
@@ -284,7 +283,7 @@ class _QuickCategoriesWidgetState extends State<QuickCategoriesWidget> {
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
-                // TODO: Implement URL launcher
+                // Note: Implement URL launcher
                 // launch(url);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(

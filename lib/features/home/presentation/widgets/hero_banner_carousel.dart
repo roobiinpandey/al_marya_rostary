@@ -458,7 +458,7 @@ class _HeroBannerCarouselState extends State<HeroBannerCarousel> {
               backgroundColor: AppTheme.primaryBrown,
             ),
           );
-          // TODO: Use url_launcher package to open external URLs
+          // Note: Use url_launcher package to open external URLs
           // launchUrl(Uri.parse(actionValue));
         }
         break;

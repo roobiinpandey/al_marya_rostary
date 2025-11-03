@@ -10,9 +10,7 @@ class CoffeeListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Coffee Beans'),
-      ),
+      appBar: AppBar(title: const Text('Coffee Beans')),
       body: ListView.builder(
         itemCount: coffeeProducts.length,
         itemBuilder: (context, index) {
@@ -32,7 +30,7 @@ class CoffeeListPage extends StatelessWidget {
               subtitle: Text(coffee.origin),
               trailing: Text('€${coffee.price.toStringAsFixed(2)}'),
               onTap: () {
-                // TODO: Navigate to coffee details page
+                // Note: Navigate to coffee details page
               },
             ),
           );

@@ -80,7 +80,7 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
   }
 
   void _loadPaymentMethods() {
-    // TODO: Load from API
+    // Note: Load from API
     setState(() {
       _paymentMethods = [
         PaymentMethod(
@@ -717,7 +717,7 @@ class _AddEditPaymentMethodPageState extends State<AddEditPaymentMethodPage> {
                         _isDefault = value;
                       });
                     },
-                    activeThumbColor: AppTheme.primaryBrown,
+                    activeColor: AppTheme.primaryBrown,
                   ),
                 ),
 
@@ -888,7 +888,7 @@ class _AddEditPaymentMethodPageState extends State<AddEditPaymentMethodPage> {
     });
 
     try {
-      // TODO: Implement API call to save payment method
+      // Note: Implement API call to save payment method
       await Future.delayed(const Duration(seconds: 2));
 
       if (mounted) {

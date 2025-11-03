@@ -147,7 +147,9 @@ class GiftSetProvider with ChangeNotifier {
     } catch (e) {
       _featuredError = e.toString();
       _featuredGiftSets = [];
-      AppLogger.error('❌ GiftSetProvider: Error fetching featured gift sets: $e');
+      AppLogger.error(
+        '❌ GiftSetProvider: Error fetching featured gift sets: $e',
+      );
     } finally {
       _isFeaturedLoading = false;
       notifyListeners();
@@ -172,7 +174,9 @@ class GiftSetProvider with ChangeNotifier {
     } catch (e) {
       _popularError = e.toString();
       _popularGiftSets = [];
-      AppLogger.error('❌ GiftSetProvider: Error fetching popular gift sets: $e');
+      AppLogger.error(
+        '❌ GiftSetProvider: Error fetching popular gift sets: $e',
+      );
     } finally {
       _isPopularLoading = false;
       notifyListeners();
@@ -296,7 +300,9 @@ class GiftSetProvider with ChangeNotifier {
     bool wouldRecommend = true,
   }) async {
     try {
-      AppLogger.debug('🎁 GiftSetProvider: Adding review to gift set: $giftSetId');
+      AppLogger.debug(
+        '🎁 GiftSetProvider: Adding review to gift set: $giftSetId',
+      );
 
       await _apiService.addReview(
         giftSetId,
@@ -323,10 +329,14 @@ class GiftSetProvider with ChangeNotifier {
   /// Get gift sets by occasion
   Future<List<GiftSetModel>> getGiftSetsByOccasion(String occasion) async {
     try {
-      AppLogger.debug('🎁 GiftSetProvider: Getting gift sets by occasion: $occasion');
+      AppLogger.debug(
+        '🎁 GiftSetProvider: Getting gift sets by occasion: $occasion',
+      );
       return await _apiService.getGiftSetsByOccasion(occasion);
     } catch (e) {
-      AppLogger.error('❌ GiftSetProvider: Error getting gift sets by occasion: $e');
+      AppLogger.error(
+        '❌ GiftSetProvider: Error getting gift sets by occasion: $e',
+      );
       return [];
     }
   }
@@ -334,10 +344,14 @@ class GiftSetProvider with ChangeNotifier {
   /// Get gift sets by audience
   Future<List<GiftSetModel>> getGiftSetsByAudience(String audience) async {
     try {
-      AppLogger.debug('🎁 GiftSetProvider: Getting gift sets by audience: $audience');
+      AppLogger.debug(
+        '🎁 GiftSetProvider: Getting gift sets by audience: $audience',
+      );
       return await _apiService.getGiftSetsByAudience(audience);
     } catch (e) {
-      AppLogger.error('❌ GiftSetProvider: Error getting gift sets by audience: $e');
+      AppLogger.error(
+        '❌ GiftSetProvider: Error getting gift sets by audience: $e',
+      );
       return [];
     }
   }
@@ -353,7 +367,9 @@ class GiftSetProvider with ChangeNotifier {
       );
       return await _apiService.getGiftSetsByPriceRange(minPrice, maxPrice);
     } catch (e) {
-      AppLogger.error('❌ GiftSetProvider: Error getting gift sets by price range: $e');
+      AppLogger.error(
+        '❌ GiftSetProvider: Error getting gift sets by price range: $e',
+      );
       return [];
     }
   }

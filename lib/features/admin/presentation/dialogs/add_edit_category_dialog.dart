@@ -126,7 +126,7 @@ class _AddEditCategoryDialogState extends State<AddEditCategoryDialog> {
         ),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.primaryBrown.withOpacity(0.3),
+            color: AppTheme.primaryBrown.withValues(alpha: 0.3),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -137,7 +137,7 @@ class _AddEditCategoryDialogState extends State<AddEditCategoryDialog> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
@@ -167,7 +167,7 @@ class _AddEditCategoryDialogState extends State<AddEditCategoryDialog> {
                       : 'Add a new coffee category',
                   style: TextStyle(
                     fontSize: 14,
-                    color: Colors.white.withOpacity(0.9),
+                    color: Colors.white.withValues(alpha: 0.9),
                   ),
                 ),
               ],

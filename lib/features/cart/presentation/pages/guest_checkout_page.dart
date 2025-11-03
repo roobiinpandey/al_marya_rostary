@@ -215,7 +215,7 @@ class _GuestCheckoutPageState extends State<GuestCheckoutPage> {
 
               // Emirate Dropdown
               DropdownButtonFormField<String>(
-                initialValue: _selectedEmirate,
+                value: _selectedEmirate,
                 decoration: InputDecoration(
                   labelText: 'Emirate *',
                   prefixIcon: Icon(Icons.map_outlined, color: colors.primary),

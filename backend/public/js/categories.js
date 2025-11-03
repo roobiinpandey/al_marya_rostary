@@ -18,8 +18,16 @@ async function loadCategories() {
 }
 
 function renderCategoriesTable(categories) {
+    const tableElement = document.getElementById('categoriesTable');
+    
+    // Check if element exists before trying to modify it
+    if (!tableElement) {
+        console.warn('categoriesTable element not found on this page');
+        return;
+    }
+    
     if (!categories || categories.length === 0) {
-        document.getElementById('categoriesTable').innerHTML = '<p class="text-center">No categories found.</p>';
+        tableElement.innerHTML = '<p class="text-center">No categories found.</p>';
         return;
     }
 
@@ -63,7 +71,7 @@ function renderCategoriesTable(categories) {
             </tbody>
         </table>
     `;
-    document.getElementById('categoriesTable').innerHTML = tableHTML;
+    tableElement.innerHTML = tableHTML;
 }
 
 function populateCategoryFilter(categories) {

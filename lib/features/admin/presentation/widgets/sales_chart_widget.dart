@@ -15,9 +15,7 @@ class SalesChartWidget extends StatelessWidget {
         final salesData = adminProvider.salesData;
 
         if (salesData.isEmpty) {
-          return const Center(
-            child: Text('No sales data available'),
-          );
+          return const Center(child: Text('No sales data available'));
         }
 
         // Find max value for scaling
@@ -34,24 +32,26 @@ class SalesChartWidget extends StatelessWidget {
                 Text(
                   'Monthly Sales',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: AppTheme.textDark,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    color: AppTheme.textDark,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const Spacer(),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
-                    color: AppTheme.accentAmber.withValues(alpha:0.1),
+                    color: AppTheme.accentAmber.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
                     'Last 6 Months',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppTheme.accentAmber,
-                          fontWeight: FontWeight.w500,
-                        ),
+                      color: AppTheme.accentAmber,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
               ],
@@ -78,11 +78,11 @@ class SalesChartWidget extends StatelessWidget {
                           // Value label
                           Text(
                             '${AppConstants.currencySymbol}${(sales / 1000).toStringAsFixed(0)}k',
-                            style:
-                                Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: AppTheme.textMedium,
-                                      fontWeight: FontWeight.w500,
-                                    ),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: AppTheme.textMedium,
+                                  fontWeight: FontWeight.w500,
+                                ),
                           ),
 
                           const SizedBox(height: 8),
@@ -99,7 +99,9 @@ class SalesChartWidget extends StatelessWidget {
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppTheme.primaryBrown.withValues(alpha:0.3),
+                                  color: AppTheme.primaryBrown.withValues(
+                                    alpha: 0.3,
+                                  ),
                                   blurRadius: 4,
                                   offset: const Offset(0, 2),
                                 ),
@@ -112,10 +114,8 @@ class SalesChartWidget extends StatelessWidget {
                           // Month label
                           Text(
                             month,
-                            style:
-                                Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: AppTheme.textLight,
-                                    ),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(color: AppTheme.textLight),
                           ),
                         ],
                       ),
@@ -131,7 +131,7 @@ class SalesChartWidget extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppTheme.primaryLightBrown.withValues(alpha:0.1),
+                color: AppTheme.primaryLightBrown.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
@@ -143,16 +143,16 @@ class SalesChartWidget extends StatelessWidget {
                       Text(
                         'Total Sales',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: AppTheme.textMedium,
-                            ),
+                          color: AppTheme.textMedium,
+                        ),
                       ),
                       Text(
                         '${AppConstants.currencySymbol}${salesData.fold<int>(0, (sum, data) => sum + (data['sales'] as int)).toString()}',
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  color: AppTheme.primaryBrown,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
+                              color: AppTheme.primaryBrown,
+                              fontWeight: FontWeight.bold,
+                            ),
                       ),
                     ],
                   ),
@@ -162,8 +162,8 @@ class SalesChartWidget extends StatelessWidget {
                       Text(
                         'Growth',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: AppTheme.textMedium,
-                            ),
+                          color: AppTheme.textMedium,
+                        ),
                       ),
                       Row(
                         children: [
@@ -175,9 +175,7 @@ class SalesChartWidget extends StatelessWidget {
                           const SizedBox(width: 4),
                           Text(
                             '+18.5%',
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleSmall
+                            style: Theme.of(context).textTheme.titleSmall
                                 ?.copyWith(
                                   color: Colors.green,
                                   fontWeight: FontWeight.bold,

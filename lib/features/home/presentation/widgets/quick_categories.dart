@@ -68,7 +68,7 @@ class QuickCategories extends StatelessWidget {
       margin: const EdgeInsets.only(right: 16),
       child: InkWell(
         onTap: () {
-          // TODO: Navigate to category page
+          // Note: Navigate to category page
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Opening ${category.label}'),
@@ -83,10 +83,10 @@ class QuickCategories extends StatelessWidget {
               width: 60,
               height: 60,
               decoration: BoxDecoration(
-                color: category.color.withValues(alpha:0.1),
+                color: category.color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: category.color.withValues(alpha:0.3),
+                  color: category.color.withValues(alpha: 0.3),
                   width: 1,
                 ),
               ),

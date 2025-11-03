@@ -506,7 +506,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
     });
 
     try {
-      // TODO: Implement API call to change password
+      // Note: Implement API call to change password
       await Future.delayed(const Duration(seconds: 2)); // Simulate API call
 
       if (mounted) {

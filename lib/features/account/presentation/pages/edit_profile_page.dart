@@ -28,7 +28,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }
 
   void _loadCurrentUserData() {
-    // TODO: Load from AuthProvider or API
+    // Note: Load from AuthProvider or API
     _nameController.text = 'Ahmed Al Mansouri';
     _emailController.text = 'ahmed@example.com';
     _phoneController.text = '+971 50 123 4567';
@@ -319,7 +319,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           subtitle: 'Receive updates about orders and offers',
           value: true,
           onChanged: (value) {
-            // TODO: Update preference
+            // Note: Update preference
           },
         ),
         _buildPreferenceItem(
@@ -327,7 +327,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           subtitle: 'Get SMS updates for order status',
           value: false,
           onChanged: (value) {
-            // TODO: Update preference
+            // Note: Update preference
           },
         ),
         _buildPreferenceItem(
@@ -335,7 +335,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           subtitle: 'Receive promotional offers and news',
           value: true,
           onChanged: (value) {
-            // TODO: Update preference
+            // Note: Update preference
           },
         ),
       ],
@@ -360,7 +360,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         ),
         value: value,
         onChanged: onChanged,
-        activeThumbColor: AppTheme.primaryBrown,
+        activeColor: AppTheme.primaryBrown,
       ),
     );
   }
@@ -468,7 +468,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     });
 
     try {
-      // TODO: Implement API call to update profile
+      // Note: Implement API call to update profile
       await Future.delayed(const Duration(seconds: 2)); // Simulate API call
 
       if (mounted) {

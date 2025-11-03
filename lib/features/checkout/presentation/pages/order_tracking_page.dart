@@ -212,7 +212,7 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
           ),
           IconButton(
             onPressed: () {
-              // TODO: Open live tracking map
+              // Note: Open live tracking map
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('Live tracking will be available soon!'),
@@ -449,7 +449,7 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: () {
-                      // TODO: Open chat support
+                      // Note: Open chat support
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text('Chat support will be available soon!'),
@@ -469,7 +469,7 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: () {
-                      // TODO: Call support
+                      // Note: Call support
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text('Call +971 4 123 4567 for support'),

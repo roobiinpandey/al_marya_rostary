@@ -31,7 +31,7 @@ lib/
 
 **State Management**: Use Provider pattern. All feature providers are registered in `main.dart` MultiProvider.
 **Navigation**: Centralized routing in `utils/app_router.dart` with route constants.
-**Theme**: Brand colors defined in `core/theme/almaryah_theme.dart` (olive gold #A89A6A primary).
+**Theme**: Brand colors defined in `core/theme/almaryah_theme.dart` (olive gold color A89A6A primary).
 
 ### Backend Patterns
 ```javascript

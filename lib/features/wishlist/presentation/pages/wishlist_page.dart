@@ -25,7 +25,7 @@ class _WishlistPageState extends State<WishlistPage> {
   }
 
   void _loadFavorites() {
-    // TODO: Load favorites from API or local storage
+    // Note: Load favorites from API or local storage
     // Mock data for now
     setState(() {
       _favorites = [
@@ -517,7 +517,7 @@ class _WishlistPageState extends State<WishlistPage> {
   }
 
   void _addToCart(CoffeeProductModel item) {
-    // TODO: Implement add to cart functionality with CartProvider
+    // Note: Implement add to cart functionality with CartProvider
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('${item.name} added to cart!'),

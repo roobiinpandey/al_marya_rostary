@@ -736,7 +736,7 @@ class _AddEditAddressPageState extends State<AddEditAddressPage> {
                         _isDefault = value;
                       });
                     },
-                    activeThumbColor: AppTheme.primaryBrown,
+                    activeColor: AppTheme.primaryBrown,
                   ),
                 ),
 
@@ -827,7 +827,7 @@ class _AddEditAddressPageState extends State<AddEditAddressPage> {
 
   Widget _buildEmirateDropdown() {
     return DropdownButtonFormField<String>(
-      initialValue: _selectedEmirate,
+      value: _selectedEmirate,
       decoration: InputDecoration(
         labelText: 'Emirate',
         prefixIcon: const Icon(Icons.location_on, color: AppTheme.primaryBrown),
@@ -1003,7 +1003,7 @@ class _AddEditAddressPageState extends State<AddEditAddressPage> {
     });
 
     try {
-      // TODO: Implement API call to save address
+      // Note: Implement API call to save address
       await Future.delayed(const Duration(seconds: 2)); // Simulate API call
 
       if (mounted) {

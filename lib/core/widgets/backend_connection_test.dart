@@ -112,7 +112,7 @@ class _BackendConnectionTestState extends State<BackendConnectionTest> {
           children: [
             // Overall Status
             Card(
-              color: _statusColor.withOpacity(0.1),
+              color: _statusColor.withValues(alpha: 0.1),
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
@@ -193,7 +193,7 @@ class _BackendConnectionTestState extends State<BackendConnectionTest> {
 
             // Instructions
             Card(
-              color: Colors.blue.withOpacity(0.1),
+              color: Colors.blue.withValues(alpha: 0.1),
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(

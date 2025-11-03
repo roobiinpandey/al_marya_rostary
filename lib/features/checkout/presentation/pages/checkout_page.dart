@@ -361,7 +361,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
 
             // Emirate Dropdown
             DropdownButtonFormField<String>(
-              initialValue: _emirateController.text.isEmpty
+              value: _emirateController.text.isEmpty
                   ? null
                   : _emirateController.text,
               decoration: InputDecoration(

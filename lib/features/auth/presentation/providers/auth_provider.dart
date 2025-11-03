@@ -6,6 +6,7 @@ import 'package:qahwat_al_emarat/domain/repositories/auth_repository.dart';
 import 'package:qahwat_al_emarat/domain/models/auth_models.dart';
 import 'package:qahwat_al_emarat/core/services/user_api_service.dart';
 import 'package:qahwat_al_emarat/core/utils/app_logger.dart';
+import 'package:qahwat_al_emarat/core/network/api_client.dart';
 import '../../../../services/reward_service.dart';
 
 enum AuthState { initial, loading, authenticated, unauthenticated, error }
@@ -104,6 +105,11 @@ class AuthProvider extends ChangeNotifier {
       final response = await _authRepository.login(email, password);
       _user = response.user;
       _refreshToken = response.refreshToken;
+
+      // Set auth token for API requests
+      ApiClient().setAuthToken(response.accessToken);
+      debugPrint('✅ Auth token set for API calls');
+
       _startSessionTimer();
 
       // Ensure user has QR code (background task)
@@ -149,6 +155,11 @@ class AuthProvider extends ChangeNotifier {
 
       _user = response.user;
       _refreshToken = response.refreshToken;
+
+      // Set auth token for API requests
+      ApiClient().setAuthToken(response.accessToken);
+      debugPrint('✅ Auth token set for API calls');
+
       _startSessionTimer();
 
       // Initialize QR code for new user (background task)
@@ -175,6 +186,10 @@ class AuthProvider extends ChangeNotifier {
       _isGuestMode = false;
       _lastAuthTime = null;
       _errorMessage = null;
+
+      // Clear auth token from API client
+      ApiClient().setAuthToken(null);
+      debugPrint('✅ Auth token cleared from API client');
 
       // Then call repository logout (this might fail but we continue anyway)
       try {
@@ -356,7 +371,7 @@ class AuthProvider extends ChangeNotifier {
             'Authentication failed. Please sign out and sign in again.',
           );
         } else {
-          throw AuthException('Failed to update profile: ${errorMessage}');
+          throw AuthException('Failed to update profile: $errorMessage');
         }
       }
     } catch (e) {
@@ -475,6 +490,11 @@ class AuthProvider extends ChangeNotifier {
       debugPrint('AuthProvider: Google Sign-In response received');
       _user = response.user;
       _refreshToken = response.refreshToken;
+
+      // Set auth token for API requests
+      ApiClient().setAuthToken(response.accessToken);
+      debugPrint('✅ Auth token set for API calls');
+
       _startSessionTimer();
 
       // Ensure user has QR code (background task)

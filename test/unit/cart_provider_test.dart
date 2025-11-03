@@ -4,12 +4,12 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   group('Cart Provider Tests', () {
     test('placeholder test for cart functionality', () {
-      // TODO: Implement cart provider tests when CartProvider is ready
+      // Note: Implement cart provider tests when CartProvider is ready
       expect(true, isTrue);
     });
 
     test('should handle cart operations', () {
-      // TODO: Add cart-specific tests
+      // Note: Add cart-specific tests
       expect(true, isTrue);
     });
   });

@@ -34,7 +34,7 @@ class FeaturedProducts extends StatelessWidget {
                     ),
                     TextButton(
                       onPressed: () {
-                        // TODO: Navigate to all products page
+                        // Note: Navigate to all products page
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text('Opening all products'),

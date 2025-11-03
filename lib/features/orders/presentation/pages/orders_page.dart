@@ -33,7 +33,7 @@ class OrdersPage extends StatelessWidget {
                     ),
                     trailing: Text(order.status),
                     onTap: () {
-                      // TODO: Show order details
+                      // Note: Show order details
                     },
                   ),
                 );

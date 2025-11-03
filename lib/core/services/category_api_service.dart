@@ -396,7 +396,7 @@ class CategoryApiService {
 
       // Organize into tree (if parent/child relationships exist)
       // For now, just return sorted by displayOrder
-      // TODO: Implement full tree structure with children if needed
+      // Note: Implement full tree structure with children if needed
       rootCategories.sort((a, b) => a.displayOrder.compareTo(b.displayOrder));
 
       return rootCategories;

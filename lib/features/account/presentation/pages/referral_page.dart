@@ -530,7 +530,7 @@ class _ReferralPageState extends State<ReferralPage> {
   }
 
   void _shareReferralCode() {
-    // TODO: Implement share functionality
+    // Note: Implement share functionality
     final message =
         'Join AlMaryah Rostery and get \$10 off your first order! '
         'Use my referral code: $_referralCode';

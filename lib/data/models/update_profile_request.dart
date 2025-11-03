@@ -3,11 +3,7 @@ class UpdateProfileRequest {
   final String? phone;
   final String? avatar;
 
-  UpdateProfileRequest({
-    this.name,
-    this.phone,
-    this.avatar,
-  });
+  UpdateProfileRequest({this.name, this.phone, this.avatar});
 
   Map<String, dynamic> toJson() {
     return {

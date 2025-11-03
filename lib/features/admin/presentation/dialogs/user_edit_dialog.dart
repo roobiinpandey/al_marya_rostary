@@ -141,7 +141,7 @@ class _UserEditDialogState extends State<UserEditDialog> {
                             _isActive = value;
                           });
                         },
-                        activeThumbColor: Colors.green,
+                        activeColor: Colors.green,
                       ),
                       const SizedBox(width: 8),
                       Text(

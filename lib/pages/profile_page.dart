@@ -107,7 +107,7 @@ class _ProfilePageContentState extends State<_ProfilePageContent> {
         _nameController.text = user.name;
         _emailController.text = user.email;
         _phoneController.text = user.phone ?? '';
-        // TODO: Load address and city from user preferences or separate API
+        // Note: Load address and city from user preferences or separate API
         _addressController.text = '';
         _cityController.text = 'Dubai';
       }

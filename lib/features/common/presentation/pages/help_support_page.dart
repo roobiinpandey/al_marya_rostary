@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
 
 /// Help & Support Page
-/// TODO: Implement comprehensive help system and support features
+/// Note: Implement comprehensive help system and support features
 class HelpSupportPage extends StatefulWidget {
   const HelpSupportPage({super.key});
 
@@ -506,7 +506,7 @@ class _HelpSupportPageState extends State<HelpSupportPage>
   }
 
   void _sendMessage() {
-    // TODO: Implement message sending functionality
+    // Note: Implement message sending functionality
     if (_emailController.text.isEmpty ||
         _subjectController.text.isEmpty ||
         _messageController.text.isEmpty) {

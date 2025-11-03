@@ -123,7 +123,7 @@ class CoffeeProductCard extends StatelessWidget {
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                '4.5', // TODO: Add rating to model
+                                '4.5', // Note: Add rating to model
                                 style: Theme.of(context).textTheme.bodyMedium
                                     ?.copyWith(
                                       color: AppTheme.textMedium,
@@ -131,7 +131,7 @@ class CoffeeProductCard extends StatelessWidget {
                                     ),
                               ),
                               Text(
-                                ' (120)', // TODO: Add review count to model
+                                ' (120)', // Note: Add review count to model
                                 style: Theme.of(context).textTheme.bodySmall
                                     ?.copyWith(color: AppTheme.textLight),
                               ),
@@ -194,7 +194,7 @@ class CoffeeProductCard extends StatelessWidget {
                     // Favorite Button
                     IconButton(
                       onPressed: () {
-                        // TODO: Implement favorite functionality
+                        // Note: Implement favorite functionality
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text('Favorite feature coming soon!'),

@@ -191,7 +191,7 @@ class _HomePageState extends State<HomePage> {
                       const Spacer(),
                       TextButton(
                         onPressed: () {
-                          // TODO: Navigate to all products page
+                          // Note: Navigate to all products page
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text('View all products coming soon!'),

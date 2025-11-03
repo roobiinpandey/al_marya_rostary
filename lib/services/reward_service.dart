@@ -378,7 +378,9 @@ class RewardService {
 
       // ⚠️  IMPORTANT: QR codes are PERMANENT and cannot be regenerated
       // This maintains customer loyalty system integrity
-      AppLogger.warning('⚠️  QR Code regeneration blocked - returning existing QR code');
+      AppLogger.warning(
+        '⚠️  QR Code regeneration blocked - returning existing QR code',
+      );
       final existingQR = await getUserQRCode();
 
       if (existingQR != null) {
@@ -387,7 +389,9 @@ class RewardService {
       }
 
       // Only generate if no QR code exists (should not happen)
-      AppLogger.debug('🔧 No existing QR code found, creating new permanent one');
+      AppLogger.debug(
+        '🔧 No existing QR code found, creating new permanent one',
+      );
       return await ensureUserHasQRCode();
     } catch (e) {
       AppLogger.error('getting QR code: $e');
@@ -447,7 +451,9 @@ class RewardService {
 
       // Get all users from Firestore
       final usersSnapshot = await _firestore.collection('users').get();
-      AppLogger.debug('📊 Found ${usersSnapshot.docs.length} users in database');
+      AppLogger.debug(
+        '📊 Found ${usersSnapshot.docs.length} users in database',
+      );
 
       int usersWithoutQR = 0;
       int qrCodesCreated = 0;
@@ -482,7 +488,9 @@ class RewardService {
           AppLogger.success('✅ QR code created for user: $userId');
         } catch (e) {
           errors++;
-          AppLogger.error('❌ Error creating QR code for user ${userDoc.id}: $e');
+          AppLogger.error(
+            '❌ Error creating QR code for user ${userDoc.id}: $e',
+          );
         }
       }
 

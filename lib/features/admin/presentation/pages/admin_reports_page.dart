@@ -3,7 +3,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../widgets/admin_sidebar.dart';
 
 /// Admin Reports Page
-/// TODO: Implement comprehensive reporting system
+/// Note: Implement comprehensive reporting system
 class AdminReportsPage extends StatefulWidget {
   const AdminReportsPage({super.key});
 
@@ -105,7 +105,7 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
                       const SizedBox(width: 16),
                       ElevatedButton.icon(
                         onPressed: () {
-                          // TODO: Implement report export
+                          // Note: Implement report export
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text(

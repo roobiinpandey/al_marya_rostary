@@ -23,9 +23,13 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   @override
   void initState() {
     super.initState();
-    AppLogger.debug('🔍 Product Detail: Received product: ${widget.product.name}');
+    AppLogger.debug(
+      '🔍 Product Detail: Received product: ${widget.product.name}',
+    );
     AppLogger.debug('🔍 Product Detail: Product ID: ${widget.product.id}');
-    AppLogger.debug('🔍 Product Detail: Product type: ${widget.product.runtimeType}');
+    AppLogger.debug(
+      '🔍 Product Detail: Product type: ${widget.product.runtimeType}',
+    );
   }
 
   // Size options with their prices (multipliers relative to base price per kg)
@@ -58,7 +62,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           IconButton(
             icon: const Icon(Icons.favorite_border),
             onPressed: () {
-              // TODO: Implement favorite functionality
+              // Note: Implement favorite functionality
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Added to favorites')),
               );

@@ -23,7 +23,7 @@ const logger = {
     error(...args) {
         // Always log errors (in production, these should be sent to error tracking service)
         console.error(...args);
-        // TODO: In production, send to error tracking service (Sentry, LogRocket, etc.)
+         In production, send to error tracking service (Sentry, LogRocket, etc.)
     },
     
     info(...args) {

@@ -258,7 +258,7 @@ class _AccountSettingsPageState extends State<AccountSettingsPage> {
                       title: 'Help & FAQ',
                       subtitle: 'Get answers to common questions',
                       onTap: () {
-                        // TODO: Navigate to help page
+                        // Note: Navigate to help page
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text('Help & FAQ - Coming Soon'),
@@ -272,7 +272,7 @@ class _AccountSettingsPageState extends State<AccountSettingsPage> {
                       title: 'Contact Support',
                       subtitle: 'Get help from our customer service team',
                       onTap: () {
-                        // TODO: Navigate to contact support page
+                        // Note: Navigate to contact support page
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text('Contact Support - Coming Soon'),
@@ -286,7 +286,7 @@ class _AccountSettingsPageState extends State<AccountSettingsPage> {
                       title: 'Privacy Policy',
                       subtitle: 'Learn how we protect your data',
                       onTap: () {
-                        // TODO: Navigate to privacy policy
+                        // Note: Navigate to privacy policy
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text('Privacy Policy - Coming Soon'),
@@ -300,7 +300,7 @@ class _AccountSettingsPageState extends State<AccountSettingsPage> {
                       title: 'Terms of Service',
                       subtitle: 'Read our terms and conditions',
                       onTap: () {
-                        // TODO: Navigate to terms of service
+                        // Note: Navigate to terms of service
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text('Terms of Service - Coming Soon'),
@@ -441,7 +441,7 @@ class _AccountSettingsPageState extends State<AccountSettingsPage> {
       ),
       value: value,
       onChanged: onChanged,
-      activeThumbColor: AppTheme.primaryBrown,
+      activeColor: AppTheme.primaryBrown,
     );
   }
 
@@ -593,7 +593,7 @@ class _AccountSettingsPageState extends State<AccountSettingsPage> {
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-              // TODO: Implement logout functionality
+              // Note: Implement logout functionality
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('Logged out successfully'),

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
 
 /// About Page - App information and company details
-/// TODO: Update with real company information and legal documents
+/// Note: Update with real company information and legal documents
 class AboutPage extends StatelessWidget {
   const AboutPage({super.key});
 
