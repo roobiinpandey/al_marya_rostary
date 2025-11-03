@@ -15,7 +15,7 @@ const subscriptionsManager = {
 
     async loadSubscriptionStats() {
         try {
-            showLoading('Loading subscription statistics...');
+            showGlobalLoading('Loading subscription statistics...');
             
             const stats = await this.fetchSubscriptionStats();
             
@@ -28,13 +28,13 @@ const subscriptionsManager = {
             console.error('Error loading subscription stats:', error);
             showToast('Failed to load subscription statistics', 'error');
         } finally {
-            hideLoading();
+            hideGlobalLoading();
         }
     },
 
     async loadSubscriptions() {
         try {
-            showLoading('Loading subscriptions...');
+            showGlobalLoading('Loading subscriptions...');
             
             const filter = document.getElementById('subscriptionStatusFilter').value;
             const subscriptions = await this.fetchSubscriptions(filter);
@@ -45,7 +45,7 @@ const subscriptionsManager = {
             console.error('Error loading subscriptions:', error);
             showToast('Failed to load subscriptions', 'error');
         } finally {
-            hideLoading();
+            hideGlobalLoading();
         }
     },
 
@@ -350,7 +350,7 @@ const subscriptionsManager = {
         if (reason === null) return; // User cancelled
         
         try {
-            showLoading('Pausing subscription...');
+            showGlobalLoading('Pausing subscription...');
             
             // Simulate API call
             await new Promise(resolve => setTimeout(resolve, 500));
@@ -365,7 +365,7 @@ const subscriptionsManager = {
             console.error('Error pausing subscription:', error);
             showToast('Failed to pause subscription', 'error');
         } finally {
-            hideLoading();
+            hideGlobalLoading();
         }
     },
 
@@ -373,7 +373,7 @@ const subscriptionsManager = {
         if (!confirm('Are you sure you want to resume this subscription?')) return;
         
         try {
-            showLoading('Resuming subscription...');
+            showGlobalLoading('Resuming subscription...');
             
             // Simulate API call
             await new Promise(resolve => setTimeout(resolve, 500));
@@ -388,7 +388,7 @@ const subscriptionsManager = {
             console.error('Error resuming subscription:', error);
             showToast('Failed to resume subscription', 'error');
         } finally {
-            hideLoading();
+            hideGlobalLoading();
         }
     },
 
@@ -402,7 +402,7 @@ const subscriptionsManager = {
         if (!confirm(`Are you sure you want to cancel ${subscription.userName}'s subscription?`)) return;
         
         try {
-            showLoading('Cancelling subscription...');
+            showGlobalLoading('Cancelling subscription...');
             
             // Simulate API call
             await new Promise(resolve => setTimeout(resolve, 500));
@@ -417,13 +417,13 @@ const subscriptionsManager = {
             console.error('Error cancelling subscription:', error);
             showToast('Failed to cancel subscription', 'error');
         } finally {
-            hideLoading();
+            hideGlobalLoading();
         }
     },
 
     async viewDeliveryHistory(subscriptionId) {
         try {
-            showLoading('Loading delivery history...');
+            showGlobalLoading('Loading delivery history...');
             
             const history = await this.fetchDeliveryHistory(subscriptionId);
             
@@ -453,7 +453,7 @@ const subscriptionsManager = {
             console.error('Error loading delivery history:', error);
             showToast('Failed to load delivery history', 'error');
         } finally {
-            hideLoading();
+            hideGlobalLoading();
         }
     },
 
@@ -746,7 +746,7 @@ class SubscriptionPlansManager {
         if (!confirm('Are you sure you want to delete this subscription plan?')) return;
 
         try {
-            showLoading('Deleting plan...');
+            showGlobalLoading('Deleting plan...');
             const response = await authenticatedFetch(`${API_BASE_URL}/api/subscriptions/plans/${planId}`, {
                 method: 'DELETE'
             });
@@ -763,7 +763,7 @@ class SubscriptionPlansManager {
             console.error('Error deleting plan:', error);
             showToast('Failed to delete subscription plan', 'error');
         } finally {
-            hideLoading();
+            hideGlobalLoading();
         }
     }
 
@@ -841,7 +841,7 @@ window.handlePlanSubmit = async function(event) {
     };
 
     try {
-        showLoading(planId ? 'Updating plan...' : 'Creating plan...');
+        showGlobalLoading(planId ? 'Updating plan...' : 'Creating plan...');
 
         const url = planId 
             ? `${API_BASE_URL}/api/subscriptions/plans/${planId}`
@@ -869,7 +869,7 @@ window.handlePlanSubmit = async function(event) {
         console.error('Error saving plan:', error);
         showToast('Failed to save subscription plan', 'error');
     } finally {
-        hideLoading();
+        hideGlobalLoading();
     }
 };
 
