@@ -16,7 +16,7 @@ const reviewsManager = {
 
     async loadReviewStats() {
         try {
-            showLoading('Loading review statistics...');
+            showGlobalLoading('Loading review statistics...');
             
             // Simulate API call - replace with actual API
             const stats = await this.fetchReviewStats();
@@ -30,13 +30,13 @@ const reviewsManager = {
             console.error('Error loading review stats:', error);
             showToast('Failed to load review statistics', 'error');
         } finally {
-            hideLoading();
+            hideGlobalLoading();
         }
     },
 
     async loadReviews() {
         try {
-            showLoading('Loading reviews...');
+            showGlobalLoading('Loading reviews...');
             
             const filter = document.getElementById('reviewStatusFilter').value;
             const reviews = await this.fetchReviews(filter);
@@ -47,7 +47,7 @@ const reviewsManager = {
             console.error('Error loading reviews:', error);
             showToast('Failed to load reviews', 'error');
         } finally {
-            hideLoading();
+            hideGlobalLoading();
         }
     },
 
@@ -246,7 +246,7 @@ const reviewsManager = {
         if (!confirm('Are you sure you want to approve this review?')) return;
         
         try {
-            showLoading('Approving review...');
+            showGlobalLoading('Approving review...');
             
             // Simulate API call
             await new Promise(resolve => setTimeout(resolve, 500));
@@ -259,7 +259,7 @@ const reviewsManager = {
             console.error('Error approving review:', error);
             showToast('Failed to approve review', 'error');
         } finally {
-            hideLoading();
+            hideGlobalLoading();
         }
     },
 
@@ -268,7 +268,7 @@ const reviewsManager = {
         if (reason === null) return; // User cancelled
         
         try {
-            showLoading('Rejecting review...');
+            showGlobalLoading('Rejecting review...');
             
             // Simulate API call
             await new Promise(resolve => setTimeout(resolve, 500));
@@ -281,7 +281,7 @@ const reviewsManager = {
             console.error('Error rejecting review:', error);
             showToast('Failed to reject review', 'error');
         } finally {
-            hideLoading();
+            hideGlobalLoading();
         }
     },
 
@@ -290,7 +290,7 @@ const reviewsManager = {
         if (!reason) return;
         
         try {
-            showLoading('Flagging review...');
+            showGlobalLoading('Flagging review...');
             
             // Simulate API call
             await new Promise(resolve => setTimeout(resolve, 500));
@@ -302,7 +302,7 @@ const reviewsManager = {
             console.error('Error flagging review:', error);
             showToast('Failed to flag review', 'error');
         } finally {
-            hideLoading();
+            hideGlobalLoading();
         }
     },
 

@@ -13,7 +13,7 @@ const feedbackManager = {
     },
 
     async loadFeedbackStats() {
-        showLoading();
+        showGlobalLoading();
         try {
             const response = await authenticatedFetch(`${API_BASE_URL}/api/feedback/stats`);
             const data = await response.json();
@@ -25,7 +25,7 @@ const feedbackManager = {
             console.error('Error loading feedback stats:', error);
             showError('Failed to load feedback statistics');
         } finally {
-            hideLoading();
+            hideGlobalLoading();
         }
     },
 
@@ -78,7 +78,7 @@ const feedbackManager = {
     },
 
     async loadFeedback(filter = 'all') {
-        showLoading();
+        showGlobalLoading();
         this.currentFilter = filter;
         
         // Update filter button active states
@@ -114,7 +114,7 @@ const feedbackManager = {
             this.feedbackList = [];
             this.renderFeedbackTable(this.feedbackList);
         } finally {
-            hideLoading();
+            hideGlobalLoading();
         }
     },
 
@@ -220,7 +220,7 @@ const feedbackManager = {
     },
 
     async viewFeedback(feedbackId) {
-        showLoading();
+        showGlobalLoading();
         try {
             const response = await authenticatedFetch(`${API_BASE_URL}/api/feedback/${feedbackId}`);
             const data = await response.json();
@@ -232,7 +232,7 @@ const feedbackManager = {
             console.error('Error loading feedback:', error);
             showError('Failed to load feedback details');
         } finally {
-            hideLoading();
+            hideGlobalLoading();
         }
     },
 
@@ -340,7 +340,7 @@ const feedbackManager = {
         const status = document.getElementById('feedbackStatus').value;
         const notes = document.getElementById('feedbackNotes').value.trim();
         
-        showLoading();
+        showGlobalLoading();
         try {
             const response = await authenticatedFetch(`${API_BASE_URL}/api/feedback/${feedbackId}`, {
                 method: 'PUT',
@@ -362,14 +362,14 @@ const feedbackManager = {
             console.error('Error updating feedback:', error);
             showError('Failed to update feedback');
         } finally {
-            hideLoading();
+            hideGlobalLoading();
         }
     },
 
     async deleteFeedback(feedbackId) {
         if (!confirm('Are you sure you want to delete this feedback?')) return;
         
-        showLoading();
+        showGlobalLoading();
         try {
             const response = await authenticatedFetch(`${API_BASE_URL}/api/feedback/${feedbackId}`, {
                 method: 'DELETE'
@@ -389,12 +389,12 @@ const feedbackManager = {
             console.error('Error deleting feedback:', error);
             showError('Failed to delete feedback');
         } finally {
-            hideLoading();
+            hideGlobalLoading();
         }
     },
 
     async exportFeedback() {
-        showLoading();
+        showGlobalLoading();
         try {
             const feedbackList = this.feedbackList;
             const csvData = this.convertToCSV(feedbackList);
@@ -404,7 +404,7 @@ const feedbackManager = {
             console.error('Error exporting feedback:', error);
             showError('Failed to export feedback');
         } finally {
-            hideLoading();
+            hideGlobalLoading();
         }
     },
 

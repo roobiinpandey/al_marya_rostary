@@ -15,7 +15,7 @@ const loyaltyManager = {
 
     async loadLoyaltyStats() {
         try {
-            showLoading('Loading loyalty statistics...');
+            showGlobalLoading('Loading loyalty statistics...');
             
             const stats = await this.fetchLoyaltyStats();
             
@@ -28,13 +28,13 @@ const loyaltyManager = {
             console.error('Error loading loyalty stats:', error);
             showToast('Failed to load loyalty statistics', 'error');
         } finally {
-            hideLoading();
+            hideGlobalLoading();
         }
     },
 
     async loadLoyaltyMembers() {
         try {
-            showLoading('Loading loyalty members...');
+            showGlobalLoading('Loading loyalty members...');
             
             const members = await this.fetchLoyaltyMembers();
             this.members = members;
@@ -44,7 +44,7 @@ const loyaltyManager = {
             console.error('Error loading loyalty members:', error);
             showToast('Failed to load loyalty members', 'error');
         } finally {
-            hideLoading();
+            hideGlobalLoading();
         }
     },
 
@@ -284,7 +284,7 @@ const loyaltyManager = {
         }
         
         try {
-            showLoading('Awarding points...');
+            showGlobalLoading('Awarding points...');
             
             // Simulate API call
             await new Promise(resolve => setTimeout(resolve, 1000));
@@ -299,7 +299,7 @@ const loyaltyManager = {
             console.error('Error awarding points:', error);
             showToast('Failed to award points', 'error');
         } finally {
-            hideLoading();
+            hideGlobalLoading();
         }
     },
 
@@ -359,7 +359,7 @@ const loyaltyManager = {
 
     async viewPointsHistory(userId) {
         try {
-            showLoading('Loading points history...');
+            showGlobalLoading('Loading points history...');
             
             // Simulate API call
             const history = await this.fetchPointsHistory(userId);
@@ -389,7 +389,7 @@ const loyaltyManager = {
             console.error('Error loading points history:', error);
             showToast('Failed to load points history', 'error');
         } finally {
-            hideLoading();
+            hideGlobalLoading();
         }
     },
 

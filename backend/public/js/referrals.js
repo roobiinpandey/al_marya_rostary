@@ -15,7 +15,7 @@ const referralsManager = {
 
     async loadReferralStats() {
         try {
-            showLoading('Loading referral statistics...');
+            showGlobalLoading('Loading referral statistics...');
             
             const stats = await this.fetchReferralStats();
             
@@ -28,13 +28,13 @@ const referralsManager = {
             console.error('Error loading referral stats:', error);
             showToast('Failed to load referral statistics', 'error');
         } finally {
-            hideLoading();
+            hideGlobalLoading();
         }
     },
 
     async loadReferrals() {
         try {
-            showLoading('Loading referrals...');
+            showGlobalLoading('Loading referrals...');
             
             const referrals = await this.fetchReferrals();
             this.referrals = referrals;
@@ -44,7 +44,7 @@ const referralsManager = {
             console.error('Error loading referrals:', error);
             showToast('Failed to load referrals', 'error');
         } finally {
-            hideLoading();
+            hideGlobalLoading();
         }
     },
 
@@ -354,7 +354,7 @@ const referralsManager = {
         if (!confirm(`Send reminder email to ${referral.refereeEmail}?`)) return;
         
         try {
-            showLoading('Sending reminder...');
+            showGlobalLoading('Sending reminder...');
             
             // Simulate API call
             await new Promise(resolve => setTimeout(resolve, 1000));
@@ -365,7 +365,7 @@ const referralsManager = {
             console.error('Error sending reminder:', error);
             showToast('Failed to send reminder', 'error');
         } finally {
-            hideLoading();
+            hideGlobalLoading();
         }
     },
 
@@ -405,7 +405,7 @@ const referralsManager = {
 
     async exportReferralData() {
         try {
-            showLoading('Preparing export...');
+            showGlobalLoading('Preparing export...');
             
             // Simulate API call to get full data
             await new Promise(resolve => setTimeout(resolve, 1000));
@@ -419,7 +419,7 @@ const referralsManager = {
             console.error('Error exporting data:', error);
             showToast('Failed to export data', 'error');
         } finally {
-            hideLoading();
+            hideGlobalLoading();
         }
     },
 

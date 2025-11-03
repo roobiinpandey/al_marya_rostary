@@ -13,7 +13,7 @@ const newslettersManager = {
     },
 
     async loadNewsletterStats() {
-        showLoading();
+        showGlobalLoading();
         try {
             const response = await authenticatedFetch(`${API_BASE_URL}/api/newsletters/stats`);
             const data = await response.json();
@@ -25,7 +25,7 @@ const newslettersManager = {
             console.error('Error loading newsletter stats:', error);
             showError('Failed to load newsletter statistics');
         } finally {
-            hideLoading();
+            hideGlobalLoading();
         }
     },
 
@@ -78,7 +78,7 @@ const newslettersManager = {
     },
 
     async loadSubscribers() {
-        showLoading();
+        showGlobalLoading();
         try {
             const response = await authenticatedFetch(`${API_BASE_URL}/api/newsletters/subscribers`);
             const data = await response.json();
@@ -91,7 +91,7 @@ const newslettersManager = {
             console.error('Error loading subscribers:', error);
             showError('Failed to load subscribers');
         } finally {
-            hideLoading();
+            hideGlobalLoading();
         }
     },
 
@@ -163,7 +163,7 @@ const newslettersManager = {
     async unsubscribeUser(subscriberId) {
         if (!confirm('Are you sure you want to unsubscribe this user?')) return;
         
-        showLoading();
+        showGlobalLoading();
         try {
             const response = await authenticatedFetch(`${API_BASE_URL}/api/newsletters/subscribers/${subscriberId}/unsubscribe`, {
                 method: 'POST'
@@ -182,12 +182,12 @@ const newslettersManager = {
             console.error('Error unsubscribing user:', error);
             showError('Failed to unsubscribe user');
         } finally {
-            hideLoading();
+            hideGlobalLoading();
         }
     },
 
     async resubscribeUser(subscriberId) {
-        showLoading();
+        showGlobalLoading();
         try {
             const response = await authenticatedFetch(`${API_BASE_URL}/api/newsletters/subscribers/${subscriberId}/resubscribe`, {
                 method: 'POST'
@@ -206,14 +206,14 @@ const newslettersManager = {
             console.error('Error resubscribing user:', error);
             showError('Failed to resubscribe user');
         } finally {
-            hideLoading();
+            hideGlobalLoading();
         }
     },
 
     async deleteSubscriber(subscriberId) {
         if (!confirm('Are you sure you want to permanently delete this subscriber?')) return;
         
-        showLoading();
+        showGlobalLoading();
         try {
             const response = await authenticatedFetch(`${API_BASE_URL}/api/newsletters/subscribers/${subscriberId}`, {
                 method: 'DELETE'
@@ -232,7 +232,7 @@ const newslettersManager = {
             console.error('Error deleting subscriber:', error);
             showError('Failed to delete subscriber');
         } finally {
-            hideLoading();
+            hideGlobalLoading();
         }
     },
 
@@ -294,7 +294,7 @@ const newslettersManager = {
             return;
         }
         
-        showLoading();
+        showGlobalLoading();
         try {
             const response = await authenticatedFetch(`${API_BASE_URL}/api/newsletters/subscribe`, {
                 method: 'POST',
@@ -316,12 +316,12 @@ const newslettersManager = {
             console.error('Error adding subscriber:', error);
             showError('Failed to add subscriber');
         } finally {
-            hideLoading();
+            hideGlobalLoading();
         }
     },
 
     async exportSubscribers() {
-        showLoading();
+        showGlobalLoading();
         try {
             const subscribers = this.subscribers.filter(s => s.isActive);
             const csvData = this.convertToCSV(subscribers);
@@ -331,7 +331,7 @@ const newslettersManager = {
             console.error('Error exporting subscribers:', error);
             showError('Failed to export subscribers');
         } finally {
-            hideLoading();
+            hideGlobalLoading();
         }
     },
 

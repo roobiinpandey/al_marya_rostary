@@ -13,7 +13,7 @@ const supportTicketsManager = {
     },
 
     async loadSupportStats() {
-        showLoading();
+        showGlobalLoading();
         try {
             const response = await authenticatedFetch(`${API_BASE_URL}/api/support-tickets/stats`);
             const data = await response.json();
@@ -25,7 +25,7 @@ const supportTicketsManager = {
             console.error('Error loading support stats:', error);
             showError('Failed to load support statistics');
         } finally {
-            hideLoading();
+            hideGlobalLoading();
         }
     },
 
@@ -78,7 +78,7 @@ const supportTicketsManager = {
     },
 
     async loadTickets(filter = 'all') {
-        showLoading();
+        showGlobalLoading();
         this.currentFilter = filter;
         
         try {
@@ -93,7 +93,7 @@ const supportTicketsManager = {
             console.error('Error loading tickets:', error);
             showError('Failed to load support tickets');
         } finally {
-            hideLoading();
+            hideGlobalLoading();
         }
     },
 
@@ -187,7 +187,7 @@ const supportTicketsManager = {
     },
 
     async viewTicket(ticketId) {
-        showLoading();
+        showGlobalLoading();
         try {
             const response = await authenticatedFetch(`${API_BASE_URL}/api/support-tickets/${ticketId}`);
             const data = await response.json();
@@ -199,7 +199,7 @@ const supportTicketsManager = {
             console.error('Error loading ticket:', error);
             showError('Failed to load ticket details');
         } finally {
-            hideLoading();
+            hideGlobalLoading();
         }
     },
 
@@ -310,7 +310,7 @@ const supportTicketsManager = {
             return;
         }
         
-        showLoading();
+        showGlobalLoading();
         try {
             const response = await authenticatedFetch(`${API_BASE_URL}/api/support-tickets/${ticketId}/respond`, {
                 method: 'POST',
@@ -331,14 +331,14 @@ const supportTicketsManager = {
             console.error('Error sending response:', error);
             showError('Failed to send response');
         } finally {
-            hideLoading();
+            hideGlobalLoading();
         }
     },
 
     async updateTicketStatus(ticketId) {
         const status = document.getElementById('ticketStatus').value;
         
-        showLoading();
+        showGlobalLoading();
         try {
             const response = await authenticatedFetch(`${API_BASE_URL}/api/support-tickets/${ticketId}/status`, {
                 method: 'PATCH',
@@ -360,7 +360,7 @@ const supportTicketsManager = {
             console.error('Error updating status:', error);
             showError('Failed to update ticket status');
         } finally {
-            hideLoading();
+            hideGlobalLoading();
         }
     },
 
@@ -372,7 +372,7 @@ const supportTicketsManager = {
     },
 
     async exportTickets() {
-        showLoading();
+        showGlobalLoading();
         try {
             const tickets = this.tickets;
             const csvData = this.convertToCSV(tickets);
@@ -382,7 +382,7 @@ const supportTicketsManager = {
             console.error('Error exporting tickets:', error);
             showError('Failed to export tickets');
         } finally {
-            hideLoading();
+            hideGlobalLoading();
         }
     },
 
