@@ -162,6 +162,8 @@ class AppRouter {
         final initialIndex = args?['initialIndex'] as int? ?? 0;
         return _buildRoute(
           EmailVerificationGuard(
+            requireVerification:
+                false, // Allow browsing products without email verification
             child: MainNavigationPage(initialIndex: initialIndex),
           ),
           settings: settings,
@@ -173,6 +175,8 @@ class AppRouter {
         final initialIndex = args?['initialIndex'] as int? ?? 0;
         return _buildRoute(
           EmailVerificationGuard(
+            requireVerification:
+                false, // Allow browsing products without email verification
             child: MainNavigationPage(initialIndex: initialIndex),
           ),
           settings: settings,
