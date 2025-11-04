@@ -247,6 +247,7 @@ app.use('/api/admin', require('./routes/admin'));
 app.use('/api/admin/settings', require('./routes/settings'));
 app.use('/api/admin/orders', require('./routes/orders'));
 app.use('/api/admin/reports', require('./routes/reports'));
+app.use('/api/admin/token-blacklist', require('./routes/tokenBlacklist'));
 
 // Public Admin Routes (for local development - no auth required)
 app.use('/api/public-admin', require('./routes/public-admin'));

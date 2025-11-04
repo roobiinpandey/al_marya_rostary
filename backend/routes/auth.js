@@ -1,6 +1,7 @@
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
+const rateLimit = require('express-rate-limit');
 const { body } = require('express-validator');
 const {
   register,
@@ -8,6 +9,7 @@ const {
   adminLogin,
   getMe,
   refreshToken,
+  logout,
   updateProfile,
   forgotPassword,
   resetPassword,
@@ -18,6 +20,22 @@ const { googleAuth, facebookAuth, appleAuth } = require('../controllers/oauthCon
 const { protect } = require('../middleware/auth');
 
 const router = express.Router();
+
+// Rate limiter for token refresh endpoint (prevents abuse)
+const refreshLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // Limit each IP to 5 refresh requests per windowMs
+  message: 'Too many token refresh attempts. Please try again later.',
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  handler: (req, res) => {
+    res.status(429).json({
+      success: false,
+      message: 'Too many token refresh attempts. Please try again in 15 minutes.',
+      retryAfter: Math.ceil(req.rateLimit.resetTime / 1000)
+    });
+  }
+});
 
 // Configure multer for profile image uploads
 const storage = multer.diskStorage({
@@ -119,7 +137,7 @@ const resetPasswordValidation = [
 router.post('/register', registerValidation, register);
 router.post('/login', loginValidation, login);
 router.post('/admin-login', adminLoginValidation, adminLogin);
-router.post('/refresh', refreshToken);
+router.post('/refresh', refreshLimiter, refreshToken); // Rate limited
 router.post('/forgot-password', forgotPasswordValidation, forgotPassword);
 router.post('/reset-password', resetPasswordValidation, resetPassword);
 router.get('/verify-email/:token', verifyEmail);
@@ -131,6 +149,7 @@ router.post('/apple', appleAuth);
 
 // Protected routes
 router.get('/me', protect, getMe);
+router.post('/logout', protect, logout); // Blacklist token on logout
 router.put('/profile', protect, upload.single('avatar'), profileUpdateValidation, updateProfile);
 router.post('/send-verification-email', protect, sendEmailVerification);
 

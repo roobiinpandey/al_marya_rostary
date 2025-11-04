@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const emailService = require('../services/emailService');
+const { blacklistToken, isBlacklisted } = require('../utils/tokenBlacklist');
 
 // Generate JWT token
 const generateToken = (userId) => {
@@ -234,6 +235,14 @@ const refreshToken = async (req, res) => {
       });
     }
 
+    // Security: Check if refresh token is blacklisted
+    if (isBlacklisted(token)) {
+      return res.status(401).json({
+        success: false,
+        message: 'Refresh token has been revoked. Please login again.'
+      });
+    }
+
     // Verify refresh token
     const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
 
@@ -246,12 +255,16 @@ const refreshToken = async (req, res) => {
       });
     }
 
-    // Generate new tokens
+    // Security: Blacklist old refresh token (single-use token rotation)
+    blacklistToken(token, 'Token rotation - refresh');
+
+    // Generate NEW tokens (both access and refresh)
     const newToken = generateToken(user._id);
     const newRefreshToken = generateRefreshToken(user._id);
 
     res.json({
       success: true,
+      message: 'Token refreshed successfully',
       data: {
         token: newToken,
         refreshToken: newRefreshToken
@@ -606,12 +619,61 @@ const verifyEmail = async (req, res) => {
   }
 };
 
+// @desc    Logout user (blacklist token)
+// @route   POST /api/auth/logout
+// @access  Private
+const logout = async (req, res) => {
+  try {
+    // Get token from header
+    let token;
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+      token = req.headers.authorization.split(' ')[1];
+    }
+
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        message: 'No token provided'
+      });
+    }
+
+    // Blacklist the access token
+    const blacklisted = blacklistToken(token, 'User logout');
+
+    if (blacklisted) {
+      // Optionally: Also blacklist refresh token if provided
+      const { refreshToken } = req.body;
+      if (refreshToken) {
+        blacklistToken(refreshToken, 'User logout - refresh token');
+      }
+
+      res.json({
+        success: true,
+        message: 'Logged out successfully'
+      });
+    } else {
+      res.json({
+        success: true,
+        message: 'Token already expired or invalid'
+      });
+    }
+  } catch (error) {
+    console.error('Logout error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'An error occurred during logout',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
 module.exports = {
   register,
   login,
   adminLogin,
   getMe,
   refreshToken,
+  logout,
   updateProfile,
   forgotPassword,
   resetPassword,

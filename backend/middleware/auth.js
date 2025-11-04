@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const { isBlacklisted } = require('../utils/tokenBlacklist');
 
 // Security: Validate JWT_SECRET on module load
 if (!process.env.JWT_SECRET) {
@@ -41,6 +42,14 @@ const protect = async (req, res, next) => {
 
       // Verify token
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+      // Security: Check if token has been blacklisted (revoked)
+      if (isBlacklisted(token)) {
+        return res.status(401).json({
+          success: false,
+          message: 'Token has been revoked. Please login again.'
+        });
+      }
 
       // Handle admin tokens specially - check BEFORE any database queries
       if (decoded.userId === 'admin' || decoded.role === 'admin') {
