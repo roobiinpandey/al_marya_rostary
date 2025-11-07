@@ -15,7 +15,7 @@
 
 **Exposed:**
 ```
-mongodb+srv://roobiinpandey_db_user:50S5UtRawzRf2qMw@...
+mongodb+srv://USERNAME:PASSWORD@cluster...
 ```
 
 **Impact:** Anyone with access to the GitHub repository can:

@@ -3,8 +3,7 @@ class AppConstants {
   // API Endpoints - Environment Configuration
   // Set _useProduction to true for production Render.com backend (connects to MongoDB Atlas)
   // Set _useProduction to false for local development backend
-  static const bool _useProduction =
-      true; // ✅ Using production backend
+  static const bool _useProduction = true; // ✅ Using production backend
 
   static String get baseUrl => _useProduction
       ? 'https://almaryarostary.onrender.com' // Production Render.com backend (connects to MongoDB Atlas)
@@ -27,6 +26,11 @@ class AppConstants {
   static const String loyaltyEndpoint = '/api/loyalty';
   static const String referralsEndpoint = '/api/referrals';
   static const String subscriptionsEndpoint = '/api/subscriptions';
+
+  // Payment Configuration
+  // ⚠️ IMPORTANT: Change to production key (pk_live_...) before deploying to production
+  static const String stripePublishableKey =
+      'pk_test_51SPk8n4lUIhPdRocJojr9Qe2yHdiOuZbfyGj3pDMdYsZ0czqGgPS07omB3LkPKNLDM8c4GXbdpIzDu7JdRbdc4kK00wBTYLIUm';
 
   // App Info
   static const String appName = 'ALMARYAH ROSTERY';

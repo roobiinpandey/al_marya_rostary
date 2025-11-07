@@ -409,32 +409,51 @@ router.post('/test-sync', async (req, res) => {
 /**
  * Get Firebase Users List
  * GET /api/firebase-sync/firebase-users
+ * ⚡ OPTIMIZED: Uses 5-minute cache for Firebase API calls
  */
+const { cacheManager, CACHE_TTL } = require('../utils/cacheManager');
+
 router.get('/firebase-users', async (req, res) => {
   try {
-    const auth = admin.auth();
-    const firebaseUsers = [];
-    
-    // List all Firebase users
-    let pageToken;
-    do {
-      const listUsersResult = await auth.listUsers(100, pageToken); // Limit to 100 per page
-      
-      for (const user of listUsersResult.users) {
-        firebaseUsers.push({
-          uid: user.uid,
-          email: user.email,
-          displayName: user.displayName,
-          phoneNumber: user.phoneNumber,
-          emailVerified: user.emailVerified,
-          disabled: user.disabled,
-          creationTime: user.metadata.creationTime,
-          lastSignInTime: user.metadata.lastSignInTime
-        });
-      }
+    // ⚡ Use cache to avoid slow Firebase API calls
+    const firebaseUsers = await cacheManager.getOrSet(
+      'firebase-users',
+      'list',
+      async () => {
+        console.log('📡 Fetching Firebase users (cache miss)...');
+        const startTime = Date.now();
+        
+        const auth = admin.auth();
+        const users = [];
+        
+        // List all Firebase users with pagination
+        let pageToken;
+        do {
+          const listUsersResult = await auth.listUsers(100, pageToken);
+          
+          for (const user of listUsersResult.users) {
+            users.push({
+              uid: user.uid,
+              email: user.email,
+              displayName: user.displayName,
+              phoneNumber: user.phoneNumber,
+              emailVerified: user.emailVerified,
+              disabled: user.disabled,
+              creationTime: user.metadata.creationTime,
+              lastSignInTime: user.metadata.lastSignInTime
+            });
+          }
 
-      pageToken = listUsersResult.pageToken;
-    } while (pageToken && firebaseUsers.length < 1000); // Limit total results
+          pageToken = listUsersResult.pageToken;
+        } while (pageToken && users.length < 1000);
+        
+        const elapsed = Date.now() - startTime;
+        console.log(`✅ Firebase users fetched: ${users.length} users in ${elapsed}ms`);
+        
+        return users;
+      },
+      CACHE_TTL.FIREBASE_USER // 2 minutes cache
+    );
 
     res.json({
       success: true,

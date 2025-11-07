@@ -121,6 +121,16 @@
                     <i class="fas fa-users"></i> Users & Firebase
                 </button>
                 
+                <!-- Staff Management -->
+                <button class="menu-item" onclick="showSection('staff')">
+                    <i class="fas fa-user-tie"></i> Staff Management
+                </button>
+                
+                <!-- Driver Management -->
+                <button class="menu-item" onclick="showSection('drivers')">
+                    <i class="fas fa-truck"></i> Driver Management
+                </button>
+                
                 <!-- New Features Management -->
                 <button class="menu-item" onclick="showSection('reviews')">
                     <i class="fas fa-star"></i> Reviews
@@ -432,6 +442,72 @@
                 </div>
             </section>
 
+            <!-- Staff Management Section -->
+            <section id="staff" class="content-section">
+                <div class="content-header">
+                    <h2><i class="fas fa-user-tie"></i> Staff Management</h2>
+                    <div class="header-actions">
+                        <button class="btn btn-success" onclick="staffManager.showBulkImportModal()">
+                            <i class="fas fa-file-upload"></i> Bulk Import
+                        </button>
+                        <button class="btn btn-primary" onclick="staffManager.showAddStaffModal()">
+                            <i class="fas fa-plus"></i> Add Staff Member
+                        </button>
+                        <button class="btn btn-secondary" onclick="staffManager.refreshStaffList()">
+                            <i class="fas fa-sync"></i> Refresh
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Staff Statistics Cards -->
+                <div class="stats-container" id="staffStats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+                    <!-- Stats will be loaded here -->
+                </div>
+
+                <!-- Filters -->
+                <div class="section-card" style="margin-bottom: 1.5rem;">
+                    <div class="section-content">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                            <div>
+                                <label>Role</label>
+                                <select id="staffRoleFilter" class="form-control" onchange="staffManager.filterStaff()">
+                                    <option value="">All Roles</option>
+                                    <option value="barista">Barista</option>
+                                    <option value="manager">Manager</option>
+                                    <option value="cashier">Cashier</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label>Status</label>
+                                <select id="staffStatusFilter" class="form-control" onchange="staffManager.filterStaff()">
+                                    <option value="">All Status</option>
+                                    <option value="active">Active</option>
+                                    <option value="on_break">On Break</option>
+                                    <option value="off_duty">Off Duty</option>
+                                    <option value="inactive">Inactive</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label>Search</label>
+                                <input type="text" id="staffSearchInput" class="form-control" placeholder="Search by name, email, or Employee ID" onkeyup="staffManager.filterStaff()">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Staff Table -->
+                <div class="section-card">
+                    <div class="section-content">
+                        <div id="staffTableContainer">
+                            <div style="text-align: center; padding: 2rem;">
+                                <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #A89A6A;"></i>
+                                <p style="margin-top: 1rem;">Loading staff members...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <section id="settings" class="content-section">
                 <div class="content-header">
                     <h2><i class="fas fa-cog"></i> Settings</h2>
@@ -581,6 +657,144 @@
                     <div class="section-content">
                         <div id="giftSetsTable">
                             <!-- Gift sets table will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Driver Management Section -->
+            <section id="drivers" class="content-section">
+                <div class="content-header">
+                    <h2><i class="fas fa-truck"></i> Driver Management</h2>
+                    <div class="header-actions">
+                        <button class="btn btn-primary" id="addDriverBtn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
+                            <i class="fas fa-plus-circle"></i> Add New Driver
+                        </button>
+                        <button class="btn btn-secondary" id="refreshDriversBtn" style="background: #6c757d; border: none;">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Driver Statistics Cards -->
+                <div class="stats-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 4px 6px rgba(102, 126, 234, 0.3);">
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <i class="fas fa-users" style="font-size: 2.5rem; opacity: 0.8;"></i>
+                            <div>
+                                <div class="stat-value" id="totalDriversCount" style="font-size: 2rem; font-weight: bold; color: white;">0</div>
+                                <div class="stat-label" style="font-size: 0.9rem; opacity: 0.9; color: white;">Total Drivers</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-card" style="background: #10b981; color: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 4px 6px rgba(16, 185, 129, 0.3);">
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <i class="fas fa-check-circle" style="font-size: 2.5rem; opacity: 0.8;"></i>
+                            <div>
+                                <div class="stat-value" id="availableDriversCount" style="font-size: 2rem; font-weight: bold; color: white;">0</div>
+                                <div class="stat-label" style="font-size: 0.9rem; opacity: 0.9; color: white;">Available</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #818cf8 0%, #667eea 100%); color: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 4px 6px rgba(102, 126, 234, 0.3);">
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <i class="fas fa-shipping-fast" style="font-size: 2.5rem; opacity: 0.8;"></i>
+                            <div>
+                                <div class="stat-value" id="onDeliveryDriversCount" style="font-size: 2rem; font-weight: bold; color: white;">0</div>
+                                <div class="stat-label" style="font-size: 0.9rem; opacity: 0.9; color: white;">On Delivery</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-card" style="background: #6b7280; color: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 4px 6px rgba(107, 114, 128, 0.3);">
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <i class="fas fa-power-off" style="font-size: 2.5rem; opacity: 0.8;"></i>
+                            <div>
+                                <div class="stat-value" id="offlineDriversCount" style="font-size: 2rem; font-weight: bold; color: white;">0</div>
+                                <div class="stat-label" style="font-size: 0.9rem; opacity: 0.9; color: white;">Offline</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%); color: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 4px 6px rgba(139, 92, 246, 0.3);">
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <i class="fas fa-box" style="font-size: 2.5rem; opacity: 0.8;"></i>
+                            <div>
+                                <div class="stat-value" id="totalDeliveriesCount" style="font-size: 2rem; font-weight: bold; color: white;">0</div>
+                                <div class="stat-label" style="font-size: 0.9rem; opacity: 0.9; color: white;">Total Deliveries</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #c084fc 0%, #a855f7 100%); color: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 4px 6px rgba(168, 85, 247, 0.3);">
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <i class="fas fa-money-bill-wave" style="font-size: 2.5rem; opacity: 0.8;"></i>
+                            <div>
+                                <div class="stat-value" id="totalEarningsCount" style="font-size: 1.5rem; font-weight: bold; color: white;">0.00 AED</div>
+                                <div class="stat-label" style="font-size: 0.9rem; opacity: 0.9; color: white;">Total Earnings</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="section-card" style="margin-bottom: 1.5rem; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.08);">
+                    <div class="section-content" style="padding: 1.5rem;">
+                        <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                            <div style="flex: 1; min-width: 300px;">
+                                <div style="position: relative;">
+                                    <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #9ca3af;"></i>
+                                    <input type="text" id="driverSearch" class="form-control" placeholder="🔍 Search by name, email, phone, or Driver ID..." style="padding-left: 40px; border-radius: 8px; border: 2px solid #e5e7eb;">
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                <button class="btn btn-sm driver-filter-btn active" data-filter="all" style="border-radius: 20px; padding: 0.5rem 1rem; border: 2px solid #667eea; background: #667eea; color: white; transition: all 0.3s;">
+                                    <i class="fas fa-list"></i> All
+                                </button>
+                                <button class="btn btn-sm driver-filter-btn" data-filter="available" style="border-radius: 20px; padding: 0.5rem 1rem; border: 2px solid #10b981; background: white; color: #10b981; transition: all 0.3s;">
+                                    <i class="fas fa-check-circle"></i> Available
+                                </button>
+                                <button class="btn btn-sm driver-filter-btn" data-filter="on_delivery" style="border-radius: 20px; padding: 0.5rem 1rem; border: 2px solid #f59e0b; background: white; color: #f59e0b; transition: all 0.3s;">
+                                    <i class="fas fa-truck"></i> On Delivery
+                                </button>
+                                <button class="btn btn-sm driver-filter-btn" data-filter="offline" style="border-radius: 20px; padding: 0.5rem 1rem; border: 2px solid #6b7280; background: white; color: #6b7280; transition: all 0.3s;">
+                                    <i class="fas fa-power-off"></i> Offline
+                                </button>
+                                <button class="btn btn-sm driver-filter-btn" data-filter="on_break" style="border-radius: 20px; padding: 0.5rem 1rem; border: 2px solid #3b82f6; background: white; color: #3b82f6; transition: all 0.3s;">
+                                    <i class="fas fa-pause-circle"></i> On Break
+                                </button>
+                                <button class="btn btn-sm driver-filter-btn" data-filter="inactive" style="border-radius: 20px; padding: 0.5rem 1rem; border: 2px solid #ef4444; background: white; color: #ef4444; transition: all 0.3s;">
+                                    <i class="fas fa-ban"></i> Inactive
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Drivers Table -->
+                <div class="section-card" style="border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.08); overflow: hidden;">
+                    <div class="section-content" style="padding: 0;">
+                        <div class="table-responsive">
+                            <table class="table" style="margin-bottom: 0;">
+                                <thead style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                                    <tr>
+                                        <th style="padding: 1rem; font-weight: 600; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.05em;"><i class="fas fa-id-card"></i> Driver ID</th>
+                                        <th style="padding: 1rem; font-weight: 600; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.05em;"><i class="fas fa-user"></i> Name & Email</th>
+                                        <th style="padding: 1rem; font-weight: 600; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.05em;"><i class="fas fa-phone"></i> Phone</th>
+                                        <th style="padding: 1rem; font-weight: 600; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.05em;"><i class="fas fa-info-circle"></i> Status</th>
+                                        <th style="padding: 1rem; font-weight: 600; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.05em;"><i class="fas fa-car"></i> Vehicle</th>
+                                        <th style="padding: 1rem; font-weight: 600; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.05em; text-align: center;"><i class="fas fa-box"></i> Deliveries</th>
+                                        <th style="padding: 1rem; font-weight: 600; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.05em; text-align: center;"><i class="fas fa-toggle-on"></i> Active</th>
+                                        <th style="padding: 1rem; font-weight: 600; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.05em; text-align: center;"><i class="fas fa-cog"></i> Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="driversTableBody" style="background: white;">
+                                    <!-- Drivers will be loaded here -->
+                                    <tr>
+                                        <td colspan="8" class="text-center" style="padding: 3rem;">
+                                            <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #667eea; margin-bottom: 1rem;"></i>
+                                            <div style="color: #6b7280; font-size: 1.1rem;">Loading drivers...</div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -3109,6 +3323,192 @@
             </div>
         </div>
     </div>
+
+    <!-- ========== DRIVER MANAGEMENT MODALS ========== -->
+    
+    <!-- Add Driver Modal -->
+    <div id="addDriverModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-user-plus"></i> Add New Driver</h3>
+                <button class="close-btn" onclick="driverManager.hideAddDriverModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="addDriverForm" onsubmit="driverManager.submitAddDriver(event)">
+                    <div class="form-group">
+                        <label for="addDriverName">Full Name *</label>
+                        <input type="text" id="addDriverName" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="addDriverEmail">Email *</label>
+                        <input type="email" id="addDriverEmail" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="addDriverPhone">Phone Number *</label>
+                        <input type="tel" id="addDriverPhone" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="addDriverPin">4-Digit PIN *</label>
+                        <input type="password" id="addDriverPin" class="form-control" pattern="[0-9]{4}" maxlength="4" required>
+                        <small class="text-muted">Must be exactly 4 digits</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="addDriverVehicleType">Vehicle Type *</label>
+                        <select id="addDriverVehicleType" class="form-control" required>
+                            <option value="">Select Vehicle Type</option>
+                            <option value="Motorcycle">Motorcycle</option>
+                            <option value="Car">Car</option>
+                            <option value="Van">Van</option>
+                            <option value="Bicycle">Bicycle</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="addDriverPlateNumber">Plate Number *</label>
+                        <input type="text" id="addDriverPlateNumber" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="addDriverVehicleColor">Vehicle Color</label>
+                        <input type="text" id="addDriverVehicleColor" class="form-control">
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="driverManager.hideAddDriverModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Add Driver
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Driver Modal -->
+    <div id="editDriverModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-edit"></i> Edit Driver</h3>
+                <button class="close-btn" onclick="driverManager.hideEditDriverModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="editDriverForm" onsubmit="driverManager.submitEditDriver(event)">
+                    <input type="hidden" id="editDriverId">
+                    <div class="form-group">
+                        <label for="editDriverName">Full Name *</label>
+                        <input type="text" id="editDriverName" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editDriverEmail">Email *</label>
+                        <input type="email" id="editDriverEmail" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editDriverPhone">Phone Number *</label>
+                        <input type="tel" id="editDriverPhone" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editDriverStatus">Status *</label>
+                        <select id="editDriverStatus" class="form-control" required>
+                            <option value="available">Available</option>
+                            <option value="on_delivery">On Delivery</option>
+                            <option value="offline">Offline</option>
+                            <option value="on_break">On Break</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editDriverVehicleType">Vehicle Type *</label>
+                        <select id="editDriverVehicleType" class="form-control" required>
+                            <option value="">Select Vehicle Type</option>
+                            <option value="Motorcycle">Motorcycle</option>
+                            <option value="Car">Car</option>
+                            <option value="Van">Van</option>
+                            <option value="Bicycle">Bicycle</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editDriverPlateNumber">Plate Number *</label>
+                        <input type="text" id="editDriverPlateNumber" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editDriverVehicleColor">Vehicle Color</label>
+                        <input type="text" id="editDriverVehicleColor" class="form-control">
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="driverManager.hideEditDriverModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Update Driver
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- PIN Change Modal -->
+    <div id="pinChangeModal" class="modal hidden">
+        <div class="modal-content" style="max-width: 450px;">
+            <div class="modal-header">
+                <h3><i class="fas fa-key"></i> Change Driver PIN</h3>
+                <button class="close-btn" onclick="driverManager.hidePinChangeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="pinChangeForm" onsubmit="driverManager.submitPinChange(event)">
+                    <input type="hidden" id="pinChangeDriverId">
+                    <div class="alert alert-info" style="margin-bottom: 1rem; padding: 0.75rem; background: #e3f2fd; border-left: 4px solid #2196f3; border-radius: 4px;">
+                        <strong>Driver:</strong> <span id="pinChangeDriverName"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="newPin">New 4-Digit PIN *</label>
+                        <input type="password" id="newPin" class="form-control" pattern="[0-9]{4}" maxlength="4" required>
+                        <small class="text-muted">Must be exactly 4 digits</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmPin">Confirm PIN *</label>
+                        <input type="password" id="confirmPin" class="form-control" pattern="[0-9]{4}" maxlength="4" required>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="driverManager.hidePinChangeModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Update PIN
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Driver Details Modal -->
+    <div id="driverDetailsModal" class="modal hidden">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h3><i class="fas fa-user"></i> Driver Details</h3>
+                <button class="close-btn" onclick="driverManager.hideDriverDetailsModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="driverDetailsContent">
+                    <!-- Driver details will be loaded here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="driverManager.hideDriverDetailsModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delivery History Modal -->
+    <div id="deliveryHistoryModal" class="modal hidden">
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="modal-header">
+                <h3><i class="fas fa-history"></i> Delivery History</h3>
+                <button class="close-btn" onclick="driverManager.hideDeliveryHistoryModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="deliveryHistoryContent">
+                    <!-- Delivery history will be loaded here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="driverManager.hideDeliveryHistoryModal()">Close</button>
+            </div>
+        </div>
+    </div>
     
     <!-- JavaScript Files -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -3120,6 +3520,8 @@
     <script src="js/attributes.js?v=2025103004"></script>
     <script src="js/orders.js?v=2025101808"></script>
     <script src="js/users.js?v=2025101808"></script>
+    <script src="js/staff.js?v=2025110606"></script>
+    <script src="js/drivers.js?v=2025110711"></script>
     <script src="js/firebase.js?v=2025101808"></script>
     <script src="js/sliders.js?v=2025101808"></script>
     <script src="js/brewing-methods.js?v=2025101808"></script>

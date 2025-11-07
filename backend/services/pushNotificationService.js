@@ -1,11 +1,16 @@
 const admin = require('firebase-admin');
 const User = require('../models/User');
+const Staff = require('../models/Staff');
+const Driver = require('../models/Driver');
+const Order = require('../models/Order');
 const auditLogger = require('../utils/auditLogger');
 
 class PushNotificationService {
   constructor() {
-    this.initialized = false;
+    this.messaging = null;
     this.initializeFirebase();
+    // Throttle mechanism for location updates (orderId -> lastSentTimestamp)
+    this.locationUpdateThrottle = new Map();
   }
 
   /**
@@ -382,6 +387,265 @@ class PushNotificationService {
     } catch (error) {
       console.error('❌ Topic unsubscription error:', error);
       return { success: false, error: error.message };
+    }
+  }
+
+  // ============================================================================
+  // MULTI-APP NOTIFICATION METHODS (Staff, Driver, Customer)
+  // ============================================================================
+
+  /**
+   * Notify all active staff members about a new order
+   * @param {Object} order - The order object
+   * @returns {Promise<Object>} Send result
+   */
+  async notifyStaffNewOrder(order) {
+    try {
+      // Get all active staff members with FCM tokens
+      const staff = await Staff.find({ 
+        status: 'active', 
+        isDeleted: false 
+      }).select('fcmToken name');
+      
+      const tokens = staff.map(s => s.fcmToken).filter(t => t);
+      
+      if (tokens.length === 0) {
+        console.log('No active staff with FCM tokens found');
+        return { success: true, message: 'No recipients' };
+      }
+
+      const notification = {
+        title: `New Order #${order.orderNumber}`,
+        message: `Order for ${order.items.length} items ready for preparation`,
+        type: 'order',
+        priority: 'high',
+        actionButton: {
+          text: 'View Order',
+          link: `/staff/orders/${order._id}`
+        }
+      };
+
+      const data = {
+        orderId: order._id.toString(),
+        orderNumber: order.orderNumber,
+        totalAmount: order.totalAmount.toString(),
+        itemCount: order.items.length.toString(),
+        deliveryMethod: order.deliveryMethod
+      };
+
+      console.log(`Notifying ${tokens.length} active staff about new order #${order.orderNumber}`);
+      return await this.sendToDevices(tokens, notification, data);
+    } catch (error) {
+      console.error('Error notifying staff about new order:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Notify available drivers that an order is ready for delivery
+   * @param {Object} order - The order object
+   * @returns {Promise<Object>} Send result
+   */
+  async notifyDriversOrderReady(order) {
+    try {
+      // Only notify for delivery orders
+      if (order.deliveryMethod !== 'delivery') {
+        console.log(`Order #${order.orderNumber} is ${order.deliveryMethod}, skipping driver notification`);
+        return { success: true, message: 'Not a delivery order' };
+      }
+
+      // Get all available drivers (not on active delivery)
+      const drivers = await Driver.find({ 
+        status: 'available', 
+        activeDelivery: null,
+        isDeleted: false 
+      }).select('fcmToken name');
+      
+      const tokens = drivers.map(d => d.fcmToken).filter(t => t);
+      
+      if (tokens.length === 0) {
+        console.log('No available drivers with FCM tokens found');
+        return { success: true, message: 'No recipients' };
+      }
+
+      const notification = {
+        title: 'Order Ready for Delivery',
+        message: `Pick up order #${order.orderNumber} from cafe`,
+        type: 'delivery',
+        priority: 'high',
+        actionButton: {
+          text: 'View Details',
+          link: `/driver/orders/${order._id}`
+        }
+      };
+
+      const data = {
+        orderId: order._id.toString(),
+        orderNumber: order.orderNumber,
+        deliveryAddress: order.deliveryAddress?.fullAddress || 'Address not available',
+        estimatedTime: order.deliveryTime?.estimatedMinutes?.toString() || '30',
+        totalAmount: order.totalAmount.toString()
+      };
+
+      console.log(`Notifying ${tokens.length} available drivers about order #${order.orderNumber}`);
+      return await this.sendToDevices(tokens, notification, data);
+    } catch (error) {
+      console.error('Error notifying drivers about ready order:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Notify customer that a driver has been assigned to their order
+   * @param {Object} order - The order object (should be populated with user)
+   * @param {Object} driver - The driver object
+   * @returns {Promise<Object>} Send result
+   */
+  async notifyCustomerDriverAssigned(order, driver) {
+    try {
+      // Populate user if not already populated
+      if (!order.user?.fcmToken) {
+        await order.populate('user');
+      }
+
+      if (!order.user || !order.user.fcmToken) {
+        console.log(`User for order #${order.orderNumber} has no FCM token`);
+        return { success: true, message: 'No recipient FCM token' };
+      }
+
+      const notification = {
+        title: 'Driver Assigned',
+        message: `${driver.name} is on the way with your order`,
+        type: 'delivery',
+        priority: 'high',
+        image: driver.profileImage || null,
+        actionButton: {
+          text: 'Track Order',
+          link: `/orders/${order._id}/track`
+        }
+      };
+
+      const data = {
+        orderId: order._id.toString(),
+        orderNumber: order.orderNumber,
+        driverId: driver._id.toString(),
+        driverName: driver.name,
+        vehicleType: driver.vehicleType || 'vehicle',
+        vehicleNumber: driver.vehicleNumber || '',
+        estimatedArrival: order.driverTracking?.estimatedArrival?.toISOString() || ''
+      };
+
+      console.log(`Notifying customer about driver assignment for order #${order.orderNumber}`);
+      return await this.sendToUsers([order.user._id], notification, data);
+    } catch (error) {
+      console.error('Error notifying customer about driver assignment:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Notify customer about driver's location update (throttled to every 2 minutes)
+   * @param {Object} order - The order object (should be populated with user)
+   * @param {Object} location - Location object with latitude and longitude
+   * @returns {Promise<Object>} Send result
+   */
+  async notifyCustomerLocationUpdate(order, location) {
+    try {
+      const orderId = order._id.toString();
+      const now = Date.now();
+      const lastSent = this.locationUpdateThrottle.get(orderId);
+
+      // Throttle: Only send location updates every 2 minutes
+      if (lastSent && (now - lastSent) < 120000) {
+        console.log(`Location update throttled for order #${order.orderNumber} (sent ${Math.floor((now - lastSent) / 1000)}s ago)`);
+        return { success: true, throttled: true };
+      }
+
+      // Update throttle timestamp
+      this.locationUpdateThrottle.set(orderId, now);
+
+      // Populate user if not already populated
+      if (!order.user?.fcmToken) {
+        await order.populate('user');
+      }
+
+      if (!order.user || !order.user.fcmToken) {
+        console.log(`User for order #${order.orderNumber} has no FCM token`);
+        return { success: true, message: 'No recipient FCM token' };
+      }
+
+      const notification = {
+        title: 'Driver Location Update',
+        message: 'Your driver is on the way',
+        type: 'location',
+        priority: 'normal',
+        actionButton: {
+          text: 'Track',
+          link: `/orders/${order._id}/track`
+        }
+      };
+
+      const data = {
+        orderId: order._id.toString(),
+        orderNumber: order.orderNumber,
+        latitude: location.latitude?.toString() || '',
+        longitude: location.longitude?.toString() || '',
+        distanceRemaining: order.driverTracking?.distanceRemaining?.toString() || '',
+        estimatedArrival: order.driverTracking?.estimatedArrival?.toISOString() || ''
+      };
+
+      console.log(`Notifying customer about location update for order #${order.orderNumber}`);
+      return await this.sendToUsers([order.user._id], notification, data);
+    } catch (error) {
+      console.error('Error notifying customer about location update:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Notify customer that their order has been delivered
+   * @param {Object} order - The order object (should be populated with user)
+   * @returns {Promise<Object>} Send result
+   */
+  async notifyCustomerDelivered(order) {
+    try {
+      // Clean up throttle entry since delivery is complete
+      const orderId = order._id.toString();
+      this.locationUpdateThrottle.delete(orderId);
+
+      // Populate user if not already populated
+      if (!order.user?.fcmToken) {
+        await order.populate('user');
+      }
+
+      if (!order.user || !order.user.fcmToken) {
+        console.log(`User for order #${order.orderNumber} has no FCM token`);
+        return { success: true, message: 'No recipient FCM token' };
+      }
+
+      const notification = {
+        title: 'Order Delivered',
+        message: 'Enjoy your coffee! ☕',
+        type: 'delivery',
+        priority: 'high',
+        actionButton: {
+          text: 'Rate Order',
+          link: `/orders/${order._id}/rate`
+        }
+      };
+
+      const data = {
+        orderId: order._id.toString(),
+        orderNumber: order.orderNumber,
+        deliveredAt: order.statusTimestamps?.delivered?.toISOString() || new Date().toISOString(),
+        totalAmount: order.totalAmount.toString()
+      };
+
+      console.log(`Notifying customer about delivery completion for order #${order.orderNumber}`);
+      return await this.sendToUsers([order.user._id], notification, data);
+    } catch (error) {
+      console.error('Error notifying customer about delivery:', error);
+      throw error;
     }
   }
 }

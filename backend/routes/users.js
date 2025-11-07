@@ -78,6 +78,54 @@ const userUpdateValidation = [
 // @access  Private (Firebase authenticated users)
 router.put('/me/profile', verifyFirebaseToken, upload.single('avatar'), updateMyProfile);
 
+// @route   POST /api/users/me/fcm-token
+// @desc    Save or update user's FCM token for push notifications
+// @access  Private (Firebase authenticated users)
+router.post('/me/fcm-token', verifyFirebaseToken, async (req, res) => {
+  try {
+    const { fcmToken } = req.body;
+    const User = require('../models/User');
+
+    if (!fcmToken) {
+      return res.status(400).json({
+        success: false,
+        message: 'FCM token is required'
+      });
+    }
+
+    // Update user's FCM token
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { 
+        fcmToken: fcmToken,
+        fcmTokenUpdatedAt: new Date()
+      },
+      { new: true, select: '+fcmToken' }
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    console.log(`📱 FCM token saved for user: ${req.user.email}`);
+
+    res.json({
+      success: true,
+      message: 'FCM token saved successfully'
+    });
+  } catch (error) {
+    console.error('❌ Error saving FCM token:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error saving FCM token',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
 // @route   GET /api/users/me/orders
 // @desc    Get current user's orders
 // @access  Private (Firebase authenticated users)

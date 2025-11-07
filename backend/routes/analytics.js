@@ -1,5 +1,6 @@
 const express = require('express');
 const { body, param, query } = require('express-validator');
+const { cache } = require('../middleware/cacheMiddleware');
 const {
   // User Analytics
   trackUserEvent,
@@ -91,8 +92,9 @@ router.get('/user/activity', protect, getUserActivity);
 router.get('/user/journey', protect, getUserJourney);
 
 // Admin routes (require authentication + admin role)
-router.get('/admin/dashboard', protect, adminAuth, getDashboardOverview);
-router.get('/admin/users', protect, adminAuth, getUserAnalyticsReport);
-router.get('/admin/products', protect, adminAuth, getProductAnalyticsReport);
+// ⚡ OPTIMIZED: Cache dashboard for 60 seconds (stats don't change that frequently)
+router.get('/admin/dashboard', protect, adminAuth, cache('dashboard', 60), getDashboardOverview);
+router.get('/admin/users', protect, adminAuth, cache('analytics-users', 120), getUserAnalyticsReport);
+router.get('/admin/products', protect, adminAuth, cache('analytics-products', 120), getProductAnalyticsReport);
 
 module.exports = router;

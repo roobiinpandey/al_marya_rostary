@@ -467,6 +467,16 @@ function loadSectionData(sectionId) {
         case 'users':
             if (typeof loadUsers === 'function') loadUsers();
             break;
+        case 'staff':
+            if (typeof staffManager !== 'undefined' && staffManager.init) {
+                staffManager.init();
+            }
+            break;
+        case 'drivers':
+            if (typeof driverManager !== 'undefined' && driverManager.init) {
+                driverManager.init();
+            }
+            break;
         case 'reviews':
             if (typeof loadReviews === 'function') loadReviews();
             break;

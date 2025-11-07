@@ -5,7 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../core/theme/app_theme.dart';
-import '../core/services/order_api_service.dart';
+import '../core/services/order_cancellation_service.dart';
 import '../core/constants/app_constants.dart';
 import '../models/order.dart';
 import '../models/cart.dart';
@@ -25,13 +25,11 @@ class _OrdersPageState extends State<OrdersPage>
   List<Order> _orders = [];
   bool _isLoading = true;
   String? _errorMessage;
-  late OrderApiService _orderApiService;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
-    _orderApiService = OrderApiService();
     _loadOrders();
   }
 
@@ -532,14 +530,7 @@ class _OrdersPageState extends State<OrdersPage>
                           onPressed: () => _reorder(order),
                           child: const Text('Reorder'),
                         ),
-                      if (order.status == OrderStatus.pending)
-                        TextButton(
-                          onPressed: () => _cancelOrder(order),
-                          style: TextButton.styleFrom(
-                            foregroundColor: Colors.red,
-                          ),
-                          child: const Text('Cancel'),
-                        ),
+                      // Cancel button removed - now in order details sheet with full cancellation flow
                     ],
                   ),
                 ],
@@ -840,46 +831,25 @@ class _OrdersPageState extends State<OrdersPage>
               // Action Buttons
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    if (order.status == OrderStatus.pending) ...[
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            _cancelOrder(order);
-                          },
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.red,
-                            side: const BorderSide(color: Colors.red),
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: const Text(
-                            'Cancel Order',
-                            style: TextStyle(fontWeight: FontWeight.w600),
-                          ),
+                    // Cancel button with countdown timer
+                    if (_canShowCancelButton(order)) _buildCancelButton(order),
+                    // Close button
+                    ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryBrown,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      const SizedBox(width: 12),
-                    ],
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () => Navigator.pop(context),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.primaryBrown,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: const Text(
-                          'Close',
-                          style: TextStyle(fontWeight: FontWeight.w600),
-                        ),
+                      child: const Text(
+                        'Close',
+                        style: TextStyle(fontWeight: FontWeight.w600),
                       ),
                     ),
                   ],
@@ -890,6 +860,250 @@ class _OrdersPageState extends State<OrdersPage>
         );
       },
     );
+  }
+
+  /// Check if cancel button should be shown
+  bool _canShowCancelButton(Order order) {
+    final cancellationService = OrderCancellationService();
+    return cancellationService.canCancelOrder(
+      order.createdAt,
+      order.status.name,
+    );
+  }
+
+  /// Build cancel button with countdown timer
+  Widget _buildCancelButton(Order order) {
+    final cancellationService = OrderCancellationService();
+    final remainingMinutes = cancellationService.getRemainingMinutes(
+      order.createdAt,
+    );
+
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.orange.shade50,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.orange.shade200),
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.access_time, color: Colors.orange.shade700, size: 20),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'You can cancel within $remainingMinutes minute${remainingMinutes != 1 ? 's' : ''}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.orange.shade700,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: () {
+              Navigator.pop(context);
+              _showCancelDialog(order);
+            },
+            icon: const Icon(Icons.cancel),
+            label: const Text('Cancel Order'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: Colors.red,
+              side: const BorderSide(color: Colors.red, width: 2),
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+      ],
+    );
+  }
+
+  /// Show cancel dialog with reasons
+  Future<void> _showCancelDialog(Order order) async {
+    final reasons = [
+      'Changed my mind',
+      'Ordered by mistake',
+      'Delivery time too long',
+      'Found a better option',
+      'Other',
+    ];
+
+    String? selectedReason;
+    String? customReason;
+
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text('Cancel Order'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Please tell us why you\'re cancelling:',
+                  style: TextStyle(fontSize: 14),
+                ),
+                const SizedBox(height: 16),
+                ...reasons.map(
+                  (reason) => RadioListTile<String>(
+                    title: Text(reason),
+                    value: reason,
+                    groupValue: selectedReason,
+                    onChanged: (value) {
+                      setState(() {
+                        selectedReason = value;
+                        if (value != 'Other') {
+                          customReason = null;
+                        }
+                      });
+                    },
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                  ),
+                ),
+                if (selectedReason == 'Other') ...[
+                  const SizedBox(height: 8),
+                  TextField(
+                    decoration: const InputDecoration(
+                      labelText: 'Please specify',
+                      border: OutlineInputBorder(),
+                    ),
+                    onChanged: (value) => customReason = value,
+                    maxLines: 2,
+                  ),
+                ],
+                const SizedBox(height: 16),
+                // Show refund info if order is paid
+                if (order.paymentStatus == 'paid')
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.green.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.green.shade200),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.info_outline, color: Colors.green.shade700),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Your payment of ${order.total.toStringAsFixed(2)} AED will be refunded within 5-7 business days.',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.green.shade700,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Keep Order'),
+            ),
+            ElevatedButton(
+              onPressed: selectedReason == null
+                  ? null
+                  : () {
+                      final reason = selectedReason == 'Other'
+                          ? (customReason ?? 'Other')
+                          : selectedReason!;
+                      Navigator.pop(context, reason);
+                    },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Cancel Order'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (result != null && mounted) {
+      await _processCancellation(order, result);
+    }
+  }
+
+  /// Process the cancellation
+  Future<void> _processCancellation(Order order, String reason) async {
+    // Show loading
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      final cancellationService = OrderCancellationService();
+      final result = await cancellationService.cancelOrder(order.id, reason);
+
+      if (mounted) {
+        Navigator.pop(context); // Close loading
+
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['message'] ?? 'Order cancelled successfully'),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+
+        // Show refund info if applicable
+        if (result['refund'] != null) {
+          final refundAmount = result['refund']['amount'];
+          Future.delayed(const Duration(milliseconds: 500), () {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    'Refund of ${refundAmount.toStringAsFixed(2)} AED will be processed within 5-7 business days',
+                  ),
+                  backgroundColor: Colors.blue,
+                  duration: const Duration(seconds: 5),
+                ),
+              );
+            }
+          });
+        }
+
+        // Refresh orders list
+        _loadOrders();
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context); // Close loading
+
+        // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceAll('Exception: ', '')),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    }
   }
 
   Widget _buildDetailSection(
@@ -1074,59 +1288,6 @@ class _OrdersPageState extends State<OrdersPage>
               foregroundColor: Colors.white,
             ),
             child: const Text('Add to Cart'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _cancelOrder(Order order) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Cancel Order'),
-        content: Text(
-          'Are you sure you want to cancel order #${order.id.substring(0, 8).toUpperCase()}?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Keep Order'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              try {
-                // Update order status to cancelled via API
-                await _orderApiService.updateOrderStatus(order.id, 'cancelled');
-
-                // Reload orders to reflect the change
-                await _loadOrders();
-
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Order cancelled successfully'),
-                      backgroundColor: Colors.orange,
-                    ),
-                  );
-                }
-              } catch (e) {
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Failed to cancel order: $e'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Cancel Order'),
           ),
         ],
       ),

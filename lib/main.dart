@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'core/constants/app_constants.dart';
 import 'core/theme/almaryah_theme.dart';
 import 'utils/app_router.dart';
 import 'features/cart/presentation/providers/cart_provider.dart';
@@ -32,6 +33,8 @@ import 'features/subscriptions/presentation/providers/subscriptions_provider.dar
 import 'l10n/app_localizations.dart';
 import 'core/error/global_error_handler.dart';
 import 'core/network/network_manager.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
+import 'services/fcm_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -42,6 +45,10 @@ void main() async {
   // Initialize network manager
   await NetworkManager().initialize();
 
+  // Initialize Stripe with key from AppConstants
+  Stripe.publishableKey = AppConstants.stripePublishableKey;
+  debugPrint('✅ Stripe initialized successfully');
+
   // Initialize Firebase with error handling
   bool firebaseInitialized = false;
   try {
@@ -50,6 +57,9 @@ void main() async {
     );
     firebaseInitialized = true;
     debugPrint('✅ Firebase initialized successfully');
+
+    // Initialize FCM after Firebase
+    await FCMService().initialize();
   } catch (e, stackTrace) {
     debugPrint('⚠️ Firebase initialization error: $e');
     debugPrint('Stack trace: $stackTrace');

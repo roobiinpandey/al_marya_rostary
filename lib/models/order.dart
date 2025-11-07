@@ -12,6 +12,8 @@ class Order {
   final DateTime? updatedAt;
   final String? notes;
   final Map<String, dynamic>? deliveryAddress;
+  final String? paymentStatus;
+  final String? paymentMethod;
 
   const Order({
     required this.id,
@@ -23,6 +25,8 @@ class Order {
     this.updatedAt,
     this.notes,
     this.deliveryAddress,
+    this.paymentStatus,
+    this.paymentMethod,
   });
 
   factory Order.fromJson(Map<String, dynamic> json, String id) {
@@ -52,6 +56,8 @@ class Order {
       deliveryAddress: json['deliveryAddress'] != null
           ? Map<String, dynamic>.from(json['deliveryAddress'])
           : null,
+      paymentStatus: json['paymentStatus'],
+      paymentMethod: json['paymentMethod'],
     );
   }
 
@@ -83,6 +89,8 @@ class Order {
     DateTime? updatedAt,
     String? notes,
     Map<String, dynamic>? deliveryAddress,
+    String? paymentStatus,
+    String? paymentMethod,
   }) {
     return Order(
       id: id ?? this.id,
@@ -94,6 +102,8 @@ class Order {
       updatedAt: updatedAt ?? this.updatedAt,
       notes: notes ?? this.notes,
       deliveryAddress: deliveryAddress ?? this.deliveryAddress,
+      paymentStatus: paymentStatus ?? this.paymentStatus,
+      paymentMethod: paymentMethod ?? this.paymentMethod,
     );
   }
 }

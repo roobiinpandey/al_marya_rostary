@@ -183,6 +183,18 @@ android/app/*.backup
 **/loading-test.html
 **/progressive-test.html
 
+# Backend test/debug scripts (may contain test credentials)
+backend/test-*.sh
+backend/test-*.js
+backend/*test*.js
+backend/setup-*.js
+backend/check-*.js
+backend/create-*.js
+backend/analyze-*.js
+backend/*.sh
+!backend/start-backend.sh
+!backend/start.sh
+
 # Temporary scripts
 *.tmp.sh
 **/diagnose-*.sh

@@ -76,37 +76,60 @@ const register = async (req, res) => {
 // @access  Public
 const adminLogin = async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const { email, password } = req.body;
 
-    // Admin credentials (in production, store in database with proper hashing)
-    const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
-    const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'qahwat2024';
+    // Find user by email
+    const user = await User.findOne({ email }).select('+password');
 
-    // Validate admin credentials
-    if (username !== ADMIN_USERNAME || password !== ADMIN_PASSWORD) {
+    if (!user) {
       return res.status(401).json({
         success: false,
         message: 'Invalid admin credentials'
       });
     }
 
-    // Generate admin token
-    const token = jwt.sign(
-      { userId: 'admin', role: 'admin' }, 
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRE || '7d' }
-    );
+    // Check if user has admin role
+    if (!user.roles.includes('admin')) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. Admin privileges required.'
+      });
+    }
+
+    // Check if user account is active
+    if (!user.isActive) {
+      return res.status(401).json({
+        success: false,
+        message: 'Account has been deactivated. Please contact support.'
+      });
+    }
+
+    // Verify password
+    const isPasswordValid = await user.comparePassword(password);
+    if (!isPasswordValid) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid admin credentials'
+      });
+    }
+
+    // Generate tokens
+    const token = generateToken(user._id);
+    const refreshToken = generateRefreshToken(user._id);
 
     res.json({
       success: true,
       message: 'Admin login successful',
       data: {
         user: {
-          id: 'admin',
-          username: username,
-          role: 'admin'
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          roles: user.roles,
+          avatar: user.avatar
         },
-        token
+        token,
+        refreshToken
       }
     });
   } catch (error) {

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'dart:io' show Platform;
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/services/payment_service.dart';
 import '../../../cart/presentation/providers/cart_provider.dart';
 import '../../data/services/order_service.dart';
 import 'order_confirmation_page.dart';
@@ -21,6 +23,8 @@ class _PaymentPageState extends State<PaymentPage> {
   final _formKey = GlobalKey<FormState>();
   String _selectedPaymentMethod = 'card';
   bool _isProcessing = false;
+  bool _isApplePaySupported = false;
+  bool _isGooglePaySupported = false;
 
   // Card form controllers
   final _cardNumberController = TextEditingController();
@@ -30,6 +34,16 @@ class _PaymentPageState extends State<PaymentPage> {
 
   // Cash on delivery
   final _cashNoteController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    // Set digital wallet support based on platform
+    _isApplePaySupported = Platform.isIOS;
+    _isGooglePaySupported = Platform.isAndroid;
+    debugPrint('🍎 Apple Pay available: $_isApplePaySupported');
+    debugPrint('🤖 Google Pay available: $_isGooglePaySupported');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -66,8 +80,9 @@ class _PaymentPageState extends State<PaymentPage> {
                       _buildCardPaymentForm()
                     else if (_selectedPaymentMethod == 'cash')
                       _buildCashOnDeliveryForm()
-                    else
-                      _buildDigitalWalletForm(),
+                    else if (_selectedPaymentMethod == 'apple_pay' ||
+                        _selectedPaymentMethod == 'google_pay')
+                      _buildDigitalWalletInfo(),
 
                     const SizedBox(height: 24),
 
@@ -116,7 +131,7 @@ class _PaymentPageState extends State<PaymentPage> {
         ),
 
         // Apple Pay (iOS only)
-        if (Theme.of(context).platform == TargetPlatform.iOS)
+        if (_isApplePaySupported)
           _buildPaymentMethodTile(
             'apple_pay',
             'Apple Pay',
@@ -125,12 +140,12 @@ class _PaymentPageState extends State<PaymentPage> {
           ),
 
         // Google Pay (Android only)
-        if (Theme.of(context).platform == TargetPlatform.android)
+        if (_isGooglePaySupported)
           _buildPaymentMethodTile(
             'google_pay',
             'Google Pay',
             Icons.android,
-            'Pay with your Google account',
+            'Fast & secure payment',
           ),
       ],
     );
@@ -185,7 +200,7 @@ class _PaymentPageState extends State<PaymentPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Card Information',
+          'Card Information (Powered by Stripe)',
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.bold,
             color: AppTheme.textDark,
@@ -402,40 +417,66 @@ class _PaymentPageState extends State<PaymentPage> {
     );
   }
 
-  Widget _buildDigitalWalletForm() {
+  Widget _buildDigitalWalletInfo() {
+    final isApplePay = _selectedPaymentMethod == 'apple_pay';
+
     return Column(
       children: [
         Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
             color: AppTheme.primaryLightBrown.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: AppTheme.primaryBrown.withValues(alpha: 0.3),
+            ),
           ),
           child: Column(
             children: [
               Icon(
-                _selectedPaymentMethod == 'apple_pay'
-                    ? Icons.apple
-                    : Icons.android,
-                size: 48,
+                isApplePay ? Icons.apple : Icons.android,
+                size: 64,
                 color: AppTheme.primaryBrown,
               ),
               const SizedBox(height: 16),
               Text(
-                _selectedPaymentMethod == 'apple_pay'
-                    ? 'Pay with Apple Pay'
-                    : 'Pay with Google Pay',
-                style: Theme.of(
-                  context,
-                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                isApplePay ? 'Apple Pay' : 'Google Pay',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.primaryBrown,
+                ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               Text(
-                'Fast, secure payment with biometric authentication',
+                isApplePay
+                    ? 'Fast, secure payment with Touch ID or Face ID'
+                    : 'Fast, secure payment with your Google account',
                 style: Theme.of(
                   context,
                 ).textTheme.bodyMedium?.copyWith(color: AppTheme.textMedium),
                 textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 20),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.green.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.security, color: Colors.green, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Your payment is processed securely through Stripe',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Colors.green.shade700,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -582,6 +623,7 @@ class _PaymentPageState extends State<PaymentPage> {
   }
 
   void _processPayment() async {
+    // Validate card form if card payment
     if (_selectedPaymentMethod == 'card' &&
         !_formKey.currentState!.validate()) {
       return;
@@ -592,8 +634,10 @@ class _PaymentPageState extends State<PaymentPage> {
     });
 
     try {
-      // Initialize order service
+      // Initialize services
       final orderService = OrderService();
+      await orderService.loadAuthToken();
+      final paymentService = PaymentService();
 
       // Prepare order items
       final items = (widget.orderData['items'] as List).map((item) {
@@ -612,15 +656,6 @@ class _PaymentPageState extends State<PaymentPage> {
       final deliveryInfo =
           widget.orderData['delivery'] as Map<String, dynamic>?;
 
-      // Determine payment status
-      String paymentStatus = 'pending';
-      if (_selectedPaymentMethod == 'card') {
-        // In production, integrate with payment gateway
-        paymentStatus = 'paid'; // Simulated for now
-      } else if (_selectedPaymentMethod == 'cash') {
-        paymentStatus = 'pending'; // Payment on delivery
-      }
-
       // Calculate final total with COD fee
       final total = widget.orderData['total'] as double;
       final finalTotal = _selectedPaymentMethod == 'cash' ? total + 5 : total;
@@ -628,15 +663,12 @@ class _PaymentPageState extends State<PaymentPage> {
       debugPrint('💳 Processing payment: $_selectedPaymentMethod');
       debugPrint('💰 Final total: AED $finalTotal');
 
-      // Simulate payment processing (2 seconds)
-      await Future.delayed(const Duration(seconds: 2));
-
-      // Create order in backend
+      // STEP 1: Create order with 'pending' status
       final result = await orderService.createOrder(
         items: items,
         shippingAddress: widget.orderData['shippingAddress'],
         paymentMethod: _selectedPaymentMethod,
-        paymentStatus: paymentStatus,
+        paymentStatus: 'pending', // Always pending initially
         totalAmount: finalTotal,
         deliveryInfo: deliveryInfo,
         specialInstructions: _cashNoteController.text.isNotEmpty
@@ -644,33 +676,92 @@ class _PaymentPageState extends State<PaymentPage> {
             : null,
       );
 
-      if (result['success'] == true) {
-        // Clear cart after successful order
-        if (mounted) {
-          Provider.of<CartProvider>(context, listen: false).clearCart();
-        }
-
-        // Prepare order data for confirmation page
-        final orderData = result['order'];
-        orderData['paymentMethod'] = _selectedPaymentMethod;
-
-        if (_selectedPaymentMethod == 'card') {
-          orderData['cardLast4'] = _cardNumberController.text
-              .replaceAll(' ', '')
-              .substring(
-                _cardNumberController.text.replaceAll(' ', '').length - 4,
-              );
-        }
-
-        if (mounted) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => OrderConfirmationPage(orderData: orderData),
-            ),
-          );
-        }
-      } else {
+      if (result['success'] != true) {
         throw Exception('Order creation failed');
+      }
+
+      final orderData = result['order'];
+      final orderId = orderData['_id'] as String;
+      orderData['paymentMethod'] = _selectedPaymentMethod;
+
+      debugPrint('✅ Order created: $orderId');
+
+      // STEP 2: Handle payment based on method
+      if (_selectedPaymentMethod == 'card') {
+        // Use Stripe for card payments
+        debugPrint('💳 Initiating Stripe payment...');
+
+        // Get auth token
+        final authToken = orderService.authToken;
+        if (authToken == null) {
+          throw Exception('Authentication required. Please login.');
+        }
+
+        // Process payment with Stripe
+        final paymentResult = await paymentService.processPayment(
+          orderId: orderId,
+          authToken: authToken,
+          context: context,
+        );
+
+        if (!paymentResult.success) {
+          throw Exception(paymentResult.message);
+        }
+
+        debugPrint('✅ Stripe payment successful!');
+        debugPrint('💳 Payment Intent ID: ${paymentResult.paymentIntentId}');
+
+        // Add Stripe payment details to order data
+        if (paymentResult.paymentIntentId != null) {
+          orderData['stripePaymentIntentId'] = paymentResult.paymentIntentId;
+        }
+      } else if (_selectedPaymentMethod == 'apple_pay' ||
+          _selectedPaymentMethod == 'google_pay') {
+        // Process Apple Pay or Google Pay
+        final isApplePay = _selectedPaymentMethod == 'apple_pay';
+        debugPrint(
+          '${isApplePay ? '🍎' : '🤖'} Initiating ${isApplePay ? 'Apple' : 'Google'} Pay...',
+        );
+
+        // Get auth token
+        final authToken = orderService.authToken;
+        if (authToken == null) {
+          throw Exception('Authentication required. Please login.');
+        }
+
+        // Process digital wallet payment
+        final paymentResult = await paymentService.processDigitalWalletPayment(
+          orderId: orderId,
+          authToken: authToken,
+          context: context,
+          isApplePay: isApplePay,
+        );
+
+        if (!paymentResult.success) {
+          throw Exception(paymentResult.message);
+        }
+
+        debugPrint('✅ Digital wallet payment successful!');
+        debugPrint('💳 Payment Intent ID: ${paymentResult.paymentIntentId}');
+
+        // Add payment details to order data
+        if (paymentResult.paymentIntentId != null) {
+          orderData['stripePaymentIntentId'] = paymentResult.paymentIntentId;
+        }
+      } else if (_selectedPaymentMethod == 'cash') {
+        // Cash on delivery - order stays pending
+        debugPrint('💵 Cash on delivery - order will be paid on delivery');
+      }
+
+      // STEP 3: Clear cart and navigate to confirmation
+      if (mounted) {
+        Provider.of<CartProvider>(context, listen: false).clearCart();
+
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => OrderConfirmationPage(orderData: orderData),
+          ),
+        );
       }
     } catch (e) {
       debugPrint('❌ Payment processing error: $e');

@@ -165,12 +165,41 @@ app.use('/api/accessory-types', createCacheMiddleware({ ttl: 600 }), require('./
 app.use('/api/gift-sets', createCacheMiddleware({ ttl: 300 }), require('./routes/giftSets')); // 5 min cache
 
 // Non-cached routes (user-specific or frequently changing)
+app.use('/api/orders', require('./routes/userOrders')); // User order management
 app.use('/api/notifications', require('./routes/notifications'));
 app.use('/api/newsletters', require('./routes/newsletters'));
 app.use('/api/support-tickets', require('./routes/support'));
 app.use('/api/feedback', require('./routes/feedback'));
-app.use('/api/analytics', require('./routes/analytics'));
+
+// ⚡ OPTIMIZED: Analytics with authenticated caching (60s for dashboard, 120s for reports)
+app.use('/api/analytics', createCacheMiddleware({ 
+  ttl: 60, 
+  cacheAuthenticated: true  // Enable caching for authenticated admin requests
+}), require('./routes/analytics'));
+
 app.use('/api/contact-inquiries', require('./routes/contactInquiries'));
+
+// ===== PHASE 6: STAFF & DRIVER ROUTES =====
+app.use('/api/staff/auth', require('./routes/staffAuth')); // PIN + QR Badge Authentication (Phase 6.2)
+app.use('/api/staff', require('./routes/staff')); // Staff App API (Legacy Firebase)
+app.use('/api/driver/auth', require('./routes/driverAuth').router); // Driver PIN + QR Authentication
+app.use('/api/driver', require('./routes/driverOrders')); // Driver App API (PIN-based)
+
+// ===== ADMIN ROUTES =====
+// Bulk staff import (must be before main staff routes to avoid path conflicts)
+app.use('/api/admin/staff', require('./routes/admin/bulkStaffImport')); // Bulk CSV import
+
+// ⚡ OPTIMIZED: Staff management with authenticated caching (2 min for list/stats)
+app.use('/api/admin/staff', createCacheMiddleware({ 
+  ttl: 120, 
+  cacheAuthenticated: true  // Enable caching for authenticated admin requests
+}), require('./routes/admin/staffManagement')); // Admin Staff Management (Phase 6.2)
+
+// ⚡ OPTIMIZED: Driver management with authenticated caching (2 min for list/stats)
+app.use('/api/admin/drivers', createCacheMiddleware({ 
+  ttl: 120, 
+  cacheAuthenticated: true  // Enable caching for authenticated admin requests
+}), require('./routes/admin/drivers')); // Admin Driver Management
 
 // Debug routes (for development)
 app.use('/api/debug', require('./routes/debug'));
@@ -179,7 +208,11 @@ app.use('/api/debug', require('./routes/debug'));
 app.use('/api/test', require('./routes/emailTest'));
 
 // Firebase Sync Routes
-app.use('/api/firebase-sync', require('./routes/firebaseSync'));
+// ⚡ OPTIMIZED: Firebase sync with authenticated caching (2 min for user lists)
+app.use('/api/firebase-sync', createCacheMiddleware({ 
+  ttl: 120, 
+  cacheAuthenticated: true  // Enable caching for authenticated admin requests
+}), require('./routes/firebaseSync'));
 
 // Auto Firebase Sync Routes
 app.use('/api/auto-sync', require('./routes/autoSync'));
@@ -187,10 +220,26 @@ app.use('/api/auto-sync', require('./routes/autoSync'));
 // New Feature Routes
 // ⚠️ DEPRECATED: /api/reviews - Use /api/feedback instead (migrated Nov 3, 2025)
 // Kept for backward compatibility only. See backend/REVIEW_MIGRATION_GUIDE.md
-app.use('/api/reviews', require('./routes/reviews'));
-app.use('/api/loyalty', require('./routes/loyalty'));
-app.use('/api/referrals', require('./routes/referrals'));
-app.use('/api/subscriptions', require('./routes/subscriptions'));
+// ⚡ OPTIMIZED: Cache admin stats endpoints (2 min TTL)
+app.use('/api/reviews', createCacheMiddleware({ 
+  ttl: 120, 
+  cacheAuthenticated: true 
+}), require('./routes/reviews'));
+
+app.use('/api/loyalty', createCacheMiddleware({ 
+  ttl: 120, 
+  cacheAuthenticated: true 
+}), require('./routes/loyalty'));
+
+app.use('/api/referrals', createCacheMiddleware({ 
+  ttl: 120, 
+  cacheAuthenticated: true 
+}), require('./routes/referrals'));
+
+app.use('/api/subscriptions', createCacheMiddleware({ 
+  ttl: 120, 
+  cacheAuthenticated: true 
+}), require('./routes/subscriptions'));
 
 // Public settings route (no auth required)
 const { getPublicSettings } = require('./controllers/settingsController');
@@ -200,12 +249,29 @@ app.get('/api/settings', getPublicSettings); // FIXED: Add general settings rout
 // ⚡ NEW: Performance metrics endpoint (admin only)
 const { getPerformanceMetrics } = require('./middleware/performanceMonitoring');
 const { cacheManager } = require('./utils/cacheManager');
+const { memoryCache, cacheUtils } = require('./config/performance');
+
 app.get('/api/admin/performance', (req, res) => {
   try {
     const metrics = getPerformanceMetrics();
+    
+    // Add node-cache stats (the actual cache being used)
+    const nodeCacheStats = memoryCache.getStats();
+    const nodeCacheKeys = memoryCache.keys();
+    
     res.json({
       success: true,
-      data: metrics
+      data: {
+        ...metrics,
+        activeCache: {
+          type: 'node-cache',
+          stats: nodeCacheStats,
+          keyCount: nodeCacheKeys.length,
+          hitRate: nodeCacheStats.hits > 0 
+            ? `${((nodeCacheStats.hits / (nodeCacheStats.hits + nodeCacheStats.misses)) * 100).toFixed(1)}%`
+            : '0%'
+        }
+      }
     });
   } catch (error) {
     res.status(500).json({
@@ -241,6 +307,9 @@ app.get('/api/admin/cache-stats', (req, res) => {
 app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/index.html'));
 });
+
+// Payment Routes (Stripe/PayPal integration)
+app.use('/api/payment', require('./routes/payment'));
 
 // Admin Routes
 app.use('/api/admin', require('./routes/admin'));

@@ -11,6 +11,9 @@ class OrderService {
 
   String get baseUrl => '${AppConstants.baseUrl}/api';
 
+  /// Public getter for auth token (for payment integration)
+  String? get authToken => _cachedAuthToken;
+
   /// Load auth token from secure storage
   Future<void> loadAuthToken() async {
     try {

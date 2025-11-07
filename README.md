@@ -28,9 +28,29 @@ flutter build apk --release
 - Product Catalog
 - Shopping Cart
 - Coffee Subscriptions
-- Order Tracking
+- **Order Tracking** with Unified Order Numbers (ALM-YYYYMMDD-XXXXXX)
 - Loyalty Rewards
 - Brewing Guides
+
+## 🔢 Order Number System
+
+All orders use a **unified, professional order number format**:
+
+```
+ALM-20251106-000123
+```
+
+- **ALM** = Al Marya brand prefix
+- **20251106** = Date (November 6, 2025)
+- **000123** = Sequential number (resets daily)
+
+**Benefits:**
+✅ Consistent across all apps (Customer, Staff, Driver, Admin)
+✅ Human-readable and professional
+✅ Date embedded for easy tracking
+✅ Sequential numbering
+
+📚 [Full Documentation →](./ORDER_NUMBER_README.md)
 
 ## 🌐 Production
 

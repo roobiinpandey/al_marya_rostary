@@ -102,6 +102,16 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: null
   },
+  // FCM Token for Push Notifications
+  fcmToken: {
+    type: String,
+    default: null,
+    select: false // Don't include in queries by default for security
+  },
+  fcmTokenUpdatedAt: {
+    type: Date,
+    default: null
+  },
   // Password reset fields
   resetPasswordToken: {
     type: String,
