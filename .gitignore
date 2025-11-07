@@ -241,3 +241,8 @@ build/
 .dart_tool/
 .flutter-plugins-dependencies
 
+
+# Deployment configuration guides (may contain setup instructions)
+RENDER_ENV_SETUP.md
+*_ENV_SETUP.md
+*_DEPLOYMENT_*.md
