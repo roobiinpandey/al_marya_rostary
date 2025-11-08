@@ -46,15 +46,20 @@ async function resetAdminPassword() {
 
     // Hash new password
     console.log('🔐 Hashing new password...');
-    const salt = await bcrypt.genSalt(10);
+    const salt = await bcrypt.genSalt(12);
     const hashedPassword = await bcrypt.hash(NEW_PASSWORD, salt);
 
-    // Update password directly
-    admin.password = hashedPassword;
-    admin.isActive = true;
-    admin.isEmailVerified = true;
-    
-    await admin.save({ validateBeforeSave: false });
+    // Update directly using updateOne to bypass pre-save hooks
+    await User.updateOne(
+      { _id: admin._id },
+      { 
+        $set: {
+          password: hashedPassword,
+          isActive: true,
+          isEmailVerified: true
+        }
+      }
+    );
     
     console.log('✅ Password updated successfully!\n');
     console.log('═══════════════════════════════════════════════════');
