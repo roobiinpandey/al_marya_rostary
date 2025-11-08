@@ -324,15 +324,15 @@ const updateCoffee = async (req, res) => {
     // Handle bilingual name and description
     if (req.body.nameEn || req.body.nameAr) {
       updateData.name = {
-        en: req.body.nameEn || existingCoffee.name?.en || req.body.name,
-        ar: req.body.nameAr || existingCoffee.name?.ar || req.body.name
+        en: req.body.nameEn || existingCoffee.name?.en || req.body.name || existingCoffee.name,
+        ar: req.body.nameAr || existingCoffee.name?.ar || req.body.name || existingCoffee.name
       };
     }
     
     if (req.body.descriptionEn || req.body.descriptionAr) {
       updateData.description = {
-        en: req.body.descriptionEn || existingCoffee.description?.en || req.body.description,
-        ar: req.body.descriptionAr || existingCoffee.description?.ar || req.body.description
+        en: req.body.descriptionEn || existingCoffee.description?.en || req.body.description || existingCoffee.description,
+        ar: req.body.descriptionAr || existingCoffee.description?.ar || req.body.description || existingCoffee.description
       };
     }
 
