@@ -841,6 +841,21 @@ async function handleProductSubmit(event) {
             return;
         }
         
+        // Validate origin and roast level
+        if (!productData.origin) {
+            showToast('Please select an origin country', 'error');
+            switchProductTab('basic');
+            document.getElementById('productOrigin')?.focus();
+            return;
+        }
+        
+        if (!productData.roastLevel) {
+            showToast('Please select a roast level', 'error');
+            switchProductTab('basic');
+            document.getElementById('productRoastLevel')?.focus();
+            return;
+        }
+        
         if (productData.variants.length === 0) {
             showToast('Please enable at least one variant', 'error');
             // Switch to Pricing tab to enable variants
