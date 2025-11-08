@@ -194,12 +194,27 @@ class SubscriptionsApiService {
   /// Get available subscription plans
   Future<List<Map<String, dynamic>>> getSubscriptionPlans() async {
     try {
+      debugPrint('📡 Calling GET /api/subscriptions/plans');
       final response = await _apiClient.get('/api/subscriptions/plans');
+      debugPrint('📥 Response status: ${response.statusCode}');
 
       if (_apiClient.isSuccessful(response)) {
         final data = _apiClient.parseResponse(response);
-        return List<Map<String, dynamic>>.from(data['plans'] ?? []);
+        debugPrint('📦 Parsed data keys: ${data.keys}');
+
+        // The response structure is: {success: true, data: {plans: [...]}}
+        // So we need to access data['data']['plans']
+        final dataObject = data['data'] as Map<String, dynamic>?;
+        debugPrint('📦 Data object keys: ${dataObject?.keys}');
+        debugPrint('📦 Plans in data: ${dataObject?['plans']}');
+
+        final plans = List<Map<String, dynamic>>.from(
+          dataObject?['plans'] ?? [],
+        );
+        debugPrint('✅ Returning ${plans.length} plans');
+        return plans;
       } else {
+        debugPrint('❌ Response not successful: ${response.statusCode}');
         throw Exception('Failed to fetch subscription plans');
       }
     } catch (e) {

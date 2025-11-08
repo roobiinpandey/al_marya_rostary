@@ -41,8 +41,20 @@ class _PaymentPageState extends State<PaymentPage> {
     // Set digital wallet support based on platform
     _isApplePaySupported = Platform.isIOS;
     _isGooglePaySupported = Platform.isAndroid;
-    debugPrint('🍎 Apple Pay available: $_isApplePaySupported');
-    debugPrint('🤖 Google Pay available: $_isGooglePaySupported');
+
+    if (Platform.isIOS) {
+      debugPrint(
+        '🍎 Running on iOS - Apple Pay: ✓ Available | Google Pay: ✗ Not Available',
+      );
+    } else if (Platform.isAndroid) {
+      debugPrint(
+        '🤖 Running on Android - Google Pay: ✓ Available | Apple Pay: ✗ Not Available',
+      );
+    } else {
+      debugPrint(
+        '💻 Running on other platform - Digital wallets not available',
+      );
+    }
   }
 
   @override
@@ -486,9 +498,15 @@ class _PaymentPageState extends State<PaymentPage> {
   }
 
   Widget _buildOrderSummary() {
-    final subtotal = widget.orderData['subtotal'] as double;
-    final deliveryFee = widget.orderData['deliveryFee'] as double;
-    final total = widget.orderData['total'] as double;
+    final subtotal = (widget.orderData['subtotal'] as num?)?.toDouble() ?? 0.0;
+    final deliveryFee =
+        (widget.orderData['deliveryFee'] as num?)?.toDouble() ?? 0.0;
+    // Support different keys for subscription flow: prefer 'total', then 'totalPerDelivery'
+    final total =
+        (widget.orderData['total'] as num?)?.toDouble() ??
+        (widget.orderData['totalPerDelivery'] as num?)?.toDouble() ??
+        (widget.orderData['totalSubscription'] as num?)?.toDouble() ??
+        0.0;
 
     return Card(
       child: Padding(
@@ -574,7 +592,11 @@ class _PaymentPageState extends State<PaymentPage> {
   }
 
   Widget _buildPaymentButton() {
-    final total = widget.orderData['total'] as double;
+    final total =
+        (widget.orderData['total'] as num?)?.toDouble() ??
+        (widget.orderData['totalPerDelivery'] as num?)?.toDouble() ??
+        (widget.orderData['totalSubscription'] as num?)?.toDouble() ??
+        0.0;
     final finalTotal = _selectedPaymentMethod == 'cash' ? total + 5 : total;
 
     return Container(
@@ -641,15 +663,46 @@ class _PaymentPageState extends State<PaymentPage> {
 
       // Prepare order items
       final items = (widget.orderData['items'] as List).map((item) {
-        return {
-          'productId': item.id,
-          'id': item.id,
-          'name': item.product.name,
-          'quantity': item.quantity,
-          'price': item.product.price,
-          'roastLevel': item.roastLevel ?? 'Medium',
-          'grindSize': item.grindSize ?? 'Whole Bean',
-        };
+        // Support both domain objects and plain maps passed from different flows
+        if (item is Map) {
+          final productName = item['name'] ?? item['productName'] ?? '';
+          final unitPrice = (item['unitPrice'] ?? item['price'] ?? 0)
+              .toDouble();
+          return {
+            'productId': item['productId'] ?? item['id'],
+            'id': item['productId'] ?? item['id'],
+            'name': productName,
+            'quantity': item['quantity'] ?? 1,
+            'price': unitPrice,
+            'roastLevel': item['roastLevel'] ?? 'Medium',
+            'grindSize': item['grindSize'] ?? 'Whole Bean',
+          };
+        } else {
+          // Assume item is an object with properties
+          try {
+            final product = item.product;
+            return {
+              'productId': item.id,
+              'id': item.id,
+              'name': product.name,
+              'quantity': item.quantity,
+              'price': product.price,
+              'roastLevel': item.roastLevel ?? 'Medium',
+              'grindSize': item.grindSize ?? 'Whole Bean',
+            };
+          } catch (_) {
+            // Fallback: stringify
+            return {
+              'productId': null,
+              'id': null,
+              'name': item.toString(),
+              'quantity': 1,
+              'price': 0.0,
+              'roastLevel': 'Medium',
+              'grindSize': 'Whole Bean',
+            };
+          }
+        }
       }).toList();
 
       // Get delivery info
@@ -657,7 +710,11 @@ class _PaymentPageState extends State<PaymentPage> {
           widget.orderData['delivery'] as Map<String, dynamic>?;
 
       // Calculate final total with COD fee
-      final total = widget.orderData['total'] as double;
+      final total =
+          (widget.orderData['total'] as num?)?.toDouble() ??
+          (widget.orderData['totalPerDelivery'] as num?)?.toDouble() ??
+          (widget.orderData['totalSubscription'] as num?)?.toDouble() ??
+          0.0;
       final finalTotal = _selectedPaymentMethod == 'cash' ? total + 5 : total;
 
       debugPrint('💳 Processing payment: $_selectedPaymentMethod');

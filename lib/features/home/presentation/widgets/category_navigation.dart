@@ -19,11 +19,6 @@ class _CategoryNavigationState extends State<CategoryNavigation> {
       subcategories: ['Arabica', 'Robusta', 'Blends'],
     ),
     CategoryItem(
-      title: 'Brewing Methods',
-      icon: Icons.local_cafe,
-      subcategories: ['Drip', 'French Press', 'Espresso'],
-    ),
-    CategoryItem(
       title: 'Accessories',
       icon: Icons.build,
       subcategories: ['Grinders', 'Mugs', 'Filters'],

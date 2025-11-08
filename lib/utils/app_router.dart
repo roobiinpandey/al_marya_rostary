@@ -13,7 +13,7 @@ import '../features/admin/presentation/pages/admin_login_page.dart';
 import '../core/theme/app_theme.dart';
 // Import missing pages
 import '../features/coffee/presentation/pages/product_detail_page.dart';
-import '../features/coffee/presentation/pages/coffee_list_page_wrapper.dart';
+// import '../features/coffee/presentation/pages/coffee_list_page_wrapper.dart'; // REMOVED: Using CategoryBrowsePage now
 import '../data/models/coffee_product_model.dart';
 import '../features/cart/presentation/pages/cart_page.dart';
 import '../features/cart/presentation/pages/guest_checkout_page.dart';
@@ -36,6 +36,7 @@ import '../features/coffee/presentation/pages/write_review_page.dart';
 import '../features/account/presentation/pages/loyalty_rewards_page.dart';
 import '../features/account/presentation/pages/referral_page.dart';
 import '../features/account/presentation/pages/subscription_management_page.dart';
+import '../features/subscription/presentation/pages/coffee_subscription_builder_page.dart';
 // Import new pages
 import '../features/admin/presentation/pages/admin_products_page.dart';
 import '../features/admin/presentation/pages/admin_categories_page.dart';
@@ -51,19 +52,18 @@ import '../features/common/presentation/pages/about_page.dart';
 import '../features/coffee/presentation/pages/coffee_arabica_page.dart';
 import '../features/coffee/presentation/pages/coffee_robusta_page.dart';
 import '../features/coffee/presentation/pages/coffee_blends_page.dart';
-// Import regional coffee pages
-import '../features/coffee/presentation/pages/coffee_asia_page.dart';
-import '../features/coffee/presentation/pages/coffee_africa_page.dart';
-import '../features/coffee/presentation/pages/coffee_latin_america_page.dart';
+// Regional coffee pages - REMOVED: Now using unified CategoryBrowsePage
+// import '../features/coffee/presentation/pages/coffee_asia_page.dart';
+// import '../features/coffee/presentation/pages/coffee_africa_page.dart';
+// import '../features/coffee/presentation/pages/coffee_latin_america_page.dart';
 import '../features/brewing_methods/presentation/pages/brewing_methods_page.dart';
 import '../features/brewing_methods/presentation/pages/brewing_method_detail_page.dart';
 import '../features/brewing_methods/data/brewing_method_model.dart';
-import '../features/coffee/presentation/pages/featured_products_page.dart';
+// import '../features/coffee/presentation/pages/featured_products_page.dart'; // REMOVED: Using CategoryBrowsePage now
 import '../features/coffee/presentation/pages/best_sellers_page.dart';
 import '../features/coffee/presentation/pages/new_arrivals_page.dart';
 import '../features/coffee/presentation/pages/accessories_page.dart';
 import '../features/coffee/presentation/pages/gifts_page.dart';
-import '../features/subscription/presentation/pages/subscription_page.dart';
 // Import new brewing method pages (legacy - kept for backward compatibility)
 import '../features/brewing_methods/presentation/pages/drip_brewing_page.dart';
 import '../features/brewing_methods/presentation/pages/french_press_brewing_page.dart';
@@ -216,8 +216,19 @@ class AppRouter {
         );
 
       case '/coffee':
+        // Unified coffee browse page - accepts optional category argument or plan data
+        final args = settings.arguments;
+        String? category;
+
+        if (args is String) {
+          category = args;
+        } else if (args is Map) {
+          // If coming from subscription, args might be a Map with planId
+          category = args['category'] as String?;
+        }
+
         return _buildRouteWithPersistentNav(
-          const CoffeeListPageWrapper(),
+          CategoryBrowsePage(initialCategory: category),
           settings: settings,
         );
 
@@ -494,22 +505,22 @@ class AppRouter {
           settings: settings,
         );
 
-      // Regional coffee routes
+      // Regional coffee routes - NOW UNIFIED: All point to CategoryBrowsePage with category argument
       case '/coffee/asia':
         return _buildRouteWithPersistentNav(
-          const CoffeeAsiaPage(),
+          const CategoryBrowsePage(initialCategory: 'Asia'),
           settings: settings,
         );
 
       case '/coffee/africa':
         return _buildRouteWithPersistentNav(
-          const CoffeeAfricaPage(),
+          const CategoryBrowsePage(initialCategory: 'Africa'),
           settings: settings,
         );
 
       case '/coffee/latin-america':
         return _buildRouteWithPersistentNav(
-          const CoffeeLatinAmericaPage(),
+          const CategoryBrowsePage(initialCategory: 'Latin America'),
           settings: settings,
         );
 
@@ -527,8 +538,9 @@ class AppRouter {
         );
 
       case '/featured-products':
+        // Unified: Use CategoryBrowsePage with 'Featured' filter
         return _buildRouteWithPersistentNav(
-          const FeaturedProductsPage(),
+          const CategoryBrowsePage(initialCategory: 'Featured'),
           settings: settings,
         );
 
@@ -558,7 +570,13 @@ class AppRouter {
 
       case '/subscription':
         return _buildRouteWithPersistentNav(
-          const SubscriptionPage(),
+          const CoffeeSubscriptionBuilderPage(),
+          settings: settings,
+        );
+
+      case '/subscription-management':
+        return _buildRouteWithPersistentNav(
+          const SubscriptionManagementPage(),
           settings: settings,
         );
 

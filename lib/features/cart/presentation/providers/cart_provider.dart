@@ -12,6 +12,7 @@ class CartItem {
   final int quantity;
   final String? selectedSize;
   final double? price; // Custom price for size variants
+  final String? grindSize; // e.g. Whole Bean, Espresso, V60
   final CartItemType itemType;
 
   CartItem({
@@ -20,6 +21,7 @@ class CartItem {
     this.quantity = 1,
     this.selectedSize,
     this.price,
+    this.grindSize,
     required this.itemType,
   }) : assert(
          (itemType == CartItemType.coffee && product != null) ||
@@ -33,12 +35,14 @@ class CartItem {
     int quantity = 1,
     String? selectedSize,
     double? price,
+    String? grindSize,
   }) {
     return CartItem(
       product: product,
       quantity: quantity,
       selectedSize: selectedSize,
       price: price,
+      grindSize: grindSize,
       itemType: CartItemType.coffee,
     );
   }
@@ -59,6 +63,7 @@ class CartItem {
     int? quantity,
     String? selectedSize,
     double? price,
+    String? grindSize,
     CartItemType? itemType,
   }) {
     return CartItem(
@@ -67,6 +72,7 @@ class CartItem {
       quantity: quantity ?? this.quantity,
       selectedSize: selectedSize ?? this.selectedSize,
       price: price ?? this.price,
+      grindSize: grindSize ?? this.grindSize,
       itemType: itemType ?? this.itemType,
     );
   }
@@ -110,6 +116,37 @@ class CartItem {
   }
 
   double get totalPrice => unitPrice * quantity;
+
+  // Additional getters for coffee-specific properties
+  String get roastLevel {
+    switch (itemType) {
+      case CartItemType.coffee:
+        return product?.roastLevel ?? '';
+      case CartItemType.accessory:
+        return ''; // Accessories don't have roast level
+    }
+  }
+
+  // Optional grind size for coffee items
+  String? get selectedGrindSize => grindSize;
+
+  String get origin {
+    switch (itemType) {
+      case CartItemType.coffee:
+        return product?.origin ?? '';
+      case CartItemType.accessory:
+        return accessory?.category ?? '';
+    }
+  }
+
+  String get description {
+    switch (itemType) {
+      case CartItemType.coffee:
+        return product?.description ?? '';
+      case CartItemType.accessory:
+        return accessory?.description.en ?? '';
+    }
+  }
 }
 
 /// CartProvider manages cart state

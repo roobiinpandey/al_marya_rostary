@@ -5,6 +5,9 @@ class CartItem {
   final double price;
   final int quantity;
   final String? imageUrl;
+  // New optional fields for richer product details
+  final String? roastLevel; // e.g. Light / Medium / Dark
+  final String? grindSize; // e.g. Espresso / V60 / Turkish
 
   const CartItem({
     required this.coffeeId,
@@ -13,16 +16,20 @@ class CartItem {
     required this.price,
     required this.quantity,
     this.imageUrl,
+    this.roastLevel,
+    this.grindSize,
   });
 
   factory CartItem.fromJson(Map<String, dynamic> json) {
     return CartItem(
-      coffeeId: json['coffeeId'] ?? '',
-      coffeeName: json['coffeeName'] ?? '',
+      coffeeId: json['coffeeId'] ?? json['productId'] ?? '',
+      coffeeName: json['coffeeName'] ?? json['productName'] ?? '',
       size: json['size'] ?? 'Medium',
       price: (json['price'] ?? 0.0).toDouble(),
       quantity: json['quantity'] ?? 1,
       imageUrl: json['imageUrl'],
+      roastLevel: json['roastLevel'],
+      grindSize: json['grindSize'],
     );
   }
 
@@ -34,6 +41,8 @@ class CartItem {
       'price': price,
       'quantity': quantity,
       'imageUrl': imageUrl,
+      if (roastLevel != null) 'roastLevel': roastLevel,
+      if (grindSize != null) 'grindSize': grindSize,
     };
   }
 
@@ -46,6 +55,8 @@ class CartItem {
     double? price,
     int? quantity,
     String? imageUrl,
+    String? roastLevel,
+    String? grindSize,
   }) {
     return CartItem(
       coffeeId: coffeeId ?? this.coffeeId,
@@ -54,6 +65,8 @@ class CartItem {
       price: price ?? this.price,
       quantity: quantity ?? this.quantity,
       imageUrl: imageUrl ?? this.imageUrl,
+      roastLevel: roastLevel ?? this.roastLevel,
+      grindSize: grindSize ?? this.grindSize,
     );
   }
 }

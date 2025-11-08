@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/constants/app_constants.dart';
 import '../providers/coffee_provider.dart';
 
 class CoffeeLatinAmericaPage extends StatefulWidget {
@@ -369,7 +370,7 @@ class _CoffeeLatinAmericaPageState extends State<CoffeeLatinAmericaPage> {
                                           ),
                                           const Spacer(),
                                           Text(
-                                            '\$${coffee.price.toStringAsFixed(2)}',
+                                            '${AppConstants.currencySymbol} ${coffee.price.toStringAsFixed(2)}',
                                             style: const TextStyle(
                                               fontWeight: FontWeight.bold,
                                               color: AppTheme.primaryBrown,

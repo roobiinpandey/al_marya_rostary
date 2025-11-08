@@ -284,7 +284,7 @@ class _BestSellersPageState extends State<BestSellersPage> {
                                 crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
                                   Text(
-                                    '\$${coffee.price.toStringAsFixed(2)}',
+                                    'AED ${coffee.price.toStringAsFixed(2)}',
                                     style: const TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,

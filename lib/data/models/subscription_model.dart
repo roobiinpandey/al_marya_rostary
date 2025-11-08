@@ -274,10 +274,14 @@ class SubscriptionPlanModel {
       minQuantity: (json['minQuantity'] ?? 1).toInt(),
       maxQuantity: (json['maxQuantity'] ?? 10).toInt(),
       isActive: json['isActive'] ?? true,
-      features: List<String>.from(json['features'] ?? []),
+      features: List<String>.from(json['features'] ?? json['benefits'] ?? []),
       currency: json['currency'] ?? 'AED',
-      createdAt: DateTime.parse(json['createdAt']),
-      updatedAt: DateTime.parse(json['updatedAt']),
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'])
+          : DateTime.now(),
+      updatedAt: json['updatedAt'] != null
+          ? DateTime.parse(json['updatedAt'])
+          : DateTime.now(),
     );
   }
 

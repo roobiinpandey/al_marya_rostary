@@ -35,43 +35,106 @@ class FCMService {
       _orderUpdateController.stream;
 
   /// Initialize FCM service
-  Future<void> initialize() async {
+  Future<bool> initialize() async {
     if (_initialized) {
       debugPrint('⚠️ FCM already initialized');
-      return;
+      return true;
     }
 
     try {
       debugPrint('🔔 Initializing FCM Service...');
 
-      // Request permission (iOS)
-      final settings = await _firebaseMessaging.requestPermission(
-        alert: true,
-        badge: true,
-        sound: true,
-        provisional: false,
-        announcement: false,
-        carPlay: false,
-        criticalAlert: false,
-      );
-
-      debugPrint('📱 FCM Permission status: ${settings.authorizationStatus}');
-
-      if (settings.authorizationStatus == AuthorizationStatus.denied) {
-        debugPrint('❌ FCM Permission denied');
-        return;
-      }
-
-      // Initialize local notifications
+      // Initialize local notifications first (required for iOS)
       await _initializeLocalNotifications();
 
-      // Get FCM token
-      _fcmToken = await _firebaseMessaging.getToken();
-      if (_fcmToken != null) {
-        debugPrint('✅ FCM Token obtained: ${_fcmToken!.substring(0, 20)}...');
-        await _saveFCMToken(_fcmToken!);
+      // Check current permission status
+      final currentSettings = await _firebaseMessaging
+          .getNotificationSettings();
+      debugPrint(
+        '📱 Current permission status: ${currentSettings.authorizationStatus}',
+      );
+
+      NotificationSettings settings;
+
+      // Only request permission if never asked before
+      if (currentSettings.authorizationStatus ==
+          AuthorizationStatus.notDetermined) {
+        debugPrint('📱 First time - requesting notification permissions...');
+        settings = await _firebaseMessaging.requestPermission(
+          alert: true,
+          badge: true,
+          sound: true,
+          provisional: false,
+          announcement: false,
+          carPlay: false,
+          criticalAlert: false,
+        );
+        debugPrint('📱 Permission result: ${settings.authorizationStatus}');
+      } else if (currentSettings.authorizationStatus ==
+          AuthorizationStatus.denied) {
+        debugPrint(
+          'ℹ️ Notifications previously denied - user can enable in iOS Settings:',
+        );
+        debugPrint(
+          '   Settings → ALMARYAH ROSTERY → Notifications → Allow Notifications',
+        );
+        settings = currentSettings;
+        // Continue initialization - app should work without notifications
       } else {
-        debugPrint('⚠️ Failed to get FCM token');
+        settings = currentSettings;
+        debugPrint('✅ Notifications already authorized');
+      }
+
+      // Don't fail initialization if denied - app needs to work without notifications
+      if (settings.authorizationStatus == AuthorizationStatus.denied) {
+        debugPrint(
+          '⚠️ Notifications disabled - app will continue without push notifications',
+        );
+        _initialized = true;
+        return false; // Return false but don't throw error
+      }
+
+      // For iOS: Get APNS token first before getting FCM token
+      if (defaultTargetPlatform == TargetPlatform.iOS) {
+        try {
+          debugPrint('🍎 iOS detected - getting APNS token...');
+          final apnsToken = await _firebaseMessaging.getAPNSToken();
+          if (apnsToken != null) {
+            debugPrint(
+              '✅ APNS token obtained: ${apnsToken.substring(0, 20)}...',
+            );
+          } else {
+            debugPrint('⚠️ APNS token not available yet, waiting...');
+            // Wait a bit for APNS token to be available
+            await Future.delayed(const Duration(seconds: 2));
+            final retryToken = await _firebaseMessaging.getAPNSToken();
+            if (retryToken != null) {
+              debugPrint(
+                '✅ APNS token obtained after retry: ${retryToken.substring(0, 20)}...',
+              );
+            } else {
+              debugPrint(
+                '⚠️ APNS token still not available - FCM may not work until it is set',
+              );
+            }
+          }
+        } catch (e) {
+          debugPrint('⚠️ Error getting APNS token: $e');
+        }
+      }
+
+      // Get FCM token (this will work after APNS token is available on iOS)
+      try {
+        _fcmToken = await _firebaseMessaging.getToken();
+        if (_fcmToken != null) {
+          debugPrint('✅ FCM Token obtained: ${_fcmToken!.substring(0, 20)}...');
+          await _saveFCMToken(_fcmToken!);
+        } else {
+          debugPrint('⚠️ Failed to get FCM token - may need to retry later');
+        }
+      } catch (e) {
+        debugPrint('⚠️ Error getting FCM token: $e');
+        // Don't fail initialization - token may become available later
       }
 
       // Set up background message handler
@@ -101,8 +164,46 @@ class FCMService {
 
       _initialized = true;
       debugPrint('✅ FCM Service initialized successfully');
-    } catch (e) {
+      return true;
+    } catch (e, stackTrace) {
       debugPrint('❌ Error initializing FCM: $e');
+      debugPrint('Stack trace: $stackTrace');
+      // Mark as initialized even on error to prevent repeated initialization attempts
+      _initialized = true;
+      return false;
+    }
+  }
+
+  /// Check if notifications are enabled
+  Future<bool> areNotificationsEnabled() async {
+    final settings = await _firebaseMessaging.getNotificationSettings();
+    return settings.authorizationStatus == AuthorizationStatus.authorized ||
+        settings.authorizationStatus == AuthorizationStatus.provisional;
+  }
+
+  /// Request notification permission with user context
+  Future<bool> requestPermission() async {
+    try {
+      final settings = await _firebaseMessaging.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+        provisional: false,
+      );
+
+      final granted =
+          settings.authorizationStatus == AuthorizationStatus.authorized ||
+          settings.authorizationStatus == AuthorizationStatus.provisional;
+
+      if (granted && !_initialized) {
+        // If permission granted and not initialized, initialize now
+        await initialize();
+      }
+
+      return granted;
+    } catch (e) {
+      debugPrint('❌ Error requesting notification permission: $e');
+      return false;
     }
   }
 

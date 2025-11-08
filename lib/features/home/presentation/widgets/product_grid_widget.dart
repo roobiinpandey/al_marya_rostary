@@ -106,200 +106,209 @@ class _ProductGridWidgetState extends State<ProductGridWidget> {
     BuildContext context,
     CoffeeProductModel product,
   ) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceWhite,
-        borderRadius: const BorderRadius.all(Radius.circular(16)),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.primaryBrown.withValues(alpha: 0.08),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Product Image
-          Expanded(
-            flex: 3,
-            child: Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(16),
-                  topRight: Radius.circular(16),
-                ),
-                image: DecorationImage(
-                  image: NetworkImage(product.imageUrl),
-                  fit: BoxFit.cover,
-                ),
-              ),
-              child: Stack(
-                children: [
-                  // Gradient overlay for better text readability
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(16),
-                        topRight: Radius.circular(16),
-                      ),
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.transparent,
-                          Colors.black.withValues(alpha: 0.1),
-                        ],
-                      ),
-                    ),
+    return InkWell(
+      onTap: () {
+        // Navigate to product detail page
+        Navigator.pushNamed(context, '/product', arguments: product);
+      },
+      borderRadius: const BorderRadius.all(Radius.circular(16)),
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceWhite,
+          borderRadius: const BorderRadius.all(Radius.circular(16)),
+          boxShadow: [
+            BoxShadow(
+              color: AppTheme.primaryBrown.withValues(alpha: 0.08),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Product Image
+            Expanded(
+              flex: 3,
+              child: Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    topRight: Radius.circular(16),
                   ),
-                  // Roast level badge
-                  Positioned(
-                    top: 8,
-                    right: 8,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
+                  image: DecorationImage(
+                    image: NetworkImage(product.imageUrl),
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                child: Stack(
+                  children: [
+                    // Gradient overlay for better text readability
+                    Container(
                       decoration: BoxDecoration(
-                        color: AppTheme.primaryBrown.withValues(alpha: 0.9),
-                        borderRadius: const BorderRadius.all(
-                          Radius.circular(12),
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(16),
+                          topRight: Radius.circular(16),
                         ),
-                      ),
-                      child: Text(
-                        product.roastLevel,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w500,
-                          fontSize: 10,
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.transparent,
+                            Colors.black.withValues(alpha: 0.1),
+                          ],
                         ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // Product Info
-          Expanded(
-            flex: 2,
-            child: Padding(
-              padding: const EdgeInsets.all(6), // Further reduced from 8 to 6
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Product Name
-                  Text(
-                    product.name,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: AppTheme.textDark,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 11, // Further reduced from 12 to 11
-                    ),
-                    maxLines: 1, // Reduced to 1 line to save space
-                    overflow: TextOverflow.ellipsis,
-                  ),
-
-                  const SizedBox(height: 1), // Further reduced from 2 to 1
-                  // Origin
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.location_on,
-                        size: 10, // Reduced from 12 to 10
-                        color: AppTheme.textLight,
-                      ),
-                      const SizedBox(width: 2),
-                      Text(
-                        product.origin,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppTheme.textMedium,
-                          fontSize: 10, // Reduced from 11 to 10
+                    // Roast level badge
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryBrown.withValues(alpha: 0.9),
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(12),
+                          ),
+                        ),
+                        child: Text(
+                          product.roastLevel,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w500,
+                                fontSize: 10,
+                              ),
                         ),
                       ),
-                    ],
-                  ),
-
-                  const Spacer(),
-
-                  // Price and Add Button Row
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        product.pricePerKgDisplay,
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(
-                              color: AppTheme.primaryBrown,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12, // Reduced from 14 to 12
-                            ),
-                      ),
-                      Consumer<CartProvider>(
-                        builder: (context, cartProvider, child) {
-                          final isInCart = cartProvider.items.any(
-                            (item) =>
-                                item.itemType == CartItemType.coffee &&
-                                item.id == product.id,
-                          );
-
-                          return IconButton(
-                            onPressed: () {
-                              if (isInCart) {
-                                cartProvider.removeItem(product.id);
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      '${product.name} removed from cart',
-                                    ),
-                                    backgroundColor: AppTheme.primaryBrown,
-                                  ),
-                                );
-                              } else {
-                                cartProvider.addItem(product);
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      '${product.name} added to cart',
-                                    ),
-                                    backgroundColor: AppTheme.primaryBrown,
-                                  ),
-                                );
-                              }
-                            },
-                            icon: Icon(
-                              isInCart
-                                  ? Icons.remove_shopping_cart
-                                  : Icons.add_shopping_cart,
-                              size: 18, // Reduced from 20 to 18
-                            ),
-                            style: IconButton.styleFrom(
-                              backgroundColor: isInCart
-                                  ? AppTheme.textLight
-                                  : AppTheme.primaryBrown,
-                              foregroundColor: isInCart
-                                  ? AppTheme.textDark
-                                  : Colors.white,
-                              padding: const EdgeInsets.all(
-                                6,
-                              ), // Reduced from 8 to 6
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
-      ),
-    );
+
+            // Product Info
+            Expanded(
+              flex: 2,
+              child: Padding(
+                padding: const EdgeInsets.all(6), // Further reduced from 8 to 6
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Product Name
+                    Text(
+                      product.name,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: AppTheme.textDark,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 11, // Further reduced from 12 to 11
+                      ),
+                      maxLines: 1, // Reduced to 1 line to save space
+                      overflow: TextOverflow.ellipsis,
+                    ),
+
+                    const SizedBox(height: 1), // Further reduced from 2 to 1
+                    // Origin
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.location_on,
+                          size: 10, // Reduced from 12 to 10
+                          color: AppTheme.textLight,
+                        ),
+                        const SizedBox(width: 2),
+                        Text(
+                          product.origin,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: AppTheme.textMedium,
+                                fontSize: 10, // Reduced from 11 to 10
+                              ),
+                        ),
+                      ],
+                    ),
+
+                    const Spacer(),
+
+                    // Price and Add Button Row
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          product.pricePerKgDisplay,
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(
+                                color: AppTheme.primaryBrown,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12, // Reduced from 14 to 12
+                              ),
+                        ),
+                        Consumer<CartProvider>(
+                          builder: (context, cartProvider, child) {
+                            final isInCart = cartProvider.items.any(
+                              (item) =>
+                                  item.itemType == CartItemType.coffee &&
+                                  item.id == product.id,
+                            );
+
+                            return IconButton(
+                              onPressed: () {
+                                if (isInCart) {
+                                  cartProvider.removeItem(product.id);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        '${product.name} removed from cart',
+                                      ),
+                                      backgroundColor: AppTheme.primaryBrown,
+                                    ),
+                                  );
+                                } else {
+                                  cartProvider.addItem(product);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        '${product.name} added to cart',
+                                      ),
+                                      backgroundColor: AppTheme.primaryBrown,
+                                    ),
+                                  );
+                                }
+                              },
+                              icon: Icon(
+                                isInCart
+                                    ? Icons.remove_shopping_cart
+                                    : Icons.add_shopping_cart,
+                                size: 18, // Reduced from 20 to 18
+                              ),
+                              style: IconButton.styleFrom(
+                                backgroundColor: isInCart
+                                    ? AppTheme.textLight
+                                    : AppTheme.primaryBrown,
+                                foregroundColor: isInCart
+                                    ? AppTheme.textDark
+                                    : Colors.white,
+                                padding: const EdgeInsets.all(
+                                  6,
+                                ), // Reduced from 8 to 6
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ), // Close InkWell
+    ); // Close return
   }
 }

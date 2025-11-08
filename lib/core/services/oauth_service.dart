@@ -253,9 +253,9 @@ class OAuthService {
       case 'user-disabled':
         return 'This user account has been disabled.';
       case 'user-not-found':
-        return 'No user found with this credential.';
+        return 'Incorrect email or password.';
       case 'wrong-password':
-        return 'Invalid password.';
+        return 'Incorrect email or password.';
       case 'invalid-verification-code':
         return 'Invalid verification code.';
       case 'invalid-verification-id':

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:async';
 import '../core/theme/app_theme.dart';
 import '../core/services/order_cancellation_service.dart';
 import '../core/constants/app_constants.dart';
@@ -11,6 +12,7 @@ import '../models/order.dart';
 import '../models/cart.dart';
 import '../features/auth/presentation/providers/auth_provider.dart';
 import '../core/utils/app_logger.dart';
+import '../core/services/order_tracking_service.dart';
 
 class OrdersPage extends StatefulWidget {
   const OrdersPage({super.key});
@@ -785,6 +787,9 @@ class _OrdersPageState extends State<OrdersPage>
 
               const SizedBox(height: 20),
 
+              // Live Status Panel (polls every 15s)
+              _LiveStatusPanel(order: order),
+
               // Order Details
               Expanded(
                 child: SingleChildScrollView(
@@ -1249,14 +1254,8 @@ class _OrdersPageState extends State<OrdersPage>
   }
 
   void _trackOrder(Order order) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Tracking order #${order.id.substring(0, 8).toUpperCase()}...',
-        ),
-        backgroundColor: AppTheme.primaryBrown,
-      ),
-    );
+    // Open details directly so user sees the live panel immediately
+    _showOrderDetails(order);
   }
 
   void _reorder(Order order) {
@@ -1292,5 +1291,207 @@ class _OrdersPageState extends State<OrdersPage>
         ],
       ),
     );
+  }
+}
+
+/// Live status panel inside the order details sheet.
+/// Polls order status every 15 seconds and shows snackbars on changes.
+class _LiveStatusPanel extends StatefulWidget {
+  final Order order;
+
+  const _LiveStatusPanel({required this.order});
+
+  @override
+  State<_LiveStatusPanel> createState() => _LiveStatusPanelState();
+}
+
+class _LiveStatusPanelState extends State<_LiveStatusPanel>
+    with WidgetsBindingObserver {
+  late final OrderTrackingService _tracking;
+  late OrderStatus _status;
+  DateTime? _updatedAt;
+  bool _firstEmissionHandled = false;
+  StreamSubscription<Order>? _sub;
+  bool _isRefreshing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _tracking = OrderTrackingService();
+    _status = widget.order.status;
+    _updatedAt = widget.order.updatedAt ?? widget.order.createdAt;
+
+    _sub = _tracking
+        .track(widget.order.id, interval: const Duration(seconds: 15))
+        .listen((updated) {
+          if (!mounted) return;
+
+          final statusChanged = updated.status != _status;
+          setState(() {
+            _status = updated.status;
+            _updatedAt = updated.updatedAt ?? _updatedAt;
+          });
+
+          if (_firstEmissionHandled && statusChanged) {
+            final label =
+                _status.name[0].toUpperCase() + _status.name.substring(1);
+            final color = _chipColor(_status);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Order status updated: $label'),
+                backgroundColor: color,
+                duration: const Duration(seconds: 3),
+              ),
+            );
+          }
+          _firstEmissionHandled = true;
+        });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _sub?.cancel();
+    _tracking.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Pause polling in background, resume on foreground
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
+      _tracking.stop();
+      _sub?.cancel();
+      _sub = null;
+    } else if (state == AppLifecycleState.resumed) {
+      if (_sub == null) {
+        _sub = _tracking
+            .track(widget.order.id, interval: const Duration(seconds: 15))
+            .listen((updated) {
+              if (!mounted) return;
+              final statusChanged = updated.status != _status;
+              setState(() {
+                _status = updated.status;
+                _updatedAt = updated.updatedAt ?? _updatedAt;
+              });
+              if (_firstEmissionHandled && statusChanged) {
+                final label =
+                    _status.name[0].toUpperCase() + _status.name.substring(1);
+                final color = _chipColor(_status);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Order status updated: $label'),
+                    backgroundColor: color,
+                    duration: const Duration(seconds: 3),
+                  ),
+                );
+              }
+              _firstEmissionHandled = true;
+            });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final label = _status.name[0].toUpperCase() + _status.name.substring(1);
+    final bg = _chipColor(_status).withValues(alpha: 0.1);
+    final fg = _chipColor(_status);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: fg.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        children: [
+          Icon(_statusIcon(_status), color: fg),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Live Status: $label',
+                  style: TextStyle(fontWeight: FontWeight.w600, color: fg),
+                ),
+                if (_updatedAt != null)
+                  Text(
+                    'Last updated ${_relativeTime(_updatedAt!)}',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF5D5D5D),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          TextButton.icon(
+            onPressed: _isRefreshing
+                ? null
+                : () async {
+                    setState(() => _isRefreshing = true);
+                    try {
+                      await _tracking.refreshNow();
+                    } finally {
+                      if (mounted) setState(() => _isRefreshing = false);
+                    }
+                  },
+            icon: Icon(_isRefreshing ? Icons.hourglass_top : Icons.refresh),
+            label: Text(_isRefreshing ? 'Refreshing…' : 'Refresh now'),
+            style: TextButton.styleFrom(foregroundColor: fg),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Helpers
+  Color _chipColor(OrderStatus status) {
+    switch (status) {
+      case OrderStatus.pending:
+        return Colors.orange;
+      case OrderStatus.confirmed:
+        return Colors.blue;
+      case OrderStatus.preparing:
+        return Colors.purple;
+      case OrderStatus.ready:
+        return Colors.teal;
+      case OrderStatus.delivered:
+        return Colors.green;
+      case OrderStatus.cancelled:
+        return Colors.red;
+    }
+  }
+
+  IconData _statusIcon(OrderStatus status) {
+    switch (status) {
+      case OrderStatus.pending:
+        return Icons.pending;
+      case OrderStatus.confirmed:
+        return Icons.check_circle_outline;
+      case OrderStatus.preparing:
+        return Icons.hourglass_empty;
+      case OrderStatus.ready:
+        return Icons.done_all;
+      case OrderStatus.delivered:
+        return Icons.check_circle;
+      case OrderStatus.cancelled:
+        return Icons.cancel;
+    }
+  }
+
+  String _relativeTime(DateTime time) {
+    final now = DateTime.now();
+    final d = now.difference(time);
+    if (d.inSeconds < 60) return 'just now';
+    if (d.inMinutes < 60) return '${d.inMinutes} min ago';
+    if (d.inHours < 24) return '${d.inHours} h ago';
+    return '${time.day}/${time.month}/${time.year}';
   }
 }

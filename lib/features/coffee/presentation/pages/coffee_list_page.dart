@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../data/models/coffee_product_model.dart';
+import '../../../../core/constants/app_constants.dart';
 
 /// CoffeeListPage displays all available coffee products
 class CoffeeListPage extends StatelessWidget {
@@ -28,7 +29,9 @@ class CoffeeListPage extends StatelessWidget {
               ),
               title: Text(coffee.name),
               subtitle: Text(coffee.origin),
-              trailing: Text('€${coffee.price.toStringAsFixed(2)}'),
+              trailing: Text(
+                '${AppConstants.currencySymbol} ${coffee.price.toStringAsFixed(2)}',
+              ),
               onTap: () {
                 // Note: Navigate to coffee details page
               },

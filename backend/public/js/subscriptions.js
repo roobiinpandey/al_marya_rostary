@@ -723,17 +723,11 @@ class SubscriptionPlansManager {
         document.getElementById('planName').value = plan.name;
         document.getElementById('planDescription').value = plan.description || '';
         
-        const pricing = plan.pricing?.[0] || {};
-        document.getElementById('planDuration').value = pricing.duration || '';
-        document.getElementById('planBasePrice').value = pricing.price || '';
+        // Fixed: use 'frequency' instead of 'pricing'
+        document.getElementById('planDuration').value = plan.frequency || '';
+        document.getElementById('planBasePrice').value = plan.price || '';
         document.getElementById('planDiscount').value = plan.discountPercentage || '';
         document.getElementById('planIsActive').checked = plan.isActive;
-
-        // Select products
-        const select = document.getElementById('planProducts');
-        Array.from(select.options).forEach(option => {
-            option.selected = plan.coffeeProducts?.includes(option.value);
-        });
 
         // Set benefits
         document.getElementById('planBenefits').value = plan.benefits?.join('\n') || '';
@@ -826,29 +820,26 @@ window.closePlanModal = function() {
 window.handlePlanSubmit = async function(event) {
     event.preventDefault();
 
-    const planId = document.getElementById('planId').value;
+    const planIdField = document.getElementById('planId').value; // MongoDB _id
     const formData = {
         name: document.getElementById('planName').value,
         description: document.getElementById('planDescription').value,
-        pricing: [{
-            duration: document.getElementById('planDuration').value,
-            price: parseFloat(document.getElementById('planBasePrice').value)
-        }],
+        frequency: document.getElementById('planDuration').value, // Fixed: was 'pricing'
+        price: parseFloat(document.getElementById('planBasePrice').value) || 0, // Fixed: was nested in pricing array
         discountPercentage: parseInt(document.getElementById('planDiscount').value) || 0,
-        coffeeProducts: Array.from(document.getElementById('planProducts').selectedOptions).map(opt => opt.value),
         benefits: document.getElementById('planBenefits').value.split('\n').filter(b => b.trim()),
         isActive: document.getElementById('planIsActive').checked
-    };
+    }
 
     try {
-        showGlobalLoading(planId ? 'Updating plan...' : 'Creating plan...');
+        showGlobalLoading(planIdField ? 'Updating plan...' : 'Creating plan...');
 
-        const url = planId 
-            ? `${API_BASE_URL}/api/subscriptions/plans/${planId}`
+        const url = planIdField 
+            ? `${API_BASE_URL}/api/subscriptions/plans/${planIdField}`
             : `${API_BASE_URL}/api/subscriptions/plans`;
 
         const response = await authenticatedFetch(url, {
-            method: planId ? 'PUT' : 'POST',
+            method: planIdField ? 'PUT' : 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(formData)
         });
@@ -856,7 +847,7 @@ window.handlePlanSubmit = async function(event) {
         const data = await response.json();
 
         if (data.success) {
-            showToast(`Subscription plan ${planId ? 'updated' : 'created'} successfully`, 'success');
+            showToast(`Subscription plan ${planIdField ? 'updated' : 'created'} successfully`, 'success');
             window.closePlanModal();
             if (plansManager) {
                 await plansManager.loadPlans();

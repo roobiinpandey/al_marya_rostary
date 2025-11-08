@@ -24,53 +24,38 @@ class _WishlistPageState extends State<WishlistPage> {
     _loadFavorites();
   }
 
-  void _loadFavorites() {
-    // Note: Load favorites from API or local storage
-    // Mock data for now
+  Future<void> _loadFavorites() async {
+    // TODO: Implement wishlist API integration
+    // For now, load from local storage (SharedPreferences) or user wishlist API endpoint
+    // Example: GET /api/users/me/wishlist
+
     setState(() {
-      _favorites = [
-        CoffeeProductModel(
-          id: '1',
-          name: 'Emirati Qahwa',
-          description: 'Traditional cardamom coffee',
-          price: 25.00,
-          imageUrl:
-              'https://via.placeholder.com/300x300/A89A6A/FFFFFF?text=Emirati+Qahwa',
-          categories: ['Traditional'],
-          rating: 4.8,
-          origin: 'UAE',
-          roastLevel: 'Dark',
-          stock: 50,
-        ),
-        CoffeeProductModel(
-          id: '2',
-          name: 'Cold Brew',
-          description: 'Smooth and refreshing cold coffee',
-          price: 18.00,
-          imageUrl:
-              'https://via.placeholder.com/300x300/A89A6A/FFFFFF?text=Cold+Brew',
-          categories: ['Cold Drinks'],
-          rating: 4.5,
-          origin: 'Colombia',
-          roastLevel: 'Medium',
-          stock: 30,
-        ),
-        CoffeeProductModel(
-          id: '3',
-          name: 'Arabic Mocha',
-          description: 'Rich chocolate and coffee blend',
-          price: 22.00,
-          imageUrl:
-              'https://via.placeholder.com/300x300/A89A6A/FFFFFF?text=Arabic+Mocha',
-          categories: ['Specialty'],
-          rating: 4.7,
-          origin: 'Yemen',
-          roastLevel: 'Dark',
-          stock: 0, // Out of stock
-        ),
-      ];
-      _isLoading = false;
+      _isLoading = true;
     });
+
+    try {
+      // Placeholder: In a real implementation, you would:
+      // 1. Load favorite product IDs from local storage or API
+      // 2. Fetch full product details for those IDs
+      // 3. Update _favorites list
+
+      // For now, show empty wishlist - user can add products from catalog
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      setState(() {
+        _favorites = [];
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to load wishlist: $e')));
+      }
+    }
   }
 
   List<CoffeeProductModel> get _filteredAndSortedFavorites {

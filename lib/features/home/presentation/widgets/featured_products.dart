@@ -34,13 +34,8 @@ class FeaturedProducts extends StatelessWidget {
                     ),
                     TextButton(
                       onPressed: () {
-                        // Note: Navigate to all products page
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Opening all products'),
-                            backgroundColor: AppTheme.primaryBrown,
-                          ),
-                        );
+                        // Navigate to featured products page
+                        Navigator.pushNamed(context, '/featured-products');
                       },
                       child: Text(
                         'View All',
