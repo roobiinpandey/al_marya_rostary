@@ -16,6 +16,8 @@ const subscriptionPlans = [
     name: 'Weekly Basic Plan',
     description: 'Perfect for coffee lovers who want fresh coffee every week. Get consistent delivery of your favorite coffee with 10% savings.',
     frequency: 'weekly',
+    billingCycle: 'week',
+    price: 45.99,
     discountPercentage: 10,
     minCommitmentMonths: 1,
     benefits: [
@@ -26,6 +28,7 @@ const subscriptionPlans = [
       'Cancel anytime after 1 month'
     ],
     isActive: true,
+    isPopular: false,
     sortOrder: 1
   },
   {
@@ -33,6 +36,8 @@ const subscriptionPlans = [
     name: 'Bi-Weekly Standard Plan',
     description: 'Great balance of convenience and value. Receive your coffee every two weeks with 15% savings on every order.',
     frequency: 'bi-weekly',
+    billingCycle: 'month',
+    price: 79.99,
     discountPercentage: 15,
     minCommitmentMonths: 1,
     benefits: [
@@ -44,6 +49,7 @@ const subscriptionPlans = [
       'Cancel anytime after 1 month'
     ],
     isActive: true,
+    isPopular: true,
     sortOrder: 2
   },
   {
@@ -51,6 +57,8 @@ const subscriptionPlans = [
     name: 'Monthly Premium Plan',
     description: 'Best value for coffee enthusiasts. Get monthly deliveries with the highest discount and exclusive perks.',
     frequency: 'monthly',
+    billingCycle: 'month',
+    price: 129.99,
     discountPercentage: 20,
     minCommitmentMonths: 1,
     benefits: [
@@ -64,6 +72,7 @@ const subscriptionPlans = [
       'Cancel anytime after 1 month'
     ],
     isActive: true,
+    isPopular: false,
     sortOrder: 3
   },
   {
@@ -71,6 +80,8 @@ const subscriptionPlans = [
     name: 'Quarterly VIP Plan',
     description: 'Premium experience for serious coffee connoisseurs. Quarterly deliveries with maximum savings and VIP benefits.',
     frequency: 'quarterly',
+    billingCycle: 'quarter',
+    price: 349.99,
     discountPercentage: 25,
     minCommitmentMonths: 3,
     benefits: [
@@ -86,6 +97,7 @@ const subscriptionPlans = [
       'Cancel anytime after 3 months'
     ],
     isActive: true,
+    isPopular: false,
     sortOrder: 4
   }
 ];

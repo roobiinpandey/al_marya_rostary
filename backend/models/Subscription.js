@@ -205,6 +205,16 @@ const subscriptionPlanSchema = new mongoose.Schema({
     enum: ['weekly', 'bi-weekly', 'monthly', 'quarterly'],
     required: true
   },
+  billingCycle: {
+    type: String,
+    enum: ['week', 'month', 'quarter', 'year'],
+    default: 'month'
+  },
+  price: {
+    type: Number,
+    required: false, // Optional - can be calculated based on chosen product
+    min: 0
+  },
   discountPercentage: {
     type: Number,
     required: true,
@@ -221,6 +231,10 @@ const subscriptionPlanSchema = new mongoose.Schema({
   isActive: {
     type: Boolean,
     default: true
+  },
+  isPopular: {
+    type: Boolean,
+    default: false
   },
   sortOrder: {
     type: Number,
