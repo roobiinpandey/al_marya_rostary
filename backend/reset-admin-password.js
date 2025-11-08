@@ -1,7 +1,8 @@
 /**
  * Admin Password Reset Script
  * Resets password for existing admin user
- * Run with: node reset-admin-password.js
+ * Run with: node reset-admin-password.js <email> <new-password>
+ * Example: node reset-admin-password.js admin@almarya.com myNewPassword123
  */
 
 require('dotenv').config();
@@ -9,9 +10,16 @@ const mongoose = require('mongoose');
 const User = require('./models/User');
 const bcrypt = require('bcryptjs');
 
-// Choose which admin to reset
-const ADMIN_EMAIL = 'admin@almarya.com'; // Change this to the email you want to reset
-const NEW_PASSWORD = 'almarya2024'; // Your desired password
+// Get email and password from command line arguments
+const args = process.argv.slice(2);
+const ADMIN_EMAIL = args[0]; // Email from command line
+const NEW_PASSWORD = args[1]; // Password from command line
+
+if (!ADMIN_EMAIL || !NEW_PASSWORD) {
+  console.error('❌ Usage: node reset-admin-password.js <email> <new-password>');
+  console.error('   Example: node reset-admin-password.js admin@almarya.com myNewPassword123');
+  process.exit(1);
+}
 
 async function resetAdminPassword() {
   try {

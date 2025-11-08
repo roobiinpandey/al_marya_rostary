@@ -7,6 +7,13 @@
 .env.*
 GoogleService-Info.plist
 firebase_options.dart
+
+# Ignore admin utility scripts (contain sensitive operations)
+create-admin-user.js
+reset-admin-password.js
+test-admin-login.js
+check-subscription-plans.js
+
 # Dependencies
 node_modules/
 npm-debug.log*
