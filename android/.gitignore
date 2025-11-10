@@ -12,3 +12,8 @@ GeneratedPluginRegistrant.java
 key.properties
 **/*.keystore
 **/*.jks
+
+# Firebase configuration - Never commit API keys
+google-services.json
+**/*.json.local
+local.properties.json
