@@ -613,6 +613,12 @@ const updateMyProfile = async (req, res) => {
       });
     }
 
+    // Sync Firebase UID from middleware if not already set
+    if (req.user.firebaseUid && (!user.firebaseUid || user.firebaseUid !== req.user.firebaseUid)) {
+      console.log(`📝 Syncing Firebase UID: ${user.firebaseUid} → ${req.user.firebaseUid}`);
+      user.firebaseUid = req.user.firebaseUid;
+    }
+
     // Update fields
     if (name && name.trim()) {
       user.name = name.trim();

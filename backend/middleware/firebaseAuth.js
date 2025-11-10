@@ -34,8 +34,8 @@ const verifyFirebaseToken = async (req, res, next) => {
       const { uid, email } = decodedToken;
       console.log(`✅ Token verified for Firebase user: ${email} (UID: ${uid})`);
 
-      // Find user in database by Firebase UID
-      const user = await User.findOne({
+      // Find user in database by Firebase UID - IMPROVED LOOKUP STRATEGY
+      let user = await User.findOne({
         $or: [
           { firebaseUid: uid },
           { providerId: uid },
@@ -43,16 +43,33 @@ const verifyFirebaseToken = async (req, res, next) => {
         ]
       });
 
+      // If user not found by standard lookup, try by email with case-insensitive search
+      if (!user && email) {
+        console.log(`⚠️ User not found by standard lookup, trying case-insensitive email search for: ${email}`);
+        user = await User.findOne({ 
+          email: { $regex: new RegExp(`^${email}$`, 'i') }
+        });
+      }
+
       if (!user) {
-        console.log(`❌ User not found in database for Firebase UID: ${uid}`);
+        console.log(`❌ User not found in database for Firebase UID: ${uid}, Email: ${email}`);
         return res.status(404).json({
           success: false,
-          message: 'User not found. Please complete registration.'
+          message: 'User not found. Please complete registration.',
+          details: { firebaseUid: uid, email: email }
         });
+      }
+
+      // UPDATE: Sync Firebase UID if not already set (prevents future mismatches)
+      if (!user.firebaseUid || user.firebaseUid !== uid) {
+        console.log(`📝 Syncing Firebase UID for user ${user.email}: ${user.firebaseUid} → ${uid}`);
+        user.firebaseUid = uid;
+        // Don't save yet, will be saved if request succeeds
       }
 
       // Check if user is active
       if (!user.isActive) {
+        console.log(`⛔ User account inactive: ${user.email}`);
         return res.status(403).json({
           success: false,
           message: 'Your account has been deactivated. Please contact support.'
@@ -66,7 +83,8 @@ const verifyFirebaseToken = async (req, res, next) => {
         email: user.email,
         name: user.name,
         roles: user.roles || ['customer'],
-        isActive: user.isActive
+        isActive: user.isActive,
+        _userDoc: user // Store full user doc for middleware chaining
       };
 
       console.log(`✅ User authenticated: ${user.email} (DB ID: ${user._id})`);

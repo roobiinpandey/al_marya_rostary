@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 import 'dart:io';
 import '../../../../core/theme/app_theme.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 
 class EditProfilePage extends StatefulWidget {
   const EditProfilePage({super.key});
@@ -468,24 +470,33 @@ class _EditProfilePageState extends State<EditProfilePage> {
     });
 
     try {
-      // Note: Implement API call to update profile
-      await Future.delayed(const Duration(seconds: 2)); // Simulate API call
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+      // Update profile via AuthProvider with real API call
+      await authProvider.updateProfile(
+        name: _nameController.text.trim(),
+        phone: _phoneController.text.trim(),
+        avatarFile: _selectedImage,
+      );
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Profile updated successfully!'),
             backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
           ),
         );
+        // Pop back to previous screen after successful update
         Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to update profile: $e'),
+            content: Text('Failed to update profile: ${e.toString()}'),
             backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
           ),
         );
       }
