@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const admin = require('firebase-admin');
+const autoSyncService = require('../services/autoSyncService');
 
 // @desc    Google OAuth Login
 // @route   POST /api/auth/google
@@ -51,6 +52,11 @@ exports.googleAuth = async (req, res) => {
       });
 
       console.log(`✅ New Google user created: ${email} (ID: ${user._id})`);
+      
+      // Auto-sync loyalty account for new Google user
+      autoSyncService.syncNewUser(user).catch(err => {
+        console.error('❌ Auto-sync failed for Google user:', err.message);
+      });
     } else {
       // Update existing user
       if (!user.firebaseUid) {
@@ -190,6 +196,11 @@ exports.facebookAuth = async (req, res) => {
       });
 
       console.log(`✅ New Facebook user created: ${email} (ID: ${user._id})`);
+      
+      // Auto-sync loyalty account for new Facebook user
+      autoSyncService.syncNewUser(user).catch(err => {
+        console.error('❌ Auto-sync failed for Facebook user:', err.message);
+      });
     } else {
       // Update existing user
       if (!user.providerId) {

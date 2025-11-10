@@ -21,7 +21,13 @@ class FirebaseAuthService {
             serverClientId:
                 '446607982003-30k0be0oqccmk2q7fk7li0drirhulsls.apps.googleusercontent.com',
             scopes: ['email', 'profile'],
-          );
+          ) {
+    // Disable app verification for authentication (development only)
+    // This bypasses reCAPTCHA requirements
+    if (kDebugMode) {
+      _firebaseAuth.setSettings(appVerificationDisabledForTesting: true);
+    }
+  }
 
   /// Convert Firebase User to our domain User model
   auth_models.User? _convertFirebaseUser(User? firebaseUser) {

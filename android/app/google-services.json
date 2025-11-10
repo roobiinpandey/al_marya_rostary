@@ -1,50 +1,42 @@
 {
   "project_info": {
-    "project_number": "446607982003",
-    "firebase_url": "https://qahwatapp-default-rtdb.asia-southeast1.firebasedatabase.app",
-    "project_id": "qahwatapp",
-    "storage_bucket": "qahwatapp.firebasestorage.app"
+    "project_number": "506062617127",
+    "project_id": "almaryah-rostery",
+    "storage_bucket": "almaryah-rostery.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:446607982003:android:31d906b11afa121189dfc6",
+        "mobilesdk_app_id": "1:506062617127:android:388c9d9cc29f6bd1046c02",
         "android_client_info": {
-          "package_name": "com.qahwat.app"
+          "package_name": "com.almaryahrostery"
         }
       },
       "oauth_client": [
         {
-          "client_id": "446607982003-ggmhdf6088hdjni6dq70idorqne3covk.apps.googleusercontent.com",
+          "client_id": "506062617127-sh9vpt84p4fg7a85tdl2lnfjhcep6ng3.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.qahwat.app",
+            "package_name": "com.almaryahrostery",
             "certificate_hash": "51abd25676af00fe0be6da8f009954ef59925fde"
           }
         },
         {
-          "client_id": "446607982003-30k0be0oqccmk2q7fk7li0drirhulsls.apps.googleusercontent.com",
+          "client_id": "506062617127-q2mkkkuj97tpka3uc3n11qemkevabs83.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyA9PHzkR6CykfVk3yNqY5SDuCP2F6pN3Oc"
+          "current_key": "***REMOVED***"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "101895646911219298739",
+              "client_id": "506062617127-q2mkkkuj97tpka3uc3n11qemkevabs83.apps.googleusercontent.com",
               "client_type": 3
-            },
-            {
-              "client_id": "446607982003-682ek36mp5fums15ppq637no5hqg3irm.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "qahwatalemarat"
-              }
             }
           ]
         }

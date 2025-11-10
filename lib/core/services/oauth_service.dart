@@ -15,7 +15,7 @@ class OAuthService {
   /// Debug logging helper - only logs in debug mode
   void _debugLog(String message) {
     assert(() {
-      _debugLog(message);
+      print('[OAuthService] $message');
       return true;
     }());
   }

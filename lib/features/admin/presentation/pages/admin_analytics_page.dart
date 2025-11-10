@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../services/analytics_service.dart';
 import '../widgets/admin_sidebar.dart';
 
 /// Admin Analytics Dashboard Page
-/// Note: Implement real analytics data integration
+/// Connected to real analytics data from backend
 class AdminAnalyticsPage extends StatefulWidget {
   const AdminAnalyticsPage({super.key});
 
@@ -14,6 +15,54 @@ class AdminAnalyticsPage extends StatefulWidget {
 class _AdminAnalyticsPageState extends State<AdminAnalyticsPage> {
   bool _sidebarOpen = true;
   String _selectedPeriod = '7d';
+  final AnalyticsService _analyticsService = AnalyticsService();
+
+  bool _isLoading = true;
+  Map<String, dynamic> _dashboardData = {};
+  List<Map<String, dynamic>> _topProducts = [];
+  Map<String, dynamic> _customerAnalytics = {};
+  Map<String, dynamic> _performanceMetrics = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAnalyticsData();
+  }
+
+  Future<void> _loadAnalyticsData() async {
+    setState(() => _isLoading = true);
+
+    try {
+      final results = await Future.wait([
+        _analyticsService.getDashboardOverview(period: _selectedPeriod),
+        _analyticsService.getTopProducts(limit: 5, period: _selectedPeriod),
+        _analyticsService.getCustomerAnalytics(period: _selectedPeriod),
+        _analyticsService.getPerformanceMetrics(period: _selectedPeriod),
+      ]);
+
+      setState(() {
+        _dashboardData = results[0] as Map<String, dynamic>;
+        _topProducts = results[1] as List<Map<String, dynamic>>;
+        _customerAnalytics = results[2] as Map<String, dynamic>;
+        _performanceMetrics = results[3] as Map<String, dynamic>;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error loading analytics: $e')));
+      }
+    }
+  }
+
+  void _onPeriodChanged(String? period) {
+    if (period != null && period != _selectedPeriod) {
+      setState(() => _selectedPeriod = period);
+      _loadAnalyticsData();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -81,8 +130,7 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage> {
                       const Spacer(),
                       DropdownButton<String>(
                         value: _selectedPeriod,
-                        onChanged: (value) =>
-                            setState(() => _selectedPeriod = value!),
+                        onChanged: _onPeriodChanged,
                         items: const [
                           DropdownMenuItem(
                             value: '7d',
@@ -121,6 +169,10 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage> {
   }
 
   Widget _buildContent() {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -131,8 +183,8 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage> {
               Expanded(
                 child: _buildMetricCard(
                   'Revenue',
-                  '\$12,450',
-                  '+12.5%',
+                  '\$${_dashboardData['revenue']?.toStringAsFixed(0) ?? '0'}',
+                  '${_dashboardData['revenueChange'] >= 0 ? '+' : ''}${_dashboardData['revenueChange']?.toStringAsFixed(1) ?? '0'}%',
                   Icons.attach_money,
                   Colors.green,
                 ),
@@ -141,8 +193,8 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage> {
               Expanded(
                 child: _buildMetricCard(
                   'Orders',
-                  '1,247',
-                  '+8.3%',
+                  '${_dashboardData['orders'] ?? 0}',
+                  '${_dashboardData['ordersChange'] >= 0 ? '+' : ''}${_dashboardData['ordersChange']?.toStringAsFixed(1) ?? '0'}%',
                   Icons.receipt_long,
                   Colors.blue,
                 ),
@@ -151,8 +203,8 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage> {
               Expanded(
                 child: _buildMetricCard(
                   'Customers',
-                  '892',
-                  '+15.7%',
+                  '${_dashboardData['customers'] ?? 0}',
+                  '${_dashboardData['customersChange'] >= 0 ? '+' : ''}${_dashboardData['customersChange']?.toStringAsFixed(1) ?? '0'}%',
                   Icons.people,
                   Colors.purple,
                 ),
@@ -161,8 +213,8 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage> {
               Expanded(
                 child: _buildMetricCard(
                   'Avg Order',
-                  '\$9.98',
-                  '+2.1%',
+                  '\$${_dashboardData['avgOrder']?.toStringAsFixed(2) ?? '0.00'}',
+                  '${_dashboardData['avgOrderChange'] >= 0 ? '+' : ''}${_dashboardData['avgOrderChange']?.toStringAsFixed(1) ?? '0'}%',
                   Icons.shopping_cart,
                   Colors.orange,
                 ),
@@ -217,20 +269,25 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage> {
                     height: 300,
                     child: Column(
                       children: [
-                        _buildTopProductItem('Arabic Coffee', '245 orders', 1),
-                        _buildTopProductItem('Espresso', '198 orders', 2),
-                        _buildTopProductItem('Cappuccino', '167 orders', 3),
-                        _buildTopProductItem('Turkish Coffee', '142 orders', 4),
-                        _buildTopProductItem('Latte', '128 orders', 5),
+                        ..._topProducts.asMap().entries.map((entry) {
+                          final index = entry.key;
+                          final product = entry.value;
+                          return _buildTopProductItem(
+                            product['name'] ?? 'Unknown Product',
+                            '${product['orders'] ?? 0} orders',
+                            index + 1,
+                          );
+                        }),
                         const Spacer(),
-                        Text(
-                          'TODO: Connect to real product data',
-                          style: TextStyle(
-                            color: Colors.grey[500],
-                            fontSize: 12,
-                            fontStyle: FontStyle.italic,
+                        if (_topProducts.isEmpty)
+                          const Text(
+                            'No product data available',
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontSize: 12,
+                              fontStyle: FontStyle.italic,
+                            ),
                           ),
-                        ),
                       ],
                     ),
                   ),
@@ -253,22 +310,25 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage> {
                     height: 200,
                     child: Column(
                       children: [
-                        _buildAnalyticRow('New Customers', '127', '+23%'),
-                        _buildAnalyticRow('Returning Customers', '765', '+8%'),
-                        _buildAnalyticRow('Customer Retention', '86%', '+3%'),
+                        _buildAnalyticRow(
+                          'New Customers',
+                          '${_customerAnalytics['newCustomers'] ?? 0}',
+                          '${_customerAnalytics['newCustomersChange'] >= 0 ? '+' : ''}${_customerAnalytics['newCustomersChange']?.toStringAsFixed(0) ?? '0'}%',
+                        ),
+                        _buildAnalyticRow(
+                          'Returning Customers',
+                          '${_customerAnalytics['returningCustomers'] ?? 0}',
+                          '${_customerAnalytics['returningCustomersChange'] >= 0 ? '+' : ''}${_customerAnalytics['returningCustomersChange']?.toStringAsFixed(0) ?? '0'}%',
+                        ),
+                        _buildAnalyticRow(
+                          'Customer Retention',
+                          '${_customerAnalytics['retentionRate']?.toStringAsFixed(0) ?? '0'}%',
+                          '${_customerAnalytics['retentionChange'] >= 0 ? '+' : ''}${_customerAnalytics['retentionChange']?.toStringAsFixed(0) ?? '0'}%',
+                        ),
                         _buildAnalyticRow(
                           'Avg Session Duration',
-                          '4m 32s',
-                          '+12%',
-                        ),
-                        const Spacer(),
-                        Text(
-                          'TODO: Implement customer tracking',
-                          style: TextStyle(
-                            color: Colors.grey[500],
-                            fontSize: 12,
-                            fontStyle: FontStyle.italic,
-                          ),
+                          _customerAnalytics['avgSessionDuration'] ?? 'N/A',
+                          '${_customerAnalytics['sessionDurationChange'] >= 0 ? '+' : ''}${_customerAnalytics['sessionDurationChange']?.toStringAsFixed(0) ?? '0'}%',
                         ),
                       ],
                     ),
@@ -287,22 +347,25 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage> {
                     height: 200,
                     child: Column(
                       children: [
-                        _buildAnalyticRow('Avg Order Time', '12m 45s', '-8%'),
-                        _buildAnalyticRow('Order Completion', '98.5%', '+1%'),
+                        _buildAnalyticRow(
+                          'Avg Order Time',
+                          _performanceMetrics['avgOrderTime'] ?? 'N/A',
+                          '${_performanceMetrics['avgOrderTimeChange'] >= 0 ? '+' : ''}${_performanceMetrics['avgOrderTimeChange']?.toStringAsFixed(0) ?? '0'}%',
+                        ),
+                        _buildAnalyticRow(
+                          'Order Completion',
+                          '${_performanceMetrics['orderCompletion']?.toStringAsFixed(1) ?? '0'}%',
+                          '${_performanceMetrics['orderCompletionChange'] >= 0 ? '+' : ''}${_performanceMetrics['orderCompletionChange']?.toStringAsFixed(0) ?? '0'}%',
+                        ),
                         _buildAnalyticRow(
                           'Customer Satisfaction',
-                          '4.7/5',
-                          '+0.2',
+                          '${_performanceMetrics['customerSatisfaction']?.toStringAsFixed(1) ?? '0'}/5',
+                          '${_performanceMetrics['satisfactionChange'] >= 0 ? '+' : ''}${_performanceMetrics['satisfactionChange']?.toStringAsFixed(1) ?? '0'}',
                         ),
-                        _buildAnalyticRow('Cancellation Rate', '1.5%', '-0.3%'),
-                        const Spacer(),
-                        Text(
-                          'TODO: Connect to performance APIs',
-                          style: TextStyle(
-                            color: Colors.grey[500],
-                            fontSize: 12,
-                            fontStyle: FontStyle.italic,
-                          ),
+                        _buildAnalyticRow(
+                          'Cancellation Rate',
+                          '${_performanceMetrics['cancellationRate']?.toStringAsFixed(1) ?? '0'}%',
+                          '${_performanceMetrics['cancellationChange'] >= 0 ? '+' : ''}${_performanceMetrics['cancellationChange']?.toStringAsFixed(1) ?? '0'}%',
                         ),
                       ],
                     ),

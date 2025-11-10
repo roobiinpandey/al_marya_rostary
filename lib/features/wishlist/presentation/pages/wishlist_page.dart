@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../data/models/coffee_product_model.dart';
+import '../../../../services/wishlist_api_service.dart';
 import '../../../coffee/presentation/pages/product_detail_page.dart';
 
 class WishlistPage extends StatefulWidget {
@@ -13,6 +14,7 @@ class WishlistPage extends StatefulWidget {
 }
 
 class _WishlistPageState extends State<WishlistPage> {
+  final WishlistApiService _wishlistService = WishlistApiService();
   List<CoffeeProductModel> _favorites = [];
   bool _isLoading = true;
   String _searchQuery = '';
@@ -25,25 +27,16 @@ class _WishlistPageState extends State<WishlistPage> {
   }
 
   Future<void> _loadFavorites() async {
-    // TODO: Implement wishlist API integration
-    // For now, load from local storage (SharedPreferences) or user wishlist API endpoint
-    // Example: GET /api/users/me/wishlist
-
     setState(() {
       _isLoading = true;
     });
 
     try {
-      // Placeholder: In a real implementation, you would:
-      // 1. Load favorite product IDs from local storage or API
-      // 2. Fetch full product details for those IDs
-      // 3. Update _favorites list
-
-      // For now, show empty wishlist - user can add products from catalog
-      await Future.delayed(const Duration(milliseconds: 500));
+      // Fetch wishlist from backend API
+      final wishlistItems = await _wishlistService.getWishlist();
 
       setState(() {
-        _favorites = [];
+        _favorites = wishlistItems;
         _isLoading = false;
       });
     } catch (e) {
@@ -469,26 +462,74 @@ class _WishlistPageState extends State<WishlistPage> {
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context);
-              setState(() {
-                _favorites.removeWhere((fav) => fav.id == item.id);
-              });
+
+              // Show loading indicator
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('${item.name} removed from wishlist'),
-                  backgroundColor: Colors.orange,
-                  action: SnackBarAction(
-                    label: 'Undo',
-                    textColor: Colors.white,
-                    onPressed: () {
-                      setState(() {
-                        _favorites.add(item);
-                      });
-                    },
+                const SnackBar(
+                  content: Row(
+                    children: [
+                      SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 16),
+                      Text('Removing from wishlist...'),
+                    ],
                   ),
+                  duration: Duration(seconds: 1),
                 ),
               );
+
+              // Remove from backend
+              final success = await _wishlistService.removeFromWishlist(
+                item.id,
+              );
+
+              if (success) {
+                setState(() {
+                  _favorites.removeWhere((fav) => fav.id == item.id);
+                });
+
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('${item.name} removed from wishlist'),
+                      backgroundColor: Colors.orange,
+                      action: SnackBarAction(
+                        label: 'Undo',
+                        textColor: Colors.white,
+                        onPressed: () async {
+                          final added = await _wishlistService.addToWishlist(
+                            item.id,
+                          );
+                          if (added) {
+                            setState(() {
+                              _favorites.add(item);
+                            });
+                          }
+                        },
+                      ),
+                    ),
+                  );
+                }
+              } else {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Failed to remove from wishlist'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,

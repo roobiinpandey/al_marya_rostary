@@ -218,7 +218,7 @@ class AboutPage extends StatelessWidget {
           const SizedBox(height: 16),
 
           _buildContactRow(Icons.email, 'Email', 'info@almaryarostery.com'),
-          _buildContactRow(Icons.phone, 'Phone', '+971 XX XXX XXXX'),
+          _buildContactRow(Icons.phone, 'Phone', '+971 4 123 4567'),
           _buildContactRow(
             Icons.support_agent,
             'Support',

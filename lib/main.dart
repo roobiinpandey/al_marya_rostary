@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'firebase_options.dart';
+import 'core/services/firebase_analytics_service.dart';
+import 'core/services/firebase_performance_service.dart';
 import 'core/constants/app_constants.dart';
 import 'core/theme/almaryah_theme.dart';
 import 'utils/app_router.dart';
@@ -47,7 +52,9 @@ void main() async {
 
   // Initialize Stripe with key from AppConstants
   Stripe.publishableKey = AppConstants.stripePublishableKey;
-  debugPrint('✅ Stripe initialized successfully');
+  if (kDebugMode) {
+    print('✅ Stripe initialized');
+  }
 
   // Initialize Firebase with error handling
   bool firebaseInitialized = false;
@@ -56,15 +63,65 @@ void main() async {
       options: DefaultFirebaseOptions.currentPlatform,
     );
     firebaseInitialized = true;
-    debugPrint('✅ Firebase initialized successfully');
+    if (kDebugMode) {
+      print('✅ Firebase initialized');
+    }
+  } catch (e) {
+    // Firebase might already be initialized
+    if (e.toString().contains('duplicate-app')) {
+      firebaseInitialized = true;
+      if (kDebugMode) {
+        print('✅ Firebase already initialized');
+      }
+    } else {
+      if (kDebugMode) {
+        print('⚠️ Firebase initialization error: $e');
+      }
+      runApp(MyApp(firebaseInitialized: false));
+      return;
+    }
+  }
 
-    // Initialize FCM after Firebase
-    await FCMService().initialize();
-  } catch (e, stackTrace) {
-    debugPrint('⚠️ Firebase initialization error: $e');
-    debugPrint('Stack trace: $stackTrace');
-    // Don't crash the app - some features will be limited without Firebase
-    // but the app should still work for browsing products, etc.
+  // Only proceed with Firebase services if Firebase is initialized
+  if (firebaseInitialized) {
+    // Initialize Firebase Crashlytics
+    try {
+      FlutterError.onError = (errorDetails) {
+        FirebaseCrashlytics.instance.recordFlutterFatalError(errorDetails);
+      };
+
+      // Pass all uncaught asynchronous errors to Crashlytics
+      PlatformDispatcher.instance.onError = (error, stack) {
+        FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+        return true;
+      };
+
+      if (kDebugMode) {
+        print('✅ Crashlytics initialized');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('⚠️ Crashlytics failed: $e');
+      }
+    }
+
+    // Initialize Firebase Performance Monitoring
+    try {
+      await FirebasePerformanceService().initialize();
+    } catch (e) {
+      if (kDebugMode) {
+        print('⚠️ Performance Monitoring failed: $e');
+      }
+    }
+
+    // Initialize FCM
+    try {
+      await FCMService().initialize();
+    } catch (e) {
+      if (kDebugMode) {
+        print('⚠️ FCM failed: $e');
+      }
+    }
   }
 
   runApp(MyApp(firebaseInitialized: firebaseInitialized));

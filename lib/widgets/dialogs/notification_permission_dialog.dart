@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../../services/fcm_service.dart';
 
 /// Dialog to request notification permission with explanation
@@ -133,9 +134,9 @@ class NotificationPermissionDialog extends StatelessWidget {
                     action: SnackBarAction(
                       label: 'Settings',
                       textColor: Colors.white,
-                      onPressed: () {
-                        // TODO: Open app settings
-                        // Use app_settings package or permission_handler
+                      onPressed: () async {
+                        // Open app settings for notification permissions
+                        await openAppSettings();
                       },
                     ),
                   ),

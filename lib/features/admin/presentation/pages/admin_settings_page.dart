@@ -199,7 +199,7 @@ class _AdminSettingsPageState extends State<AdminSettingsPage>
                 'Support Email',
                 'support@almaryarostery.com',
               ),
-              _buildSettingsTextField('Phone Number', '+971 XX XXX XXXX'),
+              _buildSettingsTextField('Phone Number', '+971 4 123 4567'),
               _buildSettingsTextField('Address', 'Dubai, UAE'),
             ],
           ),

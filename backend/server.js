@@ -185,6 +185,9 @@ app.use('/api/staff', require('./routes/staff')); // Staff App API (Legacy Fireb
 app.use('/api/driver/auth', require('./routes/driverAuth').router); // Driver PIN + QR Authentication
 app.use('/api/driver', require('./routes/driverOrders')); // Driver App API (PIN-based)
 
+// ===== SECURITY ROUTES =====
+app.use('/api/security', require('./routes/security')); // Certificate pins & security configuration (public)
+
 // ===== ADMIN ROUTES =====
 // Bulk staff import (must be before main staff routes to avoid path conflicts)
 app.use('/api/admin/staff', require('./routes/admin/bulkStaffImport')); // Bulk CSV import

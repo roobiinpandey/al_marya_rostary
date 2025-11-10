@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const emailService = require('../services/emailService');
 const { blacklistToken, isBlacklisted } = require('../utils/tokenBlacklist');
+const autoSyncService = require('../services/autoSyncService');
 
 // Generate JWT token
 const generateToken = (userId) => {
@@ -39,6 +40,13 @@ const register = async (req, res) => {
       email,
       password,
       phone
+    });
+
+    // Auto-sync to Firebase and create loyalty account
+    // This happens in background, don't block registration if it fails
+    autoSyncService.syncNewUser(user).catch(err => {
+      console.error('❌ Auto-sync failed during registration:', err.message);
+      // Log but don't fail registration
     });
 
     // Generate tokens

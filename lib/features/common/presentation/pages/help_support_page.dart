@@ -180,7 +180,7 @@ class _HelpSupportPageState extends State<HelpSupportPage>
           _buildContactMethod(
             Icons.phone,
             'Phone Support',
-            '+971 XX XXX XXXX',
+            '+971 4 123 4567',
             'Available 6:00 AM - 10:00 PM',
             () => _showComingSoon('Phone call functionality'),
           ),
