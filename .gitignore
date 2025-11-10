@@ -144,12 +144,13 @@ firebase-debug.log*
 firestore-debug.log*
 ui-debug.log*
 
-# Firebase configuration files (contain API keys)
-# NOTE: These files are needed for the app to work, so we keep them
-# but make sure they only contain client-side API keys (which are safe to expose)
-# ios/Runner/GoogleService-Info.plist
-# android/app/google-services.json  
-# lib/firebase_options.dart
+# Firebase configuration files (contain API keys - MUST NOT COMMIT)
+# These files contain credentials and should NEVER be committed
+# Generate locally from Firebase Console for development only
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+lib/firebase_options.dart
+backend/firebase-service-account.json
 
 # Keep Firebase files - they're needed and contain only client-safe keys
 # However, keep service account files secret
