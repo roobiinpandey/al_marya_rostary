@@ -1,0 +1,13 @@
+{
+  "github.copilot.chat.mcp.servers": {
+    "TestSprite": {
+      "command": "npx",
+      "args": [
+        "@testsprite/testsprite-mcp@latest"
+      ],
+      "env": {
+        "API_KEY": "sk-user-oDJbjNgbcq0p--j0uCwS-hGfCYpsKYvNs3yUE07EiaVC5fNudnbL8ET1s5FUbkDuf4dg8YoXgKZNnpSGP7hJg4uAQKAMZ9wqGKnUPYxnQi2NxBgScoaqewYk1Ct3-qGlrtg"
+      }
+    }
+  }
+}
