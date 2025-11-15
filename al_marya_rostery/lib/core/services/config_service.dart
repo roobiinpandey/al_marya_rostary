@@ -16,12 +16,9 @@ class ConfigService {
 
     try {
       final url = Uri.parse('${AppConstants.baseUrl}/api/config/stripe');
-      final response = await http.get(
-        url,
-        headers: {'Content-Type': 'application/json'},
-      ).timeout(
-        Duration(seconds: AppConstants.defaultTimeout),
-      );
+      final response = await http
+          .get(url, headers: {'Content-Type': 'application/json'})
+          .timeout(Duration(seconds: AppConstants.defaultTimeout));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -36,7 +33,9 @@ class ConfigService {
       print('Error fetching Stripe key: $e');
       // Fallback: This should never happen in production
       // but provides safety during development
-      throw Exception('Could not connect to server to fetch payment configuration');
+      throw Exception(
+        'Could not connect to server to fetch payment configuration',
+      );
     }
   }
 
