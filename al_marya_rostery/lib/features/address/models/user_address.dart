@@ -1,0 +1,184 @@
+import 'package:hive/hive.dart';
+import 'package:uuid/uuid.dart';
+
+part 'user_address.g.dart';
+
+@HiveType(typeId: 0)
+class UserAddress extends HiveObject {
+  @HiveField(0)
+  late String id;
+
+  @HiveField(1)
+  late String label; // Home, Work, Other
+
+  @HiveField(2)
+  late String street;
+
+  @HiveField(3)
+  late String building;
+
+  @HiveField(4)
+  late String apartment;
+
+  @HiveField(5)
+  late String directions;
+
+  @HiveField(6)
+  late String nickname;
+
+  @HiveField(7)
+  late String receiverName;
+
+  @HiveField(8)
+  late String phoneNumber;
+
+  @HiveField(9)
+  late double latitude;
+
+  @HiveField(10)
+  late double longitude;
+
+  @HiveField(11)
+  late bool isDefault;
+
+  @HiveField(12)
+  late DateTime createdAt;
+
+  @HiveField(13)
+  late DateTime updatedAt;
+
+  UserAddress({
+    String? id,
+    required this.label,
+    required this.street,
+    this.building = '',
+    this.apartment = '',
+    this.directions = '',
+    this.nickname = '',
+    required this.receiverName,
+    required this.phoneNumber,
+    required this.latitude,
+    required this.longitude,
+    this.isDefault = false,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    this.id = id ?? const Uuid().v4();
+    this.createdAt = createdAt ?? DateTime.now();
+    this.updatedAt = updatedAt ?? DateTime.now();
+  }
+
+  // Copy with method for easy updates
+  UserAddress copyWith({
+    String? id,
+    String? label,
+    String? street,
+    String? building,
+    String? apartment,
+    String? directions,
+    String? nickname,
+    String? receiverName,
+    String? phoneNumber,
+    double? latitude,
+    double? longitude,
+    bool? isDefault,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return UserAddress(
+      id: id ?? this.id,
+      label: label ?? this.label,
+      street: street ?? this.street,
+      building: building ?? this.building,
+      apartment: apartment ?? this.apartment,
+      directions: directions ?? this.directions,
+      nickname: nickname ?? this.nickname,
+      receiverName: receiverName ?? this.receiverName,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      isDefault: isDefault ?? this.isDefault,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  // Convert to JSON
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'label': label,
+      'street': street,
+      'building': building,
+      'apartment': apartment,
+      'directions': directions,
+      'nickname': nickname,
+      'receiverName': receiverName,
+      'phoneNumber': phoneNumber,
+      'latitude': latitude,
+      'longitude': longitude,
+      'isDefault': isDefault,
+      'createdAt': createdAt.toIso8601String(),
+      'updatedAt': updatedAt.toIso8601String(),
+    };
+  }
+
+  // Create from JSON
+  factory UserAddress.fromJson(Map<String, dynamic> json) {
+    return UserAddress(
+      id: json['id'] as String?,
+      label: json['label'] as String,
+      street: json['street'] as String,
+      building: json['building'] as String? ?? '',
+      apartment: json['apartment'] as String? ?? '',
+      directions: json['directions'] as String? ?? '',
+      nickname: json['nickname'] as String? ?? '',
+      receiverName: json['receiverName'] as String,
+      phoneNumber: json['phoneNumber'] as String,
+      latitude: (json['latitude'] as num).toDouble(),
+      longitude: (json['longitude'] as num).toDouble(),
+      isDefault: json['isDefault'] as bool? ?? false,
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'] as String)
+          : null,
+      updatedAt: json['updatedAt'] != null
+          ? DateTime.parse(json['updatedAt'] as String)
+          : null,
+    );
+  }
+
+  // Get formatted address for display
+  String get formattedAddress {
+    final parts = <String>[];
+
+    if (apartment.isNotEmpty) {
+      parts.add('Apt $apartment');
+    }
+    if (building.isNotEmpty) {
+      parts.add(building);
+    }
+    parts.add(street);
+
+    return parts.join(', ');
+  }
+
+  // Get short address for list items
+  String get shortAddress {
+    if (nickname.isNotEmpty) return nickname;
+    return formattedAddress;
+  }
+
+  @override
+  String toString() {
+    return 'UserAddress(id: $id, label: $label, street: $street, isDefault: $isDefault)';
+  }
+}
+
+// Address label constants
+class AddressLabel {
+  static const String home = 'Home';
+  static const String work = 'Work';
+  static const String other = 'Other';
+
+  static List<String> get all => [home, work, other];
+}

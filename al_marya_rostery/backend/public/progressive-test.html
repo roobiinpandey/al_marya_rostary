@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Progressive JS Loading Test</title>
+    <link rel="stylesheet" href="admin.css?v=2025101807">
+</head>
+<body class="login-mode">
+    <!-- Login Container -->
+    <div id="loginContainer" class="login-container">
+        <div class="container">
+            <div class="logo">☕</div>
+            <h1>Al Marya Rostery</h1>
+            <p class="subtitle">Progressive JS Loading Test</p>
+            
+            <div class="login-form">
+                <form id="adminLoginForm">
+                    <div class="form-group">
+                        <label for="loginUsername">Username</label>
+                        <input type="text" id="loginUsername" name="username" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="loginPassword">Password</label>
+                        <input type="password" id="loginPassword" name="password" class="form-control" required>
+                    </div>
+                    
+                    <button type="submit" id="loginBtn" class="portal-btn">
+                        Login to Admin Panel
+                    </button>
+                </form>
+            </div>
+            
+            <div class="login-info" style="display:block;">
+                <strong>🔧 JS Loading Test</strong><br>
+                Username: admin<br>
+                Password: almarya2024<br>
+                <div id="loadingStatus" style="margin-top: 10px; font-size: 12px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global Loading Overlay -->
+    <div id="globalLoading" class="global-loading">
+        <div style="text-align: center;">
+            <div class="spinner"></div>
+            <div id="loadingText">Loading...</div>
+        </div>
+    </div>
+
+    <script>
+        console.log('🔧 PROGRESSIVE TEST: Starting JS loading test...');
+        
+        const loadingStatus = document.getElementById('loadingStatus');
+        
+        function updateStatus(message) {
+            loadingStatus.innerHTML = message;
+            console.log('🔧 PROGRESSIVE TEST:', message);
+        }
+        
+        function checkGlobalLoading() {
+            const globalLoading = document.getElementById('globalLoading');
+            const computedStyle = window.getComputedStyle(globalLoading);
+            
+            if (computedStyle.display !== 'none') {
+                const error = '❌ GLOBAL LOADING IS VISIBLE!';
+                updateStatus(error);
+                console.error(error);
+                alert('ISSUE FOUND: Global loading overlay appeared after loading a JS file!');
+                return false;
+            }
+            return true;
+        }
+        
+        updateStatus('✅ Base page loaded');
+        
+        // Load JS files progressively
+        const jsFiles = [
+            'js/utils.js',
+            'js/admin.js',
+            'js/dashboard.js'
+        ];
+        
+        let currentFile = 0;
+        
+        function loadNextFile() {
+            if (currentFile >= jsFiles.length) {
+                updateStatus('✅ All JS files loaded successfully');
+                return;
+            }
+            
+            const fileName = jsFiles[currentFile];
+            updateStatus(`Loading: ${fileName}...`);
+            
+            const script = document.createElement('script');
+            script.src = fileName + '?v=' + Date.now();
+            
+            script.onload = function() {
+                updateStatus(`✅ Loaded: ${fileName}`);
+                
+                // Check if global loading appeared
+                setTimeout(() => {
+                    if (checkGlobalLoading()) {
+                        currentFile++;
+                        setTimeout(loadNextFile, 500);
+                    }
+                }, 100);
+            };
+            
+            script.onerror = function() {
+                updateStatus(`❌ Failed to load: ${fileName}`);
+                console.error(`Failed to load: ${fileName}`);
+            };
+            
+            document.head.appendChild(script);
+        }
+        
+        // Start loading after a short delay
+        setTimeout(loadNextFile, 1000);
+        
+        // Focus username field
+        document.getElementById('loginUsername').focus();
+    </script>
+</body>
+</html>

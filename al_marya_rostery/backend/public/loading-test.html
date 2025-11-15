@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loading Test</title>
+    <link rel="stylesheet" href="admin.css?v=2025101807">
+</head>
+<body class="login-mode">
+    <!-- Login Container -->
+    <div id="loginContainer" class="login-container">
+        <div class="container">
+            <div class="logo">☕</div>
+            <h1>Loading Test</h1>
+            <p class="subtitle">Testing if the page loads correctly</p>
+            
+            <div class="login-form">
+                <form id="adminLoginForm">
+                    <div class="form-group">
+                        <label for="loginUsername">Username</label>
+                        <input type="text" id="loginUsername" name="username" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="loginPassword">Password</label>
+                        <input type="password" id="loginPassword" name="password" class="form-control" required>
+                    </div>
+                    
+                    <button type="submit" id="loginBtn" class="portal-btn">
+                        Test Login
+                    </button>
+                </form>
+            </div>
+            
+            <div class="login-info" style="display:block;">
+                <strong>🔧 Loading Test Page</strong><br>
+                Username: admin<br>
+                Password: almarya2024<br>
+                <small style="color: #28a745;">This page tests basic loading without all JS files</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global Loading Overlay -->
+    <div id="globalLoading" class="global-loading">
+        <div style="text-align: center;">
+            <div class="spinner"></div>
+            <div id="loadingText">Loading...</div>
+        </div>
+    </div>
+
+    <script>
+        console.log('🔧 LOADING TEST: Page loaded');
+        
+        // Test if global loading is visible
+        const globalLoading = document.getElementById('globalLoading');
+        const computedStyle = window.getComputedStyle(globalLoading);
+        console.log('🔧 LOADING TEST: Global loading display:', computedStyle.display);
+        
+        if (computedStyle.display !== 'none') {
+            console.error('❌ LOADING TEST: Global loading is visible!');
+            alert('ISSUE FOUND: Global loading overlay is visible on page load!');
+        } else {
+            console.log('✅ LOADING TEST: Global loading is properly hidden');
+        }
+        
+        // Test basic login form
+        document.getElementById('adminLoginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            console.log('🔧 LOADING TEST: Testing login with:', username);
+            
+            try {
+                const response = await fetch('/api/auth/admin-login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('✅ LOGIN TEST PASSED: Authentication successful!');
+                } else {
+                    alert('❌ LOGIN TEST FAILED: ' + (data.message || 'Invalid credentials'));
+                }
+            } catch (error) {
+                alert('❌ LOGIN TEST ERROR: ' + error.message);
+            }
+        });
+        
+        // Focus username field
+        document.getElementById('loginUsername').focus();
+        
+        console.log('🔧 LOADING TEST: Setup complete');
+    </script>
+</body>
+</html>

@@ -1,0 +1,50 @@
+{
+  "timestamp": "2025-10-25T23:36:38.232Z",
+  "summary": {
+    "totalLoyaltyAccounts": 12,
+    "totalUsers": 14,
+    "totalFirebaseUsers": 7,
+    "orphanedLoyaltyAccounts": [],
+    "missingLoyaltyAccounts": [],
+    "updatedLoyaltyAccounts": [],
+    "inconsistentFirebaseUIDs": [
+      {
+        "userId": "68f0b2f9822ec66cdfcdf824",
+        "email": "guest_1760604893504@temp.com",
+        "firebaseUid": "EwVrLTAi8oU6ATkU4mxTe5gXnvI3",
+        "issue": "Firebase record missing"
+      },
+      {
+        "userId": "68f0b2f9822ec66cdfcdf828",
+        "email": "guest_1760604906995@temp.com",
+        "firebaseUid": "SAQxeLDULYTbX5WSXtMk63g8xno2",
+        "issue": "Firebase record missing"
+      },
+      {
+        "userId": "68f0b49d822ec66cdfcdf875",
+        "email": "guest_1760605319261@temp.com",
+        "firebaseUid": "JnmZz64jIcUVX8o3VySxVnqxdo02",
+        "issue": "Firebase record missing"
+      },
+      {
+        "userId": "68f0b58d822ec66cdfcdf8b1",
+        "email": "guest_1760605565580@temp.com",
+        "firebaseUid": "ce7ffwWEguV0OESV4MLgoNtIdyD2",
+        "issue": "Firebase record missing"
+      },
+      {
+        "userId": "68f0b76d822ec66cdfcdf92f",
+        "email": "guest_1760606052825@temp.com",
+        "firebaseUid": "OLJdQFXFNoR016AtGUGY7XVg8x32",
+        "issue": "Firebase record missing"
+      }
+    ],
+    "errors": []
+  },
+  "recommendations": [
+    "Review orphaned loyalty accounts",
+    "Fix Firebase authentication inconsistencies",
+    "Award welcome bonuses to new loyalty accounts",
+    "Regular sync should be scheduled weekly"
+  ]
+}

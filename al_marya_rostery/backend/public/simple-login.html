@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Login Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #A89A6A, #CBBE8C);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .login-card {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+        .logo {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        input[type="text"]:focus, input[type="password"]:focus {
+            outline: none;
+            border-color: #A89A6A;
+        }
+        .login-btn {
+            background: #A89A6A;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+        .login-btn:hover {
+            background: #8a7a5a;
+        }
+        .login-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        .credentials {
+            background: #e2e3e5;
+            border: 1px solid #d6d8db;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <div class="logo">☕</div>
+        <h1>Al Marya Rostery</h1>
+        <p>Simple Login Test</p>
+        
+        <form id="simpleLoginForm">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            
+            <button type="submit" class="login-btn" id="loginBtn">Login</button>
+        </form>
+        
+        <div id="status" class="status"></div>
+        
+        <div class="credentials">
+            <strong>Test Credentials:</strong><br>
+            Username: admin<br>
+            Password: almarya2024
+        </div>
+    </div>
+
+    <script>
+        console.log('🔧 Simple login test page loaded');
+        
+        const form = document.getElementById('simpleLoginForm');
+        const loginBtn = document.getElementById('loginBtn');
+        const status = document.getElementById('status');
+        
+        function showStatus(message, type = 'info') {
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
+        }
+        
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'Logging in...';
+            showStatus('Attempting login...', 'info');
+            
+            try {
+                console.log('Sending login request...');
+                
+                const response = await fetch('/api/auth/admin-login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                console.log('Response status:', response.status);
+                
+                const data = await response.json();
+                console.log('Response data:', data);
+                
+                if (data.success) {
+                    showStatus('✅ Login successful! Redirecting...', 'success');
+                    
+                    // Store token
+                    localStorage.setItem('adminToken', data.data.token);
+                    localStorage.setItem('adminUser', JSON.stringify(data.data.user));
+                    
+                    // Redirect to main admin panel
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 1500);
+                } else {
+                    showStatus('❌ Login failed: ' + (data.message || 'Invalid credentials'), 'error');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showStatus('❌ Network error: ' + error.message, 'error');
+            } finally {
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Login';
+            }
+        });
+        
+        // Auto-focus username field
+        document.getElementById('username').focus();
+        
+        // Test server connection
+        fetch('/health')
+            .then(response => response.json())
+            .then(data => {
+                console.log('✅ Server health check passed:', data);
+            })
+            .catch(error => {
+                console.error('❌ Server health check failed:', error);
+                showStatus('⚠️ Server connection issue detected', 'error');
+            });
+    </script>
+</body>
+</html>

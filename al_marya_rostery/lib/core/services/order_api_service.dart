@@ -1,0 +1,404 @@
+import 'package:dio/dio.dart';
+import '../../core/constants/app_constants.dart';
+import '../../models/order.dart';
+import '../utils/app_logger.dart';
+import '../network/auth_interceptor.dart';
+
+/// API Service for managing orders in the admin panel
+///
+/// Provides CRUD operations for orders:
+/// - Fetch all orders with optional filtering
+/// - Update order status (pending, processing, completed, cancelled)
+/// - Update payment status
+/// - Get order details by ID
+/// - Delete orders
+class OrderApiService {
+  final Dio _dio;
+
+  OrderApiService({Dio? dio}) : _dio = dio ?? Dio() {
+    _dio.options.baseUrl = AppConstants.baseUrl;
+    _dio.options.connectTimeout = const Duration(seconds: 30);
+    _dio.options.receiveTimeout = const Duration(seconds: 30);
+    _dio.options.validateStatus = (status) => status! < 500;
+
+    // Add production-level auth interceptor with auto-retry on 401
+    _dio.interceptors.add(AuthInterceptor());
+  }
+
+  /// Initialize the service (no longer needed but kept for backward compatibility)
+  Future<void> init() async {
+    // Token management now handled by AuthInterceptor automatically
+  }
+
+  /// Fetch all orders with optional status filter
+  ///
+  /// Parameters:
+  /// - [status]: Filter by order status (pending, processing, completed, cancelled)
+  /// - [limit]: Maximum number of orders to return
+  /// - [page]: Page number for pagination
+  ///
+  /// Returns: List of Order objects
+  Future<List<Order>> fetchAllOrders({
+    String? status,
+    int? limit,
+    int? page,
+  }) async {
+    try {
+      final queryParams = <String, dynamic>{};
+      if (status != null && status.isNotEmpty) {
+        queryParams['status'] = status;
+      }
+      if (limit != null) {
+        queryParams['limit'] = limit;
+      }
+      if (page != null) {
+        queryParams['page'] = page;
+      }
+
+      AppLogger.network('orders with params: $queryParams');
+
+      final response = await _dio.get(
+        '/api/orders',
+        queryParameters: queryParams,
+      );
+
+      AppLogger.network('Orders API response: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final List<dynamic> ordersJson =
+            response.data['orders'] ?? response.data;
+
+        final orders = ordersJson.map((json) {
+          try {
+            // Extract ID from backend response (_id field)
+            final String id = json['_id'] ?? json['id'] ?? '';
+
+            // Adapt backend Order model to Flutter Order model
+            return Order.fromJson(json, id);
+          } catch (e) {
+            AppLogger.error('parsing order: $e');
+            AppLogger.debug('Order JSON: $json');
+            rethrow;
+          }
+        }).toList();
+
+        AppLogger.success('fully fetched ${orders.length} orders');
+        return orders;
+      } else if (response.statusCode == 401) {
+        throw Exception('Unauthorized. Please login again.');
+      } else {
+        throw Exception('Failed to fetch orders: ${response.statusMessage}');
+      }
+    } on DioException catch (e) {
+      AppLogger.error('fetching orders: ${e.message}');
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout) {
+        throw Exception(
+          'Connection timeout. Please check your internet connection.',
+        );
+      } else if (e.type == DioExceptionType.connectionError) {
+        throw Exception(
+          'Cannot connect to server. Please check if backend is running.',
+        );
+      } else if (e.response?.statusCode == 401) {
+        throw Exception('Unauthorized. Please login again.');
+      }
+      throw Exception('Network error: ${e.message}');
+    } catch (e) {
+      AppLogger.error('fetching orders: $e');
+      rethrow;
+    }
+  }
+
+  /// Get order details by ID
+  ///
+  /// Parameters:
+  /// - [orderId]: The unique identifier of the order
+  ///
+  /// Returns: Order object with full details
+  Future<Order> getOrderDetails(String orderId) async {
+    try {
+      AppLogger.network('order details for: $orderId');
+
+      final response = await _dio.get('/api/orders/$orderId');
+
+      AppLogger.network('Order details API response: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final orderJson = response.data['order'] ?? response.data;
+        final String id = orderJson['_id'] ?? orderJson['id'] ?? '';
+        final order = Order.fromJson(orderJson, id);
+
+        AppLogger.success('fully fetched order details');
+        return order;
+      } else if (response.statusCode == 404) {
+        throw Exception('Order not found');
+      } else if (response.statusCode == 401) {
+        throw Exception('Unauthorized. Please login again.');
+      } else {
+        throw Exception(
+          'Failed to fetch order details: ${response.statusMessage}',
+        );
+      }
+    } on DioException catch (e) {
+      AppLogger.error('fetching order details: ${e.message}');
+      if (e.response?.statusCode == 404) {
+        throw Exception('Order not found');
+      } else if (e.response?.statusCode == 401) {
+        throw Exception('Unauthorized. Please login again.');
+      }
+      throw Exception('Network error: ${e.message}');
+    } catch (e) {
+      AppLogger.error('fetching order details: $e');
+      rethrow;
+    }
+  }
+
+  /// Update order status
+  ///
+  /// Parameters:
+  /// - [orderId]: The unique identifier of the order
+  /// - [newStatus]: New status (pending, processing, completed, cancelled)
+  ///
+  /// Returns: Updated Order object
+  Future<Order> updateOrderStatus(String orderId, String newStatus) async {
+    try {
+      AppLogger.data('order $orderId status to: $newStatus');
+
+      final response = await _dio.put(
+        '/api/orders/$orderId/status',
+        data: {'status': newStatus},
+      );
+
+      AppLogger.network(
+        'Update order status API response: ${response.statusCode}',
+      );
+
+      if (response.statusCode == 200) {
+        final orderJson = response.data['order'] ?? response.data;
+        final String id = orderJson['_id'] ?? orderJson['id'] ?? '';
+        final order = Order.fromJson(orderJson, id);
+
+        AppLogger.success('fully updated order status');
+        return order;
+      } else if (response.statusCode == 404) {
+        throw Exception('Order not found');
+      } else if (response.statusCode == 401) {
+        throw Exception('Unauthorized. Please login again.');
+      } else if (response.statusCode == 400) {
+        final errorMessage = response.data['error'] ?? 'Invalid status';
+        throw Exception(errorMessage);
+      } else {
+        throw Exception(
+          'Failed to update order status: ${response.statusMessage}',
+        );
+      }
+    } on DioException catch (e) {
+      AppLogger.error('updating order status: ${e.message}');
+      if (e.response?.statusCode == 404) {
+        throw Exception('Order not found');
+      } else if (e.response?.statusCode == 401) {
+        throw Exception('Unauthorized. Please login again.');
+      } else if (e.response?.statusCode == 400) {
+        final errorMessage = e.response?.data['error'] ?? 'Invalid status';
+        throw Exception(errorMessage);
+      }
+      throw Exception('Network error: ${e.message}');
+    } catch (e) {
+      AppLogger.error('updating order status: $e');
+      rethrow;
+    }
+  }
+
+  /// Update payment status
+  ///
+  /// Parameters:
+  /// - [orderId]: The unique identifier of the order
+  /// - [newPaymentStatus]: New payment status (pending, paid, failed, refunded)
+  ///
+  /// Returns: Updated Order object
+  Future<Order> updatePaymentStatus(
+    String orderId,
+    String newPaymentStatus,
+  ) async {
+    try {
+      AppLogger.data('order $orderId payment status to: $newPaymentStatus');
+
+      final response = await _dio.put(
+        '/api/orders/$orderId/payment',
+        data: {'paymentStatus': newPaymentStatus},
+      );
+
+      AppLogger.network(
+        'Update payment status API response: ${response.statusCode}',
+      );
+
+      if (response.statusCode == 200) {
+        final orderJson = response.data['order'] ?? response.data;
+        final String id = orderJson['_id'] ?? orderJson['id'] ?? '';
+        final order = Order.fromJson(orderJson, id);
+
+        AppLogger.success('fully updated payment status');
+        return order;
+      } else if (response.statusCode == 404) {
+        throw Exception('Order not found');
+      } else if (response.statusCode == 401) {
+        throw Exception('Unauthorized. Please login again.');
+      } else if (response.statusCode == 400) {
+        final errorMessage = response.data['error'] ?? 'Invalid payment status';
+        throw Exception(errorMessage);
+      } else {
+        throw Exception(
+          'Failed to update payment status: ${response.statusMessage}',
+        );
+      }
+    } on DioException catch (e) {
+      AppLogger.error('updating payment status: ${e.message}');
+      if (e.response?.statusCode == 404) {
+        throw Exception('Order not found');
+      } else if (e.response?.statusCode == 401) {
+        throw Exception('Unauthorized. Please login again.');
+      } else if (e.response?.statusCode == 400) {
+        final errorMessage =
+            e.response?.data['error'] ?? 'Invalid payment status';
+        throw Exception(errorMessage);
+      }
+      throw Exception('Network error: ${e.message}');
+    } catch (e) {
+      AppLogger.error('updating payment status: $e');
+      rethrow;
+    }
+  }
+
+  /// Delete an order
+  ///
+  /// Parameters:
+  /// - [orderId]: The unique identifier of the order to delete
+  ///
+  /// Returns: Success message
+  Future<String> deleteOrder(String orderId) async {
+    try {
+      AppLogger.data('order: $orderId');
+
+      final response = await _dio.delete('/api/orders/$orderId');
+
+      AppLogger.network('Delete order API response: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final message =
+            response.data['message'] ?? 'Order deleted successfully';
+        AppLogger.success('fully deleted order');
+        return message;
+      } else if (response.statusCode == 404) {
+        throw Exception('Order not found');
+      } else if (response.statusCode == 401) {
+        throw Exception('Unauthorized. Please login again.');
+      } else if (response.statusCode == 403) {
+        throw Exception('You do not have permission to delete orders');
+      } else {
+        throw Exception('Failed to delete order: ${response.statusMessage}');
+      }
+    } on DioException catch (e) {
+      AppLogger.error('deleting order: ${e.message}');
+      if (e.response?.statusCode == 404) {
+        throw Exception('Order not found');
+      } else if (e.response?.statusCode == 401) {
+        throw Exception('Unauthorized. Please login again.');
+      } else if (e.response?.statusCode == 403) {
+        throw Exception('You do not have permission to delete orders');
+      }
+      throw Exception('Network error: ${e.message}');
+    } catch (e) {
+      AppLogger.error('deleting order: $e');
+      rethrow;
+    }
+  }
+
+  /// Get order statistics
+  ///
+  /// Returns: Map with order statistics (total, pending, processing, completed, cancelled, totalRevenue)
+  Future<Map<String, dynamic>> getOrderStats() async {
+    try {
+      AppLogger.network('order statistics');
+
+      final response = await _dio.get('/api/orders/stats');
+
+      AppLogger.network('Order stats API response: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final stats = response.data['stats'] ?? response.data;
+        AppLogger.success('fully fetched order stats');
+        return stats;
+      } else if (response.statusCode == 401) {
+        throw Exception('Unauthorized. Please login again.');
+      } else {
+        throw Exception(
+          'Failed to fetch order stats: ${response.statusMessage}',
+        );
+      }
+    } on DioException catch (e) {
+      AppLogger.error('fetching order stats: ${e.message}');
+      if (e.response?.statusCode == 401) {
+        throw Exception('Unauthorized. Please login again.');
+      }
+      throw Exception('Network error: ${e.message}');
+    } catch (e) {
+      AppLogger.error('fetching order stats: $e');
+      rethrow;
+    }
+  }
+
+  /// Fetch orders analytics data
+  ///
+  /// Parameters:
+  /// - [startDate]: Start date for analytics (ISO 8601 format)
+  /// - [endDate]: End date for analytics (ISO 8601 format)
+  ///
+  /// Returns: Analytics data with daily breakdown
+  Future<Map<String, dynamic>> getOrdersAnalytics({
+    String? startDate,
+    String? endDate,
+  }) async {
+    try {
+      final queryParams = <String, dynamic>{};
+      if (startDate != null) {
+        queryParams['startDate'] = startDate;
+      }
+      if (endDate != null) {
+        queryParams['endDate'] = endDate;
+      }
+
+      AppLogger.network('orders analytics with params: $queryParams');
+
+      final response = await _dio.get(
+        '/api/orders/analytics',
+        queryParameters: queryParams,
+      );
+
+      AppLogger.network(
+        'Orders analytics API response: ${response.statusCode}',
+      );
+
+      if (response.statusCode == 200) {
+        final analytics = response.data;
+        AppLogger.success('fully fetched orders analytics');
+        return analytics;
+      } else if (response.statusCode == 401) {
+        throw Exception('Unauthorized. Please login again.');
+      } else {
+        throw Exception(
+          'Failed to fetch orders analytics: ${response.statusMessage}',
+        );
+      }
+    } on DioException catch (e) {
+      AppLogger.error('fetching orders analytics: ${e.message}');
+      if (e.response?.statusCode == 401) {
+        throw Exception('Unauthorized. Please login again.');
+      }
+      throw Exception('Network error: ${e.message}');
+    } catch (e) {
+      AppLogger.error('fetching orders analytics: $e');
+      rethrow;
+    }
+  }
+}

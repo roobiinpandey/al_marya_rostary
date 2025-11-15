@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Banner API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 5px;
+            border-left: 4px solid #4CAF50;
+        }
+        .error {
+            border-left-color: #f44336;
+            background: #ffebee;
+        }
+        pre {
+            background: #263238;
+            color: #aed581;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .banner-card {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            background: white;
+        }
+        .banner-card img {
+            max-width: 200px;
+            height: auto;
+            border-radius: 5px;
+        }
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status.active {
+            background: #4CAF50;
+            color: white;
+        }
+        .status.inactive {
+            background: #f44336;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Banner API Test Page</h1>
+        
+        <div>
+            <button onclick="testAPI()">🔍 Test GET /api/sliders</button>
+            <button onclick="testDatabase()">💾 Check Database</button>
+            <button onclick="clearResults()">🗑️ Clear Results</button>
+        </div>
+
+        <div id="results"></div>
+    </div>
+
+    <script>
+        const resultsDiv = document.getElementById('results');
+
+        async function testAPI() {
+            resultsDiv.innerHTML = '<div class="result">Loading...</div>';
+            
+            try {
+                const response = await fetch('http://localhost:5001/api/sliders');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const banners = data.data || [];
+                    
+                    let html = `
+                        <div class="result">
+                            <h3>✅ API Response Successful</h3>
+                            <p><strong>Total Banners:</strong> ${banners.length}</p>
+                            <p><strong>Status:</strong> ${response.status} ${response.statusText}</p>
+                            
+                            <h4>Raw JSON Response:</h4>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                            
+                            <h4>Banner Cards:</h4>
+                    `;
+                    
+                    if (banners.length === 0) {
+                        html += '<p><em>No banners found in the database.</em></p>';
+                    } else {
+                        banners.forEach((banner, index) => {
+                            html += `
+                                <div class="banner-card">
+                                    <h4>Banner #${index + 1}</h4>
+                                    <p><strong>ID:</strong> ${banner._id}</p>
+                                    <p><strong>Title:</strong> ${banner.title}</p>
+                                    <p><strong>Description:</strong> ${banner.description || 'N/A'}</p>
+                                    <p><strong>Display Order:</strong> ${banner.displayOrder || banner.order || 0}</p>
+                                    <p><strong>Status:</strong> <span class="status ${banner.isActive ? 'active' : 'inactive'}">${banner.isActive ? 'Active' : 'Inactive'}</span></p>
+                                    <p><strong>Image:</strong></p>
+                                    <img src="${banner.image}" alt="${banner.title}" onerror="this.src='https://via.placeholder.com/200x100?text=Image+Not+Found'">
+                                    <p><strong>Views:</strong> ${banner.viewCount || 0}</p>
+                                    <p><strong>Clicks:</strong> ${banner.clickCount || 0}</p>
+                                </div>
+                            `;
+                        });
+                    }
+                    
+                    html += '</div>';
+                    resultsDiv.innerHTML = html;
+                } else {
+                    resultsDiv.innerHTML = `
+                        <div class="result error">
+                            <h3>❌ API Response Failed</h3>
+                            <p><strong>Message:</strong> ${data.message || 'Unknown error'}</p>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="result error">
+                        <h3>❌ Error Fetching Data</h3>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                        <p>Make sure the backend server is running on <code>http://localhost:5001</code></p>
+                    </div>
+                `;
+            }
+        }
+
+        function testDatabase() {
+            resultsDiv.innerHTML = `
+                <div class="result">
+                    <h3>💾 Database Check Instructions</h3>
+                    <p>To check the database directly, run this command in your terminal:</p>
+                    <pre>cd backend && node check-banners.js</pre>
+                    <p>This will show you exactly what's in the MongoDB database.</p>
+                </div>
+            `;
+        }
+
+        function clearResults() {
+            resultsDiv.innerHTML = '';
+        }
+
+        // Auto-test on page load
+        window.onload = function() {
+            setTimeout(testAPI, 500);
+        };
+    </script>
+</body>
+</html>

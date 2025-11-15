@@ -1,0 +1,248 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+*.tmp
+*.temp
+Thumbs.db
+
+# Deployment configuration with sensitive data
+RENDER_DEPLOYMENT_SETUP.md
+
+# Firebase Data Connect generated files (not used)
+lib/dataconnect_generated/
+backend/src/dataconnect-generated/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# VS Code related
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+/build/
+/coverage/
+lib/generated_plugin_registrant.dart
+
+# Android related
+**/android/**/gradle-wrapper.jar
+**/android/.gradle
+**/android/captures/
+**/android/local.properties
+**/android/**/GeneratedPluginRegistrant.java
+**/android/key.properties
+*.jks
+/android/app/debug
+/android/app/profile
+/android/app/release
+/android/app/build/
+/android/build/
+
+# iOS related
+**/ios/**/*.mode1v3
+**/ios/**/*.mode2v3
+**/ios/**/*.moved-aside
+**/ios/**/*.pbxuser
+**/ios/**/*.perspectivev3
+**/ios/**/*sync/
+**/ios/**/.sconsign.dblite
+**/ios/**/.tags*
+**/ios/**/.vagrant/
+**/ios/**/DerivedData/
+**/ios/**/Icon?
+**/ios/**/Pods/
+**/ios/**/.symlinks/
+**/ios/**/profile
+**/ios/**/xcuserdata
+**/ios/.generated/
+**/ios/Flutter/App.framework
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/ephemeral
+**/ios/Flutter/app.flx
+**/ios/Flutter/app.zip
+**/ios/Flutter/flutter_assets/
+**/ios/Flutter/flutter_export_environment.sh
+**/ios/ServiceDefinitions.json
+**/ios/Runner/GeneratedPluginRegistrant.*
+
+# macOS related
+**/macos/Flutter/GeneratedPluginRegistrant.swift
+**/macos/Flutter/ephemeral
+
+# Web related
+**/web/**/lib/generated_plugin_registrant.dart
+
+# Test related
+test/coverage_helper_test.dart
+
+# Node.js related
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
+.env
+.env.local
+.env.production
+.env.development
+backend/.env
+backend/.env.local
+backend/production-env-values.txt
+
+# CRITICAL: Never commit credentials or secrets
+backend/COMPLETE_ENV_VARIABLES.txt
+COMPLETE_ENV_VARIABLES.txt
+backend/FIREBASE_SECRET_KEY.md
+FIREBASE_SECRET_KEY.md
+backend/RENDER_ENV_VARS.env
+RENDER_ENV_VARS.env
+backend/service-account-key.json
+backend/firebase-service-account.json
+**/service-account*.json
+**/*credentials*.txt
+**/*secrets*.txt
+**/*private-key*.json
+**/*COMPLETE_ENV*.txt
+**/*ENV_VARS*.env
+
+# Security documentation with real examples
+SECURITY_CREDENTIALS_*.md
+**/delete-placeholder-*.js
+**/*_temp_*.js
+GITHUB_SECURITY_ALERT_ANALYSIS.md
+
+# Firebase related
+.firebase/
+firebase-debug.log*
+firestore-debug.log*
+ui-debug.log*
+
+# Firebase configuration files (contain API keys)
+# NOTE: These files are needed for the app to work, so we keep them
+# but make sure they only contain client-side API keys (which are safe to expose)
+# ios/Runner/GoogleService-Info.plist
+# android/app/google-services.json  
+# lib/firebase_options.dart
+
+# Keep Firebase files - they're needed and contain only client-safe keys
+# However, keep service account files secret
+**/firebase-adminsdk*.json
+**/serviceAccountKey.json
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Build artifacts and APKs (large files)
+*.apk
+*.aab
+*.ipa
+android/app/build/
+android/app/build.gradle.kts.backup*
+android/app/*.backup
+
+# Documentation files (keep them clean)
+*_temp.dart
+*.bak
+*.bak2
+
+# Test and debug files
+**/test-*.html
+**/test-*.js
+**/test-*.sh
+**/simple-*.html
+**/loading-test.html
+**/progressive-test.html
+
+# Backend test/debug scripts (may contain test credentials)
+backend/test-*.sh
+backend/test-*.js
+backend/*test*.js
+backend/setup-*.js
+backend/check-*.js
+backend/create-*.js
+backend/analyze-*.js
+backend/*.sh
+!backend/start-backend.sh
+!backend/start.sh
+
+# Temporary scripts
+*.tmp.sh
+**/diagnose-*.sh
+**/troubleshoot-*.sh
+
+# Exception to the rules
+!**/ios/**/default.mode1v3
+!**/ios/**/default.mode2v3
+!**/ios/**/default.pbxuser
+!**/ios/**/default.perspectivev3
+
+# macOS System Files
+.DS_Store
+**/.DS_Store
+
+# Build Outputs
+*.apk
+*.ipa
+*.aab
+*.app
+
+# Backup Files
+*.backup
+*.bak
+*.old
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Environment & Logs
+.env
+.env.local
+*.log
+
+# Node Modules (should always be ignored)
+node_modules/
+backend/node_modules/
+functions/node_modules/
+
+# Build directories
+build/
+.dart_tool/
+.flutter-plugins-dependencies
+
+
+# Deployment configuration guides (may contain setup instructions)
+RENDER_ENV_SETUP.md
+*_ENV_SETUP.md
+*_DEPLOYMENT_*.md
