@@ -10,6 +10,12 @@
 *.env.local
 *.env.production
 
+# ============================================================================
+# Staff and Driver Apps (Maintained Separately)
+# ============================================================================
+al_marya_staff_app/
+al_marya_driver_app/
+
 # Firebase credentials
 google-services.json
 GoogleService-Info.plist
