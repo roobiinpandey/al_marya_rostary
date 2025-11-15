@@ -152,6 +152,7 @@ app.get('/favicon.ico', (req, res) => {
 monitoring.setupHealthEndpoints(app);
 
 // API Routes with caching for public data
+app.use('/api/config', require('./routes/config')); // Public configuration (Stripe, etc.)
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/users', require('./routes/users'));
 

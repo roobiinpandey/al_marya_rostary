@@ -8,7 +8,6 @@ import 'package:firebase_analytics/firebase_analytics.dart';
 import 'firebase_options.dart';
 import 'core/services/firebase_analytics_service.dart';
 import 'core/services/firebase_performance_service.dart';
-import 'core/constants/app_constants.dart';
 import 'core/theme/almaryah_theme.dart';
 import 'utils/app_router.dart';
 import 'features/cart/presentation/providers/cart_provider.dart';
@@ -40,6 +39,7 @@ import 'core/error/global_error_handler.dart';
 import 'core/network/network_manager.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'services/fcm_service.dart';
+import 'core/services/config_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -50,10 +50,18 @@ void main() async {
   // Initialize network manager
   await NetworkManager().initialize();
 
-  // Initialize Stripe with key from AppConstants
-  Stripe.publishableKey = AppConstants.stripePublishableKey;
-  if (kDebugMode) {
-    print('✅ Stripe initialized');
+  // Initialize Stripe by fetching key from backend
+  try {
+    final stripeKey = await ConfigService.getStripePublishableKey();
+    Stripe.publishableKey = stripeKey;
+    if (kDebugMode) {
+      print('✅ Stripe initialized with key from backend');
+    }
+  } catch (e) {
+    if (kDebugMode) {
+      print('❌ Failed to initialize Stripe: $e');
+    }
+    // App will still launch but payment features won't work
   }
 
   // Initialize Firebase with error handling

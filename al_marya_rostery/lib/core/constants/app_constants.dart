@@ -28,9 +28,8 @@ class AppConstants {
   static const String subscriptionsEndpoint = '/api/subscriptions';
 
   // Payment Configuration
-  // ⚠️ IMPORTANT: Change to production key (pk_live_...) before deploying to production
-  static const String stripePublishableKey =
-      '***REMOVED_STRIPE_KEY***';
+  // ⚠️ Stripe key is now fetched from backend via ConfigService
+  // This prevents exposing sensitive keys in the app source code
 
   // App Info
   static const String appName = 'ALMARYAH ROSTERY';
